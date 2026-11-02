@@ -31,6 +31,36 @@ which commit rules and writing tone you want, and wires the repo up.
 
 To update later, run `claude plugin update h2xd@h2xd`.
 
+## What setup does
+
+`/h2xd:setup` reads the repo first, then asks only what it cannot see. The
+questions come in rounds of at most four. Each has a recommended answer that
+you accept with one click.
+
+It asks about:
+
+- the issue tracker: GitHub, GitLab or local markdown files
+- the docs bundle: where it lives, and whether to adopt or migrate an existing one
+- the project and technical glossaries, and the fields each entry needs
+- the language of each kind of page
+- the commit types and scopes, and how long a message may be
+- whether a new decision record needs an issue
+- the hooks and CI workflows that enforce the rules
+- the commands a fresh worktree runs before it can typecheck
+- mutation testing, and which runner plants the bugs
+- a hook that stops the agent from running destructive git commands
+- the triage labels
+- module boundaries, for TypeScript repos
+- the writing tone of the agent
+
+Then it shows every draft and writes nothing until you agree. It writes
+`agents.config.json`, copies the scripts, git hooks and CI workflows, and adds
+the `package.json` scripts. It also seeds `docs/`, creates the issue labels and
+adds its blocks to `CLAUDE.md` or `AGENTS.md`.
+
+It ends with one line per item, marked 🔴, 🟡 or 🟢. Run it again to update the
+scripts or to change an answer.
+
 ## The loop
 
 ```mermaid
@@ -264,7 +294,15 @@ scripts/          the skills lint and this repo's tests
 <summary><b>Developing</b></summary>
 
 The scripts need Node 22.18 or later and no npm packages. This repo develops on
-Node 26, pinned in `.nvmrc` and `.prototools`.
+Node 26, pinned in `.prototools` and `.nvmrc`. [proto](https://moonrepo.dev/proto)
+installs the pinned version:
+
+```sh
+bash <(curl -fsSL https://moonrepo.dev/install/proto.sh)
+proto install
+```
+
+With nvm, run `nvm install` instead. Then:
 
 ```sh
 npm ci

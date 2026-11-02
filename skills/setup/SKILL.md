@@ -34,8 +34,10 @@ Read what exists. Assume nothing.
   `index.md`, a `log.md`, a decisions directory such as `decisions/`, `adr/`
   or `docs/adr/`, and the record format, MADR or Nygard.
 - Glossaries: `GLOSSARY.md`, `CONTEXT.md`, `docs/**/glossary*.md`.
-- Runtime: Node 22.18 or later on `PATH`. The scripts need no npm packages. A
-  repo without `package.json` gets a minimal one.
+- Runtime: run `node --version`. When node is missing or older than 22.18,
+  stop and say so, and suggest proto, nvm or the nodejs.org installer. The lint
+  commands need it, and the hooks skip their checks without it. A repo without
+  `package.json` gets a minimal one.
 - Tests and stack: the test, typecheck and build commands, and any installed
   mutation tool, such as Stryker, mutmut, cargo-mutants, PIT or gremlins.
 - Hooks: `git config core.hooksPath`, `.husky/`, `.githooks/`, `lefthook.yml`
@@ -114,10 +116,9 @@ Done when the user confirms.
    `../git-guardrails/SKILL.md` per J in project scope,
    `../lang-ts-deep-modules/SKILL.md` when L was yes, `../setup-tone/SKILL.md` per M.
 
-Done when every file from step 3 exists and `node scripts/lint-docs.ts` exits
-0. Also, a message file that holds only `chore(tooling): x` must make
-`node scripts/lint-commit-message.ts <file>` exit 1 for the empty body. That
-proves the hook reads the config.
+Done when every file from step 3 exists, `node scripts/lint-docs.ts` exits 0,
+and `node scripts/lint-commit-message.ts <file>` exits 1 on a file that holds
+only `chore(tooling): x`. That empty body proves the hook reads the config.
 
 ### 5. Report
 
@@ -138,7 +139,6 @@ Done when every written file and follow-up has its line.
 
 - Explore before asking, and recommend what the repo already does.
 - Show every draft first, and keep existing keys, hooks and blocks.
-- Prove the commit hook reads the config with the empty-body check.
 
 ## Don't
 

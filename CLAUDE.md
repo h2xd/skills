@@ -23,6 +23,9 @@ copies `templates/` into their repos.
 - This repo writes in ASD-STE100, set in `.claude/output-styles/asd-ste100.md`.
 - A new skill gets a row in `skills/next/catalog.md`, and a place in its
   flows when it has one. `node scripts/lint-skills.ts` fails without the row.
+- The README's "What setup does" section describes `skills/setup/SKILL.md`
+  and `skills/setup/questions.md`. A change to either updates that section in
+  the same change.
 - Repo-specific values never appear in a skill. They live in the target repo's
   `agents.config.json` for scripts, or in `docs/agents/*.md` for skills.
 
