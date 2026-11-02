@@ -1,6 +1,6 @@
 # h2xd skills
 
-45 skills and 2 agents for Claude Code and Codex. They are my own take on many
+45 skills and 2 agents for Claude Code. They are my own take on many
 great skill repos, shaped for my projects. My projects keep their knowledge in
 an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)
 bundle that works as an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
@@ -18,29 +18,15 @@ commit messages, the PR bodies, and the language of the skills themselves.
 Where a rule can be a check, it is one, and it runs without an agent, in git
 hooks and in CI.
 
-The skills work in Claude Code and in Codex.
-
 ## Install
 
-**Claude Code**, one line:
+One line in your terminal:
 
 ```sh
 claude plugin marketplace add h2xd/skills && claude plugin install h2xd@h2xd
 ```
 
-**Codex**, one line:
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/h2xd/skills/main/scripts/install-codex.sh | sh
-```
-
-The Codex installer clones the repo to `~/.h2xd-skills`, links the skills into
-`~/.agents/skills/` and writes the two agents to `~/.codex/agents/`. Run it
-again to update. Add `-s -- --project <dir>` after `sh` for one repo only, or
-`-s -- --uninstall` to remove it.
-
-In Codex, write `$<name>` wherever this README says `/h2xd:<name>`, such as
-`$setup` for `/h2xd:setup`.
+Run it again to update.
 
 ## Try it in five minutes
 
@@ -55,18 +41,25 @@ In Codex, write `$<name>` wherever this README says `/h2xd:<name>`, such as
 ## The loop
 
 ```mermaid
-flowchart LR
-  idea([An idea]) -->|questions until nothing is open| grill[plan-grill]
-  grill -->|written up| spec[to-spec]
-  spec -->|split into tickets| tickets[to-tickets]
-  tickets -->|one ticket| impl[code-implement]
-  impl -->|PR body| body[git-pr-body]
-  body -->|five reviewers| review[review-pr]
-  review -->|open threads| fix[review-fix]
-  fix -->|merged| retro[session-retro]
+flowchart TD
+  idea([An idea])
+  subgraph plan [Plan]
+    grill[plan-grill] -->|written up| spec[to-spec]
+    spec -->|split| tickets[to-tickets]
+  end
+  subgraph build [Build]
+    impl[code-implement] -->|PR body| body[git-pr-body]
+    impl -.->|something breaks| debug[code-debug]
+    debug -.->|fixed, with a test| impl
+  end
+  subgraph ship [Review and learn]
+    review[review-pr] -->|open threads| fix[review-fix]
+    fix -->|merged| retro[session-retro]
+  end
+  idea -->|questions until nothing is open| grill
+  tickets -->|one ticket| impl
+  body -->|five reviewers| review
   retro -->|lessons become checks| idea
-  impl -.->|something breaks| debug[code-debug]
-  debug -.->|fixed, with a test| impl
 ```
 
 Not sure where you are in it? `/h2xd:next` knows.
@@ -269,7 +262,7 @@ templates/        what setup copies into a repo
   output-styles/  tone templates, such as asd-ste100.md
   docs/           seed bundle: index, log, both glossaries
   agents.config.json
-scripts/          install-codex.sh, the skills lint, and this repo's tests
+scripts/          the skills lint and this repo's tests
 .claude/          this repo's own tone: ASD-STE100
 .github/          this repo's CI
 ```
