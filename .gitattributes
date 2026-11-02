@@ -1,0 +1,4 @@
+# Shell scripts and git hooks must keep LF line endings, or they fail on
+# macOS and Linux after a checkout on Windows.
+*.sh text eol=lf
+templates/githooks/* text eol=lf
