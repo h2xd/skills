@@ -1,0 +1,4 @@
+# Codex reads this file. It mirrors disable-model-invocation in SKILL.md:
+# the skill starts only when the user calls it, as $to-questionnaire.
+policy:
+  allow_implicit_invocation: false
