@@ -53,6 +53,8 @@ Starting points that create work, then join the main flow.
   candidates. The one the user picks goes to `h2xd:plan-grill`.
 - A question nobody in the session can answer: `h2xd:to-questionnaire` asks the
   person who can. The answers go back to `h2xd:plan-grill` or `h2xd:to-spec`.
+- An idea that may clash with what the wiki says: `h2xd:docs-fact-check`
+  before `h2xd:plan-grill`.
 - A fact from outside the repo: `h2xd:docs-research` files it as a wiki page
   that `h2xd:plan-grill` and `h2xd:to-spec` can cite.
 
@@ -83,6 +85,9 @@ explains the result plainly. Run them before a change to unfamiliar code.
   `h2xd:code-arena` builds several real attempts and grafts the best into one.
 - `h2xd:code-arena` gives every worker the same task. `h2xd:code-swarm`
   splits one task into slices or a race and returns one report.
+- `h2xd:docs-fact-check` checks one idea against the wiki and changes
+  nothing. `h2xd:docs-proofread` reads the whole wiki against itself and fixes
+  words and links.
 - `h2xd:review-pr` reviews the diff against the bar.
   `h2xd:prove-blast-radius` looks for breakage outside the diff.
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
@@ -134,6 +139,8 @@ explains the result plainly. Run them before a change to unfamiliar code.
 | Add, update or query pages in the docs wiki | `h2xd:docs-wiki` |
 | Add, sharpen or rename a glossary term | `h2xd:docs-glossary` |
 | Record, supersede or correct a decision | `h2xd:docs-adr` |
+| Check an idea or claim against the docs wiki | `h2xd:docs-fact-check` |
+| Proofread the whole wiki, unattended, with several agents | `h2xd:docs-proofread` |
 | Pass the work to a fresh session or agent | `h2xd:session-handoff` |
 | Turn a session's mistakes into lasting fixes | `h2xd:session-retro` |
 | Walk a person through steps only they can do | `h2xd:setup-wizard` |

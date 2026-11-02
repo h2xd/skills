@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0
+
+- `docs-fact-check` checks an idea against the wiki, claim by claim.
+- `docs-proofread` proofreads the wiki with several agents, such as
+  overnight. It fixes words and links on a branch and suggests the rest.
+
 ## 0.1.0
 
 The first public release.

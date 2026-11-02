@@ -1,6 +1,6 @@
 # h2xd skills
 
-45 skills and 2 agents for Claude Code. They keep what an agent learns in the
+47 skills and 2 agents for Claude Code. They keep what an agent learns in the
 repo, where the next session finds it. They build on many great skill repos and
 grew out of my own projects.
 
@@ -133,7 +133,7 @@ The memory of the repo. Pages that change with the code, one word per thing,
 and every decision with its reason.
 
 <details>
-<summary><b>Docs</b>: wiki, glossary, decisions, research</summary>
+<summary><b>Docs</b>: wiki, glossary, decisions, research, fact check, proofread</summary>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -141,6 +141,8 @@ and every decision with its reason.
 | `docs-glossary` | Adds, sharpens and renames terms in the two glossaries | A new term comes up, or two words name one thing | auto |
 | `docs-adr` | Checks for overlap, opens the issue, writes the decision record, links the PR | A hard-to-reverse decision is made or contradicted | auto |
 | `docs-research` | Answers a question from primary sources and files it in the docs | You need facts about a library, an API or a standard | auto |
+| `docs-fact-check` | Checks each claim of an idea against the pages, glossaries and decisions | An idea or plan may disagree with what the wiki says | auto |
+| `docs-proofread` | Proofreads the wiki with several agents, fixes words and links, and suggests the rest | Overnight, or before a release, to keep the pages one piece | you |
 
 </details>
 
