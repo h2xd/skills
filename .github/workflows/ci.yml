@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: tests on node ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 22.18 is the oldest version the scripts promise to run on. 26 is the
+        # version this repo develops on, pinned in .nvmrc.
+        node: ["22.18", "26"]
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests, including the skills lint on every skill
+        run: npm test
+
+  skills:
+    name: skills lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      # The lint uses node builtins only, so no install step is needed.
+      - run: node scripts/lint-skills.ts
+
+  shell:
+    name: shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Parse every shell script with dash, the strictest common sh
+        run: |
+          sudo apt-get install -y -qq dash >/dev/null
+          find skills templates scripts -name "*.sh" -print0 | xargs -0 -n1 dash -n
+      - name: Check that hooks and runners are executable
+        run: |
+          for f in templates/githooks/* templates/scripts/prove-tests.sh templates/hooks/block-dangerous-git.sh scripts/install-codex.sh; do
+            test -x "$f" || { echo "not executable: $f"; exit 1; }
+          done
+
+  docs-seed:
+    name: seed docs bundle lints clean
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - name: Lint a fresh bundle the way setup creates it
+        run: |
+          mkdir -p "$RUNNER_TEMP/repo" && cd "$RUNNER_TEMP/repo"
+          cp -r "$GITHUB_WORKSPACE/templates/scripts" scripts
+          cp -r "$GITHUB_WORKSPACE/templates/docs" docs
+          cp "$GITHUB_WORKSPACE/templates/agents.config.json" .
+          find docs -name "*.md" -exec sed -i "s/{{DATE}}/2026-01-01/g; s#{{ACTOR}}#human:ci#g" {} +
+          node scripts/lint-docs.ts
