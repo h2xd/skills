@@ -6,7 +6,7 @@
  *   node scripts/lint-skills.ts
  */
 
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { parseYaml } from "../templates/scripts/yaml.ts"
 import { fileURLToPath } from "node:url"
@@ -88,22 +88,6 @@ export function lintSkill(folder: string, text: string): string[] {
   return problems
 }
 
-/**
- * Codex has no disable-model-invocation. It reads `agents/openai.yaml` in the
- * skill folder instead, so a user-only skill needs that file, and only then.
- */
-export function lintCodexPolicy(folder: string, skill: string, openaiYaml: string | undefined): string[] {
-  const userOnly = /^disable-model-invocation: true$/m.test(skill.split("\n---")[0])
-  const blocked = openaiYaml !== undefined && /^\s*allow_implicit_invocation: false\s*$/m.test(openaiYaml)
-  if (userOnly && !blocked) {
-    return [`skills/${folder}: user-only, but agents/openai.yaml does not set allow_implicit_invocation: false for Codex`]
-  }
-  if (!userOnly && blocked) {
-    return [`skills/${folder}: agents/openai.yaml blocks implicit use, but SKILL.md lets the model start it`]
-  }
-  return []
-}
-
 /** Every skill folder has exactly one row in the catalog of `next` table, and every row names a folder. */
 export function lintCatalog(folders: string[], catalog: string): string[] {
   const rows = [...catalog.matchAll(/^\|[^|\n]*\| `h2xd:([a-z0-9-]+)` \|$/gm)].map((m) => m[1])
@@ -159,9 +143,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (EXEMPT.has(folder)) continue
     const path = join(root, folder, "SKILL.md")
     const text = readFileSync(path, "utf8")
-    const policyPath = join(root, folder, "agents", "openai.yaml")
-    const policy = existsSync(policyPath) ? readFileSync(policyPath, "utf8") : undefined
-    for (const problem of [...lintSkill(folder, text), ...lintCodexPolicy(folder, text, policy)]) {
+    for (const problem of lintSkill(folder, text)) {
       console.error(`skills/${folder}/SKILL.md: ${problem}`)
       failed = true
     }

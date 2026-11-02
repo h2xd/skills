@@ -52,8 +52,6 @@ one reading, as an instruction to follow or a fact to rely on.
   `../setup-tone/github-text.md`.
 - **Length.** At most 150 lines. Move templates, catalogs, briefs for subagents
   and long examples to sibling files, and link them by relative path.
-- **User-only for Codex too.** Next to `disable-model-invocation: true`, add
-  `agents/openai.yaml` with `policy:` and `allow_implicit_invocation: false`.
 
 ## Agent definitions
 
@@ -110,8 +108,8 @@ readings.
 
 Start the `skill-polisher` agent on the skill folder, through the CLI's
 subagent tool, such as Agent with `subagent_type: h2xd:skill-polisher` in
-Claude Code. In Codex the agent is `skill-polisher`. Give it the absolute paths of this file,
-`../add-soul/SKILL.md` and `../setup-tone/github-text.md`. For many skills,
+Claude Code. Give it the absolute paths of this file, `../add-soul/SKILL.md`
+and `../setup-tone/github-text.md`. For many skills,
 start one polisher per skill, in parallel. Review each report, and fix what it
 found in other skills yourself.
 Done when every polisher report is read and its problems are fixed or listed.

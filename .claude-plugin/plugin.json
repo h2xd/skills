@@ -1,7 +1,7 @@
 {
   "name": "h2xd",
   "version": "0.1.0",
-  "description": "45 skills and 2 agents for Claude Code and Codex, grouped as setup, docs, plan, ask, code, prove, git, review and session. Lints keep docs, decisions, commits and PR bodies true, with five-reviewer PR reviews and mutation testing.",
+  "description": "45 skills and 2 agents for Claude Code, grouped as setup, docs, plan, ask, code, prove, git, review and session. Lints keep docs, decisions, commits and PR bodies true, with five-reviewer PR reviews and mutation testing.",
   "author": {
     "name": "h2xd"
   },

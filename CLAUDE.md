@@ -17,9 +17,7 @@ copies `templates/` into their repos.
 - Skills name each other as `h2xd:<name>`. A skill with
   `disable-model-invocation: true` in its frontmatter is user-only. It is
   read by path, `../<name>/SKILL.md`, never invoked by another skill. Telling
-  the user to run it, as `/h2xd:<name>`, is fine. A user-only skill also needs
-  `agents/openai.yaml` with `allow_implicit_invocation: false`, the same switch
-  for Codex. The lint checks that the two agree.
+  the user to run it, as `/h2xd:<name>`, is fine.
 - Text a skill posts to GitHub follows `skills/setup-tone/github-text.md`:
   summary first, 🔴 🟡 🟢 status, bullets, long detail in `<details>`.
 - This repo writes in ASD-STE100, set in `.claude/output-styles/asd-ste100.md`.

@@ -49,7 +49,7 @@ jobs:
           find skills templates scripts -name "*.sh" -print0 | xargs -0 -n1 dash -n
       - name: Check that hooks and runners are executable
         run: |
-          for f in templates/githooks/* templates/scripts/prove-tests.sh templates/hooks/block-dangerous-git.sh scripts/install-codex.sh; do
+          for f in templates/githooks/* templates/scripts/prove-tests.sh templates/hooks/block-dangerous-git.sh; do
             test -x "$f" || { echo "not executable: $f"; exit 1; }
           done
 

@@ -1,8 +1,8 @@
 import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
-import { existsSync, readdirSync, readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { EXEMPT, MAX_LINES, lintCatalog, lintCodexPolicy, lintSkill } from "./lint-skills.ts"
+import { EXEMPT, MAX_LINES, lintCatalog, lintSkill } from "./lint-skills.ts"
 
 const GOOD = `---
 name: demo
@@ -84,25 +84,6 @@ describe("lintSkill", () => {
   })
 })
 
-describe("lintCodexPolicy", () => {
-  const userOnly = GOOD.replace("---\n\n# Demo", "disable-model-invocation: true\n---\n\n# Demo")
-  const blocked = "policy:\n  allow_implicit_invocation: false\n"
-
-  test("passes a user-only skill with the Codex policy, and a model skill without it", () => {
-    expect(lintCodexPolicy("demo", userOnly, blocked)).toEqual([])
-    expect(lintCodexPolicy("demo", GOOD, undefined)).toEqual([])
-  })
-
-  test("names a missing or a stray Codex policy", () => {
-    expect(lintCodexPolicy("demo", userOnly, undefined)).toEqual([
-      "skills/demo: user-only, but agents/openai.yaml does not set allow_implicit_invocation: false for Codex",
-    ])
-    expect(lintCodexPolicy("demo", GOOD, blocked)).toEqual([
-      "skills/demo: agents/openai.yaml blocks implicit use, but SKILL.md lets the model start it",
-    ])
-  })
-})
-
 describe("lintCatalog", () => {
   const row = (name: string) => `| Do ${name} | \`h2xd:${name}\` |`
 
@@ -129,9 +110,7 @@ describe("the skills in this repo", () => {
   for (const folder of readdirSync(root).filter((name) => !EXEMPT.has(name))) {
     test(folder, () => {
       const text = readFileSync(join(root, folder, "SKILL.md"), "utf8")
-      const policyPath = join(root, folder, "agents", "openai.yaml")
-      const policy = existsSync(policyPath) ? readFileSync(policyPath, "utf8") : undefined
-      expect([...lintSkill(folder, text), ...lintCodexPolicy(folder, text, policy)]).toEqual([])
+      expect(lintSkill(folder, text)).toEqual([])
     })
   }
 })

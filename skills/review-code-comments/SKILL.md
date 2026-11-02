@@ -22,7 +22,7 @@ branch, default `main`, including the working tree and untracked files.
 
 1. **Spawn.** Start the `comment-reaper` agent through the CLI's subagent
    tool, such as Agent with `subagent_type: h2xd:comment-reaper` in Claude
-   Code. In Codex the agent is `comment-reaper`. Pass the scope.
+   Code. Pass the scope.
    Do not restate its rules. In a CLI without subagents, read
    `../../agents/comment-reaper.md`, do its pass yourself, then audit it.
 2. **Audit its report and diff.**
