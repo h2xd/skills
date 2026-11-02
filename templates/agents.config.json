@@ -1,0 +1,33 @@
+{
+  "docs": {
+    "root": "docs",
+    "decisions": "decisions",
+    "glossaries": [
+      { "path": "glossary/project.md", "requiredFields": ["Meaning"] },
+      { "path": "glossary/technical.md", "requiredFields": ["Meaning"] }
+    ],
+    "decisionIssueRequiredFrom": 1
+  },
+  "commits": {
+    "types": ["feat", "fix", "docs", "refactor", "test", "chore"],
+    "scopes": ["tooling"],
+    "subjectMax": 72,
+    "maxBodyParagraphs": 2
+  },
+  "pullRequests": { "closingKeyword": "Closes" },
+  "worktreeSetup": [["npm", "install"]],
+  "mutation": {
+    "enabled": true,
+    "runner": "sh",
+    "testCommand": "npm test",
+    "checkCommand": null,
+    "setupCommand": "npm install",
+    "nativeCommand": null,
+    "linesPerMutant": 10,
+    "minMutants": 3,
+    "maxMutants": 40,
+    "maxFileShare": 0.34,
+    "timeoutFactor": 3,
+    "exclude": []
+  }
+}

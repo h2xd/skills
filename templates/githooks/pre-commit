@@ -1,0 +1,18 @@
+#!/bin/sh
+# Check the knowledge base before every commit, so a broken page is caught on
+# the day it breaks. Enabled by `git config core.hooksPath .githooks`, which the
+# `prepare` script in package.json runs on install.
+#
+# To commit past a known failure: git commit --no-verify
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "pre-commit: node not found, skipping the docs check" >&2
+  exit 0
+fi
+
+node scripts/lint-docs.ts || {
+  echo ""
+  echo "pre-commit: the docs check failed. Fix the pages above."
+  echo "  After a merge or rebase, node scripts/resolve-docs.ts fixes the mechanical conflicts."
+  exit 1
+}

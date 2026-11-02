@@ -1,0 +1,19 @@
+name: docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  bundle:
+    name: knowledge base
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 26
+      # The scripts use node builtins only, so no install step is needed.
+      - name: Check the docs bundle
+        run: node scripts/lint-docs.ts
