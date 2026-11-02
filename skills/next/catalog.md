@@ -87,7 +87,8 @@ explains the result plainly. Run them before a change to unfamiliar code.
   splits one task into slices or a race and returns one report.
 - `h2xd:docs-fact-check` checks one idea against the wiki and changes
   nothing. `h2xd:docs-proofread` reads the whole wiki against itself and fixes
-  words and links.
+  words and links. `h2xd:docs-quiz` asks whether the wiki answers real
+  questions.
 - `h2xd:review-pr` reviews the diff against the bar.
   `h2xd:prove-blast-radius` looks for breakage outside the diff.
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
@@ -141,6 +142,7 @@ explains the result plainly. Run them before a change to unfamiliar code.
 | Record, supersede or correct a decision | `h2xd:docs-adr` |
 | Check an idea or claim against the docs wiki | `h2xd:docs-fact-check` |
 | Proofread the whole wiki, unattended, with several agents | `h2xd:docs-proofread` |
+| Test whether the wiki answers real questions | `h2xd:docs-quiz` |
 | Pass the work to a fresh session or agent | `h2xd:session-handoff` |
 | Turn a session's mistakes into lasting fixes | `h2xd:session-retro` |
 | Walk a person through steps only they can do | `h2xd:setup-wizard` |

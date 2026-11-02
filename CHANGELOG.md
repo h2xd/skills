@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- `docs-quiz` lets a fresh agent answer real questions from the wiki alone,
+  then grades each answer against the code, the issues and the records.
+
 ## 0.2.0
 
 - `docs-fact-check` checks an idea against the wiki, claim by claim.
