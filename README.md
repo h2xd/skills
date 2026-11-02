@@ -293,7 +293,7 @@ templates/        what setup copies into a repo
   docs/           seed bundle: index, log, both glossaries
   agents.config.json
 scripts/          the skills lint and this repo's tests
-.claude/          this repo's own tone: ASD-STE100
+.claude/          this repo's tone, ASD-STE100, and links to skills/ and agents/
 .github/          this repo's CI
 ```
 

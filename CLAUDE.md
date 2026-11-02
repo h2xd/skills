@@ -3,6 +3,10 @@
 A Claude Code plugin. `skills/` and `agents/` ship to users. `skills/setup`
 copies `templates/` into their repos.
 
+`.claude/skills` and `.claude/agents` are symlinks to `skills/` and `agents/`,
+so a session in this repo can use the skills it edits. Here they load without
+the `h2xd:` prefix, such as `/add-skill`.
+
 ## Writing skills
 
 - A skill's `description` says what it does and when to use it, so the model
