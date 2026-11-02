@@ -1,15 +1,15 @@
 # h2xd skills
 
-45 skills and 2 agents for Claude Code. They are my own take on many
-great skill repos, shaped for my projects. My projects keep their knowledge in
-an [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)
+45 skills and 2 agents for Claude Code. They are my own take on many great
+skill repos, shaped for my projects. My projects keep their knowledge in an
+[Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)
 bundle that works as an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 I share it because it might be useful to you too. Take what helps, leave the
 rest.
 
 The idea behind it is simple. Your agent forgets everything the moment a
-session ends. Your repo does not have to. These 45 skills and 2 agents keep the knowledge
-where the next session finds it: in docs that stay true, decisions with a paper
+session ends. Your repo does not have to. The skills keep the knowledge where
+the next session finds it: in docs that stay true, decisions with a paper
 trail, commits that explain themselves, and reviews that hold the bar.
 
 Tooling matters here. An agent forgets a rule, but a lint does not. That is why
@@ -26,17 +26,10 @@ One line in your terminal:
 claude plugin marketplace add h2xd/skills && claude plugin install h2xd@h2xd
 ```
 
-Run it again to update.
+Then open a repo and run `/h2xd:setup`. It asks where issues and docs live,
+which commit rules and writing tone you want, and wires the repo up.
 
-## Try it in five minutes
-
-1. Open the repo you want to set up and run `/h2xd:setup`. It asks a few
-   clickable questions: where issues live, where docs live, your commit rules,
-   your writing tone. Then it wires the repo up.
-2. Say "grill me on the CSV export idea". `plan-grill` asks up to four questions
-   at a time until nothing is open.
-3. Lost? Type `/h2xd:next`. It reads your branch and your PR and names the one
-   next step.
+To update later, run `claude plugin update h2xd@h2xd`.
 
 ## The loop
 
@@ -76,7 +69,7 @@ Not sure where you are in it? `/h2xd:next` knows.
 ## Skills
 
 Skills are sorted into groups, and most names start with their group.
-**Starts** says who can start a skill. *auto* means model-startable: the model
+**Starts** says who can start a skill. *auto* means model-startable. The model
 picks it when it fits, and you can call it too. *you* means user-only, because
 it posts in public, costs a lot, or is a deliberate step. Click a group to open
 it.
@@ -127,7 +120,7 @@ that another agent can pick up next week.
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
-| `plan-grill` | Asks up to four clickable questions at a time until no decision is open | A plan, design or idea still has open choices | auto |
+| `plan-grill` | Asks up to four clickable questions at a time until no decision is open | A plan still has open choices, such as "grill me on the CSV export idea" | auto |
 | `plan-sharpen` | Makes a task deeper, not bigger, and rewrites the prompt | A task feels shallow or the prompt is vague | auto |
 | `plan-prototype` | Builds throwaway code to answer one design question | You want to try a state model, flow or UI first | you |
 | `plan-triage` | Moves issues through triage and writes agent-ready briefs | The tracker needs sorting | you |
