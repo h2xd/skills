@@ -1,22 +1,24 @@
 # h2xd skills
 
-45 skills and 2 agents for Claude Code. They are my own take on many great
-skill repos, shaped for my projects. My projects keep their knowledge in an
+45 skills and 2 agents for Claude Code. They keep what an agent learns in the
+repo, where the next session finds it. They build on many great skill repos and
+grew out of my own projects.
+
+Those projects keep their knowledge in an
 [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)
 bundle that works as an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
-I share it because it might be useful to you too. Take what helps, leave the
-rest.
+I hope the skills help you too. Take what helps, leave the rest, and
+[open an issue](https://github.com/h2xd/skills/issues) for what is missing.
 
-The idea behind it is simple. Your agent forgets everything the moment a
-session ends. Your repo does not have to. The skills keep the knowledge where
-the next session finds it: in docs that stay true, decisions with a paper
-trail, commits that explain themselves, and reviews that hold the bar.
+The idea is simple. An agent forgets everything the moment a session ends, but
+a repo does not have to. The skills keep the knowledge where the next session
+finds it: in docs that stay true, decisions with a paper trail, commits that
+explain themselves, and reviews that hold the bar.
 
-Tooling matters here. An agent forgets a rule, but a lint does not. That is why
-this set puts so much weight on linting: the docs, the glossary words, the
-commit messages, the PR bodies, and the language of the skills themselves.
-Where a rule can be a check, it is one, and it runs without an agent, in git
-hooks and in CI.
+An agent forgets a rule, but a lint does not. That is why this set lints so
+much: the docs, the glossary words, the commit messages, the PR bodies, and the
+language of the skills themselves. Where a rule can be a check, it is one, and
+it runs without an agent, in git hooks and in CI.
 
 ## Install
 
@@ -27,7 +29,7 @@ claude plugin marketplace add h2xd/skills && claude plugin install h2xd@h2xd
 ```
 
 Then open a repo and run `/h2xd:setup`. It asks where issues and docs live,
-which commit rules and writing tone you want, and wires the repo up.
+which commit rules and writing tone you want, and then sets up the repo.
 
 To update later, run `claude plugin update h2xd@h2xd`.
 
@@ -58,8 +60,9 @@ Then it shows every draft and writes nothing until you agree. It writes
 the `package.json` scripts. It also seeds `docs/`, creates the issue labels and
 adds its blocks to `CLAUDE.md` or `AGENTS.md`.
 
-It ends with one line per item, marked 🔴, 🟡 or 🟢. Run it again to update the
-scripts or to change an answer.
+It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
+and 🔴 means something blocks a skill. Run it again to update the scripts or to
+change an answer.
 
 ## The loop
 
@@ -98,11 +101,12 @@ Not sure where you are in it? `/h2xd:next` knows.
 
 ## Skills
 
-Skills are sorted into groups, and most names start with their group.
-**Starts** says who can start a skill. *auto* means model-startable. The model
-picks it when it fits, and you can call it too. *you* means user-only, because
-it posts in public, costs a lot, or is a deliberate step. Click a group to open
-it.
+Skills are sorted into groups, and most names start with their group. Click a
+group to open it. The **Starts** column says who can start a skill:
+
+- *auto*: the model picks it when it fits, and you can call it too.
+- *you*: only you start it, because it posts in public, costs a lot, or is a
+  deliberate step.
 
 ### Core
 
@@ -172,7 +176,7 @@ Three question words and a teacher. Ask them as often as you like.
 | `what` | Says the last message again, in plain words | The last answer did not land | auto |
 | `how` | Explains how code works and where new code belongs | You want the map before you change something | you |
 | `why` | Explains why code is the way it is, with sources | You want the reason behind a choice or a number | you |
-| `teach` | Explains a whole body of work plainly, built on `how` and `why` | You want to really understand a part of the system | you |
+| `teach` | Explains a whole body of work plainly, built on `how` and `why` | You want to understand a whole part of the system | you |
 
 </details>
 
@@ -243,7 +247,7 @@ Five reviewers and one grim reaper.
 |---|---|---|---|
 | `review-pr` | Reviews a PR with five reviewers and posts one review | A PR is ready | you |
 | `review-fix` | Fixes the review threads, replies and resolves them | A PR has comments to address | you |
-| `review-code-comments` | Sends the comment reaper over a diff | Before review, or when a diff narrates itself | auto |
+| `review-code-comments` | Sends the comment reaper over a diff | Before review, or when the comments in a diff only repeat the code | auto |
 | `review-skills` | Finds skills that overlap and proposes exact fixes | The wrong skill fires, or after adding several | you |
 
 </details>
@@ -267,7 +271,7 @@ The end of one session is the start of the next.
 - **`comment-reaper`** hates comments. It deletes every one its keep list does
   not protect, and marks the code that needed one. Its first words on every
   run: "Every comment's hour comes."
-- **`skill-polisher`** reads one skill with fresh eyes, on a fast model. It
+- **`skill-polisher`** reads one skill in a new context, on a fast model. It
   fixes errors and walls of text, and suggests better names. `add-skill` sends
   one per skill.
 
@@ -293,7 +297,10 @@ scripts/          the skills lint and this repo's tests
 <details>
 <summary><b>Developing</b></summary>
 
-The scripts need Node 22.18 or later and no npm packages. This repo develops on
+Pull requests are welcome. For a bigger change, please open an issue first so we
+can talk it through.
+
+The scripts need Node 22.18 or later and no npm packages. Development uses
 Node 26, pinned in `.prototools` and `.nvmrc`. [proto](https://moonrepo.dev/proto)
 installs the pinned version:
 
@@ -328,23 +335,23 @@ updates installed plugins by version.
 
 ## License
 
-MIT, see [`LICENSE`](LICENSE).
+MIT, see [`LICENSE`](LICENSE). The licenses and notices of the work this set
+builds on are in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
-This set stands on the shoulders of two generous people. Much of it is my own
-interpretation of their work, reshaped to fit how I like to work:
+This set stands on the shoulders of two generous people. Much of it is their
+work, reshaped to fit my own workflow:
 
-- **Matt Pocock** and his [skills](https://github.com/mattpocock/skills). The
+- **Matt Pocock** and [mattpocock/skills](https://github.com/mattpocock/skills). The
   grilling interview, the spec and ticket flow, the triage roles, the TDD
   seams and much more began there.
 - **Lauren Tan** and [pstack](https://github.com/cursor/plugins/tree/main/pstack).
   The rules behind `add-soul`, the comment reaper, the blast radius, the arena
   and many of the working principles began there.
 
-Thanks also to **Dex Horthy** at [HumanLayer](https://github.com/humanlayer/skills),
-whose show-me skill gave `git-pr-body` its summary views, and to the author of
-an [ASD-STE100 output style gist](https://gist.github.com/starise/470f53dbd16149dcd168fa45bff17d1f)
+Thanks also to **Dex Horthy** at [HumanLayer](https://github.com/humanlayer/skills).
+The HumanLayer show-me skill gave `git-pr-body` its summary views. Thanks too to
+the author of an [ASD-STE100 output style gist](https://gist.github.com/starise/470f53dbd16149dcd168fa45bff17d1f)
 that inspired this repo's tone.
 
 Thank you all for sharing such fantastic work in the open. Where these skills
-are good, a lot of that is yours. Where they fall short, that is on me. Your
-licenses and notices are in [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+are good, a lot of that is yours. Where they fall short, the fault is mine.
