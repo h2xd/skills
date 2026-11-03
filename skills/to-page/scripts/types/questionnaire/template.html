@@ -1,0 +1,18 @@
+{{#if context}}<p class="facts">{{{ context }}}</p>{{/if}}
+<p class="intro">The option marked "Recommended" comes first. When it fits, one click is enough. "I don't know" is a useful answer.{{#if minutes}} It takes about {{ minutes }} minutes.{{/if}}</p>
+{{#each groups}}{{#if theme}}<h2 class="theme">{{{ theme }}}</h2>{{/if}}
+<ol class="items">
+{{#each items}}<li class="item" id="{{ id }}">
+<fieldset class="q"><legend><span class="id">{{ id }}</span> {{{ q }}}</legend>
+{{#if why}}<p class="why">{{{ why }}}</p>{{/if}}
+{{#if open}}{{#if guess}}<p class="note"><b>Our best guess.</b> Correct it if it is wrong: {{{ guess }}}</p>{{/if}}
+<textarea name="{{ id }}.note" rows="2" placeholder="Your answer" data-done></textarea>
+{{else}}{{> options }}
+<textarea name="{{ id }}.note" rows="1" placeholder="Note, or your own answer"></textarea>{{/if}}
+</fieldset>
+</li>
+{{/each}}</ol>
+{{/each}}
+<h2 class="theme">Anything else?</h2>
+<div class="item"><label for="{{ more }}">Is there something we did not ask that we should know?</label>
+<textarea id="{{ more }}" name="{{ more }}" rows="2" placeholder="Your answer"></textarea></div>

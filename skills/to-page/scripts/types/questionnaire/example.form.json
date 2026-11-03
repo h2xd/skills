@@ -1,0 +1,7 @@
+{"t":"questionnaire","id":"example-onboarding","title":"Your team's onboarding","intro":"We are building the new onboarding for your team. Your answers decide what we build first.","from":"The product team","to":"Head of customer success","purpose":"Plan the first release of the onboarding.","deadline":"Friday, 14 November","minutes":"10","context":"Today a new user gets one welcome email and a link to the help center. **About half** of new users never finish their profile.",
+"items":[
+ {"id":"Q1","theme":"Your new users","q":"Who sets up a new account at your company?","opts":[["admin","An admin, for the whole team","One person sets up many accounts."],["self","Each person, for themselves"]],"rec":"self"},
+ {"id":"Q2","q":"Where do new users get stuck today?","why":"We want to fix the step that costs the most, not the step we can see.","guess":"At the step that connects the calendar. Most support tickets are about it."},
+ {"id":"Q3","theme":"The first week","q":"How do you want to reach a new user in the first week?","opts":[["mail","Email","Works without the user opening the app."],["app","Messages in the app"],["both","Both"]],"rec":"mail"},
+ {"id":"Q4","q":"What must a new user be able to do at the end of the first week?","why":"This becomes the goal we measure the onboarding against."}
+]}

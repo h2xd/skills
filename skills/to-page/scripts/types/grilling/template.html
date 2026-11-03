@@ -1,0 +1,12 @@
+<ol class="items">
+{{#each items}}<li class="item prio-{{ prio }}" id="{{ id }}">
+<div class="item-head"><span class="id">{{ id }}</span><span class="badge prio">{{ prioLabel }}</span></div>
+<fieldset class="q"><legend>{{{ q }}}</legend>
+<p class="why">{{{ why }}}</p>
+{{#if depends}}<ul class="depends">{{#each depends}}<li>Builds on <b>{{ id }}</b>{{#if q}}: {{{ q }}}{{/if}}{{#if answer}} <span class="answer">{{{ answer }}}</span>{{/if}}{{#if note}} <i>{{{ note }}}</i>{{/if}}</li>{{/each}}</ul>{{/if}}
+{{> options }}
+</fieldset>
+{{#if refs}}<details class="refs"><summary>Code references</summary><ul>{{#each refs}}<li><code>{{ this }}</code></li>{{/each}}</ul></details>{{/if}}
+<textarea name="{{ id }}.note" rows="1" placeholder="Note, or your own answer"></textarea>
+</li>
+{{/each}}</ol>

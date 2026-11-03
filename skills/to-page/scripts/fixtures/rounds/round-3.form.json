@@ -1,0 +1,4 @@
+{"t":"grilling","id":"example-export","previous":"round-2","title":"CSV export · Round 3","intro":"Last open point.",
+"items":[
+ {"id":"Q7","prio":"blocker","q":"Who cleans up expired files?","why":"The files hold customer emails.","opts":[["cron","A nightly job"],["ttl","Storage lifecycle rule","No code to keep."]],"rec":"ttl","preselect":true,"depends":["Q5","Q2"]}
+]}

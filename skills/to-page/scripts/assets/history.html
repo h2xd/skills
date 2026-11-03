@@ -1,0 +1,1 @@
+{{#if history}}<section class="history">{{#each history}}<details><summary>{{{ title }}}</summary><ul>{{#each items}}<li><span class="id">{{ id }}</span> {{{ q }}}<br><b>{{#if answer}}{{{ answer }}}{{else}}No answer{{/if}}</b>{{#if note}} · {{{ note }}}{{/if}}</li>{{/each}}</ul></details>{{/each}}</section>{{/if}}

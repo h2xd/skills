@@ -30,8 +30,8 @@ a long search, start a subagent with a fresh context, through the CLI's
 subagent tool, such as Agent. Only the questions downstream of a running search
 wait for it.
 
-When someone other than the user holds an answer, offer `/h2xd:to-questionnaire`
-for that branch. Keep grilling the rest.
+When a customer or someone outside the team holds an answer, offer
+`/h2xd:to-questionnaire` for that branch. Keep grilling the rest.
 
 Done when no question in the next wave asks for something you could look up.
 

@@ -52,7 +52,8 @@ Starting points that create work, then join the main flow.
 - Code that is hard to change or test: `h2xd:code-architecture` finds the
   candidates. The one the user picks goes to `h2xd:plan-grill`.
 - A question nobody in the session can answer: `h2xd:to-questionnaire` asks the
-  person who can. The answers go back to `h2xd:plan-grill` or `h2xd:to-spec`.
+  customer or the person who can, on a page. The answers go back to
+  `h2xd:plan-grill` or `h2xd:to-spec`.
 - An idea that may clash with what the wiki says: `h2xd:docs-fact-check`
   before `h2xd:plan-grill`.
 - A fact from outside the repo: `h2xd:docs-research` files it as a wiki page
@@ -91,6 +92,10 @@ explains the result plainly. Run them before a change to unfamiliar code.
   questions.
 - `h2xd:review-pr` reviews the diff against the bar.
   `h2xd:prove-blast-radius` looks for breakage outside the diff.
+- `h2xd:plan-grill` asks up to four questions at a time in the chat.
+  `h2xd:to-page` puts a checklist or a round of decisions on a page, for the
+  user or the team. `h2xd:to-questionnaire` puts broad questions on a page
+  for a customer or a person outside the team.
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
   user's next prompt before it is sent.
 - `h2xd:session-handoff` writes the session down for another session or agent.
@@ -108,7 +113,8 @@ explains the result plainly. Run them before a change to unfamiliar code.
 | Stress-test an idea, plan or design by interview | `h2xd:plan-grill` |
 | Write a discussed feature up as a spec issue | `h2xd:to-spec` |
 | Split a spec or plan into tickets with blocking edges | `h2xd:to-tickets` |
-| Ask someone else the questions a plan waits on | `h2xd:to-questionnaire` |
+| Work through checks or decisions on a page | `h2xd:to-page` |
+| Ask a customer or someone outside the team the questions a plan waits on | `h2xd:to-questionnaire` |
 | Move incoming issues and PRs to agent-ready | `h2xd:plan-triage` |
 | Build a feature or fix a bug test-first | `h2xd:code-tdd` |
 | Diagnose and fix a bug or a slowdown | `h2xd:code-debug` |

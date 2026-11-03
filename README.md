@@ -163,7 +163,8 @@ that another agent can pick up next week.
 | `plan-triage` | Moves issues through triage and writes agent-ready briefs | The tracker needs sorting | you |
 | `to-spec` | Turns the conversation into a spec issue | A discussed feature should be written down | auto |
 | `to-tickets` | Splits a spec into tickets with blockers and acceptance criteria | The spec is settled | you |
-| `to-questionnaire` | Turns a decision someone else must answer into a questionnaire | A plan waits on another person | you |
+| `to-page` | Renders a checklist or a round of decisions as a page, and reads the answers back as JSON | Many checks or decisions wait on you or the team | auto |
+| `to-questionnaire` | Turns what a customer must answer into a questionnaire page, and reads the answers back | A plan waits on a customer or another person outside the team | you |
 
 </details>
 

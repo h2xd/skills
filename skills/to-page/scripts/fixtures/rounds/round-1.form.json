@@ -1,0 +1,7 @@
+{"t":"grilling","id":"example-export","title":"CSV export · Round 1","intro":"Pick an option per question. The first decisions block the build.","from":"The export team","to":"Product owner","purpose":"Settle the export design before the first ticket.","deadline":"Friday",
+"items":[
+ {"id":"Q1","prio":"blocker","q":"Where does the export run?","why":"It decides if a large export can block the request.","opts":[["a","In the request"],["b","In a background job","Large exports take longer than the 30 s request timeout."]],"rec":"b","refs":["src/export/run-export.ts:42"]},
+ {"id":"Q2","prio":"blocker","q":"Who may export?","why":"The export contains customer emails.","opts":[["admin","Admins only","Smallest data exposure."],["team","Every team member"]],"rec":"admin"},
+ {"id":"Q3","prio":"important","q":"How does the user get the file?","why":"A background job needs a way back to the user.","opts":[["mail","Email with a link"],["inbox","A download list in the app","No mail setup needed."]],"rec":"inbox"},
+ {"id":"Q4","prio":"nice","q":"Which file format comes first?","why":"Only one format fits in the first release.","opts":[["csv","CSV"],["xlsx","XLSX"]]}
+]}

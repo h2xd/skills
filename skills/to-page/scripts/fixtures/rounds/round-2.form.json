@@ -1,0 +1,5 @@
+{"t":"grilling","id":"example-export","previous":"round-1","title":"CSV export · Round 2","intro":"Follow-up questions after round 1.",
+"items":[
+ {"id":"Q5","prio":"important","q":"How long does a download link stay valid?","why":"Old links to customer data are a risk.","opts":[["d1","1 day"],["d7","7 days","Covers a weekend and a holiday."]],"rec":"d7","depends":["Q3"]},
+ {"id":"Q6","prio":"nice","q":"Show a progress bar for running exports?","why":"Large exports take minutes.","opts":["Yes","No"],"depends":["Q1"]}
+]}

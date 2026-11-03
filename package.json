@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test \"templates/**/*.test.ts\" \"scripts/**/*.test.ts\"",
+    "test": "node --test \"templates/**/*.test.ts\" \"scripts/**/*.test.ts\" \"skills/**/*.test.ts\"",
     "typecheck": "tsc -p .",
     "skills:lint": "node scripts/lint-skills.ts"
   },
