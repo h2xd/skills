@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.0
+
+- `to-page` turns a checklist or a round of hard decisions into one HTML
+  page that works offline. The agent writes a small JSON form file, and a
+  script renders the page. The answers come back as JSON, and later rounds
+  build on them.
+- `to-questionnaire` now renders a questionnaire page with the `to-page`
+  tool, for a customer or another person outside the team. It groups
+  questions by theme and accepts open answers. The page replaces the
+  Markdown template.
+
 ## 0.3.0
 
 - `docs-quiz` lets a fresh agent answer real questions from the wiki alone,
