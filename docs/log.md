@@ -6,4 +6,6 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 
 ## 2026-11-05
 
+* **Decision**: [0001](/decisions/0001-to-page-decision-type.md) accepts a `decision` page type for to-page, one decision per page with rated criteria.
+
 * **Creation**: Set up the knowledge base with the `h2xd:setup` skill.

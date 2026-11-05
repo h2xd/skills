@@ -14,6 +14,7 @@ in step with the files, and `node scripts/lint-docs.ts` fails when it drifts.
 
 ## Decisions
 
+* [Add a decision page type to to-page](/decisions/0001-to-page-decision-type.md) - Why h2xd:to-page gets a third page type for one hard choice, and how its form, page and answers differ from grilling.
 
 ## Research
 
