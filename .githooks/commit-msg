@@ -1,0 +1,15 @@
+#!/bin/sh
+# Check the commit message before it is recorded, so the history stays readable
+# by the next session. Enabled by `git config core.hooksPath .githooks`, which
+# the `prepare` script in package.json runs on install.
+#
+# The message is not available to pre-commit, which is why this is its own hook.
+#
+# To commit past a known failure: git commit --no-verify
+
+if ! command -v node >/dev/null 2>&1; then
+  echo "commit-msg: node not found, skipping the commit message check" >&2
+  exit 0
+fi
+
+exec node scripts/lint-commit-message.ts "$1"

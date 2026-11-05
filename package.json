@@ -5,7 +5,14 @@
   "scripts": {
     "test": "node --test \"templates/**/*.test.ts\" \"scripts/**/*.test.ts\" \"skills/**/*.test.ts\"",
     "typecheck": "tsc -p .",
-    "skills:lint": "node scripts/lint-skills.ts"
+    "skills:lint": "node scripts/lint-skills.ts",
+    "docs:lint": "node scripts/lint-docs.ts",
+    "docs:find": "node scripts/find-docs.ts",
+    "docs:resolve": "node scripts/resolve-docs.ts",
+    "review": "node scripts/review.ts",
+    "commit:lint": "node scripts/lint-commit-message.ts",
+    "pr:lint": "node scripts/lint-pr-body.ts",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "devDependencies": {
     "@types/node": "^22.18.0",

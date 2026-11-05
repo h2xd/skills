@@ -51,3 +51,44 @@ the `h2xd:` prefix, such as `/add-skill`.
 - The scripts run on Node 22.18 or later with no npm packages. `npm test` and
   `npm run typecheck` must pass. Setup does not copy `*.test.ts`
   into target repos.
+- `scripts/`, `.githooks/`, `.github/workflows/docs.yml`, `pr.yml` and
+  `.claude/hooks/` hold this repo's own copies of `templates/`. Change the
+  template, then copy it. `scripts/repo.test.ts` fails when a copy differs.
+
+## Agent skills
+
+- **Issue tracker**: GitHub Issues in `h2xd/skills`, through `gh`. See
+  `docs/agents/issue-tracker.md`.
+- **Knowledge base**: an OKF bundle in `docs/`, maintained with
+  `/h2xd:docs-wiki`. See `docs/agents/knowledge-base.md`.
+  `node scripts/lint-docs.ts` runs on every commit.
+- **Glossaries**: `docs/glossary/project.md` holds domain words.
+  `docs/glossary/technical.md` holds code words. Name a thing by its
+  entry's heading. `/h2xd:docs-glossary` adds and renames terms.
+- **Decisions**: `docs/decisions/`, MADR. A record needs no issue in this
+  repo. `/h2xd:docs-adr` checks for overlap first.
+
+## Commits
+
+`type(scope): summary`, at most 72 characters. Both sets are closed.
+Widening one takes a decision record.
+
+- **Type**: `feat` for new behavior, `fix` for a bug, `docs` for docs and
+  the README only, `refactor` for the same behavior, `test` for tests only,
+  `chore` for tooling and releases.
+- **Scope**, optional: `skills` for `skills/`, `agents` for `agents/`,
+  `templates` for `templates/`, `docs` for the docs-* skills and `docs/`,
+  `tooling` for scripts, hooks, CI and agent config.
+
+The body is one paragraph on what is different now and why. The footer
+carries what the conversation produced: `Refs:` or `Closes:` for the issue,
+the record touched, the option rejected. End with
+`Co-Authored-By: <model> <noreply@anthropic.com>`. `/h2xd:git-commit` writes the
+message. `.githooks/commit-msg` rejects a malformed one.
+
+## Pull requests
+
+Every PR body opens with `Closes #<n>` on its own line, one line per
+issue.
+Merging is what closes an issue. `/h2xd:git-pr-body` writes the body.
+`node scripts/lint-pr-body.ts` checks it in CI.

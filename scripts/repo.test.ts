@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 
 const ROOT = join(import.meta.dirname, "..")
@@ -31,4 +31,26 @@ describe("the GitHub text rules", () => {
     expect(rules).toEqual(["Summary first.", "Status next.", "Short sections.", "Long detail folded."])
     expect(ruleNames("templates/output-styles/asd-ste100.md", "GitHub text")).toEqual(rules)
   })
+})
+
+/** Every file under `dir`, relative to it, without the tests setup leaves out. */
+function filesOf(dir: string): string[] {
+  return readdirSync(join(ROOT, dir), { recursive: true, withFileTypes: true })
+    .filter((entry) => entry.isFile() && !entry.name.endsWith(".test.ts"))
+    .map((entry) => join(entry.parentPath, entry.name).slice(join(ROOT, dir).length + 1))
+}
+
+describe("this repo's copies of the templates", () => {
+  const copies: [string, string][] = [
+    ...filesOf("templates/scripts").map((file): [string, string] => [`templates/scripts/${file}`, `scripts/${file}`]),
+    ...filesOf("templates/githooks").map((file): [string, string] => [`templates/githooks/${file}`, `.githooks/${file}`]),
+    ["templates/workflows/docs.yml", ".github/workflows/docs.yml"],
+    ["templates/workflows/pr.yml", ".github/workflows/pr.yml"],
+    ["templates/hooks/block-dangerous-git.sh", ".claude/hooks/block-dangerous-git.sh"],
+  ]
+  for (const [template, copy] of copies) {
+    test(`${copy} matches ${template}`, () => {
+      expect(readFileSync(join(ROOT, copy), "utf8")).toBe(readFileSync(join(ROOT, template), "utf8"))
+    })
+  }
 })
