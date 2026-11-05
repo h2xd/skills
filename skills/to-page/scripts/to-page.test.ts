@@ -4,12 +4,12 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } 
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { expect } from "../../../scripts/expect.ts"
-import { build, hashOf, loadChain, renderPage } from "./build.ts"
+import { build, buildDone, hashOf, loadChain, parseAnswers, renderPage } from "./build.ts"
 import { checkForm, firstBadOffset, formatIssues, parseJson } from "./check.ts"
 import { inlineMarkdown } from "./inline-markdown.ts"
 import { PAGES, type PageType } from "./schema.ts"
 import { CheckError } from "./shape.ts"
-import { pageServer, urlsOf } from "./serve.ts"
+import { pageServer, urlsOf, waitForAnswers } from "./serve.ts"
 import { spec, specMarkdown } from "./spec.ts"
 import { compile, render } from "./template.ts"
 
@@ -42,6 +42,9 @@ const item = (extra = {}) => ({ id: "C1", title: "Title", text: "Text", ...extra
 const grilling = (items: unknown[], extra = {}) => ({ t: "grilling", id: "g", title: "T", intro: "I", items, ...extra })
 const questionnaire = (items: unknown[], extra = {}) => ({ t: "questionnaire", id: "q", title: "T", intro: "I", to: "A customer", purpose: "P", items, ...extra })
 const ask = (extra = {}) => ({ id: "Q1", q: "Q?", ...extra })
+const considered = (id: string, extra = {}) => ({ id, label: id.toUpperCase(), scores: [3, 4], ...extra })
+const choice = (extra = {}) => ({ id: "D1", q: "Which?", context: "Why now", drivers: ["Speed", "Cost"], options: [considered("a"), considered("b")], ...extra })
+const decision = (items: unknown[], extra = {}) => ({ t: "decision", id: "d", title: "T", intro: "I", items, ...extra })
 const question = (extra = {}) => ({ id: "Q1", prio: "blocker", q: "Q?", why: "Why", opts: [["a", "A"], ["b", "B"]], ...extra })
 
 /** A copy of the 3-round fixture in a temp folder, so a test can break it. */
@@ -52,7 +55,7 @@ function rounds(): string {
 }
 
 describe("the form check", () => {
-  test("accepts both examples", () => {
+  test("accepts every example", () => {
     for (const type of TYPES) {
       expect(problems(JSON.parse(readFileSync(join(HERE, "types", type, "example.form.json"), "utf8")))).toBe("ok")
     }
@@ -75,7 +78,7 @@ describe("the form check", () => {
   })
 
   test("rejects an unknown page type", () => {
-    expect(problems({ t: "survey" })).toBe('t: must be one of checklist, grilling, questionnaire, got "survey".')
+    expect(problems({ t: "survey" })).toBe('t: must be one of checklist, grilling, questionnaire, decision, got "survey".')
   })
 
   test("rejects an id that cannot be a form field name", () => {
@@ -148,6 +151,31 @@ describe("the questionnaire check", () => {
   test("wants at most 12 questions in a round", () => {
     const items = Array.from({ length: 13 }, (_, index) => ask({ id: `Q${index + 1}` }))
     expect(problems(questionnaire(items))).toContain("must have 1 to 12 entries, got 13")
+  })
+})
+
+describe("the decision check", () => {
+  test("wants one score per driver", () => {
+    expect(problems(decision([choice({ options: [considered("a"), considered("b", { scores: [3] })] })]))).toContain(
+      'items[0] "D1" › options[1] "b" › scores: needs one score per driver, 2, got 1.',
+    )
+  })
+
+  test("wants each score from 1 to 5", () => {
+    expect(problems(decision([choice({ options: [considered("a"), considered("b", { scores: [3, 6] })] })]))).toContain("must be a whole number from 1 to 5, got 6")
+  })
+
+  test("takes one decision per page", () => {
+    expect(problems(decision([choice(), choice({ id: "D2" })]))).toContain("must have 1 to 1 entries, got 2")
+  })
+
+  test("wants rec before reason, and rec to name an option", () => {
+    expect(problems(decision([choice({ reason: "Fast" })]))).toContain("reason: needs rec")
+    expect(problems(decision([choice({ rec: "z" })]))).toContain('"z" is not an option id')
+  })
+
+  test("keeps the built-in option ids for the page", () => {
+    expect(problems(decision([choice({ options: [considered("a"), considered("dunno")] })]))).toContain('option id "dunno" is taken by the page')
   })
 })
 
@@ -262,8 +290,8 @@ describe("the page", () => {
   test("stays inside the size budgets", () => {
     const html = renderPage(loadChain(join(HERE, "types", "checklist", "example.form.json")))
     const script = html.match(/<script>([\s\S]*?)<\/script>/)?.[1] ?? ""
-    expect(Buffer.byteLength(script)).toBeLessThan(4 * 1024 + 1)
-    expect(Buffer.byteLength(readFileSync(join(HERE, "assets", "base.css")))).toBeLessThan(6 * 1024 + 1)
+    expect(Buffer.byteLength(script)).toBeLessThan(9 * 1024 + 1)
+    expect(Buffer.byteLength(readFileSync(join(HERE, "assets", "base.css")))).toBeLessThan(10 * 1024 + 1)
     expect(Buffer.byteLength(html)).toBeLessThan(40 * 1024 + 1)
   })
 
@@ -285,9 +313,76 @@ describe("the page", () => {
     expect(html).toContain('name="more.note"')
   })
 
+  test("shows the summary on top, before the items", () => {
+    const html = renderPage(loadChain(join(HERE, "types", "grilling", "example.form.json")))
+    expect(html).toContain('<section class="summary"><h2>Summary</h2><ul><li>Customers want their orders as a file.</li>')
+    expect(html.indexOf('class="summary"')).toBeLessThan(html.indexOf('class="items"'))
+  })
+
+  test("takes 1 to 5 summary bullets", () => {
+    const form = (summary: string[]) => problems({ ...JSON.parse(readFileSync(join(HERE, "types", "grilling", "example.form.json"), "utf8")), summary })
+    expect(form(["a", "b", "c", "d", "e"])).toBe("ok")
+    expect(form(["a", "b", "c", "d", "e", "f"])).toContain("must have 1 to 5 entries, got 6")
+    expect(form([])).toContain("must have 1 to 5 entries, got 0")
+  })
+
   test("never puts form text into the page as HTML", () => {
     const html = renderPage([{ name: "x", file: "x.form.json", hash: "0", form: checkForm(checklist([item({ title: "<script>alert(1)</script>" })])) }])
     expect(html).not.toContain("<script>alert")
+  })
+})
+
+describe("the decision page", () => {
+  const page = (extra = {}) => renderPage([{ name: "x", file: "x.form.json", hash: "0", form: checkForm(decision([choice({ rec: "b", ...extra })])) }])
+
+  test("shows each score as five squares, as many filled as the score", () => {
+    const html = page()
+    expect(html).toContain('aria-label="4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span>')
+    expect(html).toContain('<tr class="rec"><th>B</th>')
+  })
+
+  test("asks for one option, or for several with multi", () => {
+    expect(page()).toContain('<input type="radio" name="D1.pick" value="a">')
+    expect(page({ multi: true })).toContain('<input type="checkbox" name="D1.pick" value="a">')
+  })
+
+  test("shows the good and the bad of an option", () => {
+    const html = page({ options: [considered("a", { good: ["Quick"], bad: ["Costly"] }), considered("b")] })
+    expect(html).toContain('<ul class="pc"><li class="good">Quick</li><li class="bad">Costly</li></ul>')
+  })
+})
+
+describe("the answers file", () => {
+  test("keeps a list of picks, for a decision with multi", () => {
+    const answers = parseAnswers({ t: "decision", id: "d", form: "0", saved: "now", answers: { D1: { pick: ["a", "b"], note: "Both" } } }, "x")
+    expect(answers.answers.D1).toEqual({ pick: ["a", "b"], note: "Both" })
+  })
+})
+
+describe("the done page", () => {
+  test("lists every decision of the chain with its answer, and has nothing to submit", () => {
+    const dir = rounds()
+    const last = join(dir, "round-3.form.json")
+    const form = readFileSync(last, "utf8")
+    writeFileSync(join(dir, "round-3.answers.json"), JSON.stringify({ t: "grilling", id: "example-export", form: hashOf(form), saved: "now", answers: { Q7: { pick: "dunno" } } }))
+    const html = readFileSync(buildDone(last), "utf8")
+    expect(html).toContain("<h2 class=\"theme\">Round 1: CSV export · Round 1</h2>")
+    expect(html).toContain('<b class="pick">7 days</b>')
+    expect(html).toContain("5 of 7 decisions are settled. 2 stay open.")
+    expect(html).not.toContain("<script>")
+  })
+
+  test("shows the picks of a multi decision, and No answer for a round the user did not save", () => {
+    const dir = mkdtempSync(join(tmpdir(), "to-page-"))
+    const file = join(dir, "round-1.form.json")
+    const source = JSON.stringify(decision([choice({ multi: true })]))
+    writeFileSync(file, source)
+    expect(readFileSync(buildDone(file), "utf8")).toContain('<span class="missing">No answer</span>')
+    writeFileSync(join(dir, "round-1.answers.json"), JSON.stringify({ t: "decision", id: "d", form: hashOf(source), saved: "now", answers: { D1: { pick: ["a", "b"] } } }))
+    const html = readFileSync(buildDone(file), "utf8")
+    expect(html).toContain('<b class="pick">A, B</b>')
+    expect(html).toContain("Every decision is settled.")
+    rmSync(dir, { recursive: true })
   })
 })
 
@@ -385,17 +480,19 @@ describe("the CLI", () => {
 
 describe("the server", () => {
   /** Starts a server on a free port for `round-1` of a fresh chain, and stops it after `run`. */
-  const withServer = async (run: (base: string, dir: string) => Promise<void>) => {
+  const withServer = async (run: (base: string, dir: string, saved: string[]) => Promise<void>) => {
     const dir = rounds()
     rmSync(join(dir, "round-1.answers.json"))
     build(join(dir, "round-1.form.json"))
-    const server = pageServer(dir, "round-1.html")
+    const saved: string[] = []
+    const server = pageServer(dir, (path) => saved.push(path))
     await new Promise<void>((done) => server.listen(0, "127.0.0.1", done))
     const address = server.address()
     if (address === null || typeof address === "string") throw new Error("no port")
     try {
-      await run(`http://127.0.0.1:${address.port}`, dir)
+      await run(`http://127.0.0.1:${address.port}`, dir, saved)
     } finally {
+      server.closeAllConnections()
       server.close()
     }
   }
@@ -417,12 +514,46 @@ describe("the server", () => {
     })
   })
 
-  test("writes posted answers next to the form and returns the path", async () => {
-    await withServer(async (base, dir) => {
+  test("writes posted answers next to the form, returns the path and reports the save", async () => {
+    await withServer(async (base, dir, saved) => {
       const response = await post(`${base}/round-1.answers.json`, answers(dir))
       expect(response.status).toBe(200)
       expect((await response.json()).path).toBe(join(dir, "round-1.answers.json"))
       expect(readFileSync(join(dir, "round-1.answers.json"), "utf8")).toBe(answers(dir))
+      expect(saved).toEqual([join(dir, "round-1.answers.json")])
+    })
+  })
+
+  test("never overwrites saved answers unless the page asks to replace them", async () => {
+    await withServer(async (base, dir, saved) => {
+      const file = join(dir, "round-1.answers.json")
+      expect((await fetch(`${base}/round-1.answers.json`)).status).toBe(404)
+      await post(`${base}/round-1.answers.json`, answers(dir))
+      expect(await (await fetch(`${base}/round-1.answers.json`)).text()).toBe(answers(dir))
+      const changed = answers(dir).replace('"pick":"b"', '"pick":"a"')
+      const refused = await post(`${base}/round-1.answers.json`, changed)
+      expect(refused.status).toBe(409)
+      expect(await refused.text()).toContain("was already submitted")
+      expect(readFileSync(file, "utf8")).toBe(answers(dir))
+      expect((await post(`${base}/round-1.answers.json?replace=1`, changed)).status).toBe(200)
+      expect(readFileSync(file, "utf8")).toBe(changed)
+      expect(saved.length).toBe(2)
+    })
+  })
+
+  test("tells an open page about the next round, and sends / to it", async () => {
+    await withServer(async (base, dir) => {
+      const events = await fetch(`${base}/events`)
+      expect(events.headers.get("content-type")).toBe("text/event-stream")
+      if (events.body === null) throw new Error("no event stream")
+      const reader = events.body.pipeThrough(new TextDecoderStream()).getReader()
+      await post(`${base}/round-1.answers.json`, answers(dir))
+      build(join(dir, "round-2.form.json"))
+      let stream = ""
+      while (!stream.includes("data:")) stream += (await reader.read()).value ?? ""
+      expect(stream).toContain("data: /round-2.html\n\n")
+      await reader.cancel()
+      expect((await fetch(`${base}/`)).url).toBe(`${base}/round-2.html`)
     })
   })
 
@@ -436,6 +567,35 @@ describe("the server", () => {
       expect((await post(`${base}/round-9.answers.json`, stale)).status).toBe(404)
       expect(existsSync(join(dir, "round-1.answers.json"))).toBe(false)
     })
+  })
+
+  test("waits for answers that match the form, not for stale ones", async () => {
+    const dir = rounds()
+    const form = join(dir, "round-1.form.json")
+    const file = join(dir, "round-1.answers.json")
+    const fresh = readFileSync(file, "utf8")
+    writeFileSync(file, fresh.replace(/"form":"\w+"/, '"form":"000000000000"'))
+    let done = ""
+    const waiting = waitForAnswers(form, file, undefined, 5).then((source) => (done = source))
+    await new Promise((wait) => setTimeout(wait, 30))
+    expect(done).toBe("")
+    writeFileSync(file, fresh)
+    expect(await waiting).toBe(fresh)
+  })
+
+  test("with after, waits for answers saved later than the ones already read", async () => {
+    const dir = rounds()
+    const form = join(dir, "round-1.form.json")
+    const file = join(dir, "round-1.answers.json")
+    const read = readFileSync(file, "utf8")
+    const { saved } = JSON.parse(read)
+    let done = ""
+    const waiting = waitForAnswers(form, file, saved, 5).then((source) => (done = source))
+    await new Promise((wait) => setTimeout(wait, 30))
+    expect(done).toBe("")
+    const replaced = read.replace(saved, new Date(Date.parse(saved) + 1000).toISOString())
+    writeFileSync(file, replaced)
+    expect(await waiting).toBe(replaced)
   })
 
   test("lists one URL per network address when it listens on all of them", () => {

@@ -1,0 +1,11 @@
+<ol class="items">
+{{#each items}}<li class="item" id="{{ id }}">
+<p class="context">{{{ context }}}</p>
+<fieldset class="q"><legend>{{{ q }}}</legend>
+<div class="grid"><table><thead><tr><th>Option</th>{{#each drivers}}<th>{{{ this }}}</th>{{/each}}</tr></thead>
+<tbody>{{#each rows}}<tr{{#if recommended}} class="rec"{{/if}}><th>{{{ label }}}</th>{{#each cells}}<td><span class="score" role="img" aria-label="{{ value }} of 5">{{#each squares}}<i{{#if this}} class="on"{{/if}}></i>{{/each}}</span></td>{{/each}}</tr>{{/each}}</tbody></table></div>
+<div class="opts" data-done>{{#each opts}}<label class="opt{{#if recommended}} rec{{/if}}{{#if builtIn}} built-in{{/if}}"><input type="{{ input }}" name="{{ name }}" value="{{ id }}"><span class="opt-label">{{{ label }}}{{#if recommended}} <em class="badge">recommended</em>{{/if}}</span>{{#if reason}}<small>{{{ reason }}}</small>{{/if}}{{#if pc}}<ul class="pc">{{#each pc}}<li class="{{ kind }}">{{{ line }}}</li>{{/each}}</ul>{{/if}}</label>{{/each}}</div>
+</fieldset>
+<textarea name="{{ id }}.note" rows="1" placeholder="Note, also with a pick"></textarea>
+</li>
+{{/each}}</ol>

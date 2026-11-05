@@ -93,8 +93,8 @@ explains the result plainly. Run them before a change to unfamiliar code.
 - `h2xd:review-pr` reviews the diff against the bar.
   `h2xd:prove-blast-radius` looks for breakage outside the diff.
 - `h2xd:plan-grill` asks up to four questions at a time in the chat.
-  `h2xd:to-page` puts a checklist or a round of decisions on a page, for the
-  user or the team. `h2xd:to-questionnaire` puts broad questions on a page
+  `h2xd:to-page` puts a checklist, a round of decisions or one decision in
+  depth on a page, for the user or the team. `h2xd:to-questionnaire` puts broad questions on a page
   for a customer or a person outside the team.
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
   user's next prompt before it is sent.

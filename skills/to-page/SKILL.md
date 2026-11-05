@@ -10,9 +10,8 @@ a wall of Markdown. A page with cards, a progress bar and a save button gets
 worked through. A hand-written page costs about 5 k output tokens. Here the
 agent writes about 1 k tokens of JSON, and a script renders the rest.
 
-The tool is `scripts/to-page.ts`, next to this file. Call it as
-`node "${CLAUDE_PLUGIN_ROOT}/skills/to-page/scripts/to-page.ts"`. When that
-variable is empty, use the path relative to this file.
+Call the tool as `node "${CLAUDE_PLUGIN_ROOT}/skills/to-page/scripts/to-page.ts"`.
+When that variable is empty, use `scripts/to-page.ts` next to this file.
 
 ## Page types
 
@@ -20,10 +19,10 @@ variable is empty, use the path relative to this file.
 |---|---|
 | `checklist` | Items to work through and tick off: a release check, a manual test, next steps. Each item may ask one question. |
 | `grilling` | Hard decisions: questions with options and a recommendation, in rounds that build on earlier answers. |
+| `decision` | One hard choice in depth: the options rated 1 to 5 against the drivers, with the good and the bad of each. One round. |
 
-A third type, `questionnaire`, belongs to `/h2xd:to-questionnaire`. It asks a
-customer or another person outside the team broad questions. When the reader
-is such a person, tell the user to run that skill.
+A fourth type, `questionnaire`, belongs to `/h2xd:to-questionnaire`, for a
+reader outside the team. For such a reader, tell the user to run that skill.
 
 ## Steps
 
@@ -57,11 +56,11 @@ Write `<folder>/round-1.form.json`. Use the CLI's scratch or temp folder, such
 as the scratchpad directory. Without one, use `.to-page/<slug>/` in the
 current directory. One folder holds all rounds of one topic.
 
-- One idea per item. Split a compound question in two.
-- Give every question the option you recommend as `rec`, with a `reason`.
-- Draft options wherever options fit. The page adds a free-text note field to every item, so do not add one.
-- Keep the ids short and unique: `C1`, `C2` or `Q1`, `Q2`. Number them across
-  rounds, so a reply can say "Q3: b".
+- Write the `summary` first, as for an executive: what is at stake, what is
+  settled, what this page asks. A reader who stops there knows the state.
+- One idea per item. Give every question a `rec` with a `reason`.
+- Draft options wherever options fit. The page adds a note field to every item.
+- Keep the ids short and unique: `C1` or `Q1`. Number them across rounds.
 - For grilling, order items as `h2xd:plan-grill` orders its frontier. A
   question that depends on an open one waits for the next round.
 
@@ -70,14 +69,14 @@ Done when the file exists and holds every item for this round.
 ### 5. Render and hand over
 
 Run `to-page.ts render <folder>/round-1.form.json`. When it exits 1, fix each
-line it prints and run it again. To only validate, run `to-page.ts check` on
-the same file. On success it prints the `file://` URL of the
-page.
+line it prints and run it again. `to-page.ts check` only validates. On success
+`render` prints the `file://` URL of the page.
 
 Then run `to-page.ts serve <folder>/round-1.form.json` in the background,
 through the CLI's background option. It renders the page again, serves its
 folder over HTTP and prints the page URL. A page from the server writes the
-answers next to the form, with no save dialog. Give the user that URL.
+answers next to the form, with no save dialog. While it runs, put its URLs on
+top of every message. Start one server per topic. It serves every round.
 
 - To open the page on another device, such as a phone or a tester's laptop,
   add `--host 0.0.0.0`. It prints one URL per network address. Tell the user
@@ -93,14 +92,17 @@ them the `.html` file. It works offline and holds everything it needs.
 
 Done when `render` exits 0, the server runs, and the user has the URL.
 
-### 6. Read the answers
+### 6. Wait for the answers
 
-The user pastes a line such as `Read the answers: <path>`, or the answers JSON
-itself. Read that file or that JSON. Never read the `.html` file.
+While the server runs, run `to-page.ts wait <folder>/round-N.form.json` in
+the background. It exits and prints the answers when the user submits, which
+wakes you. After you read them, run it again with `--after <saved>`, so a
+replace wakes you too. Without a server, the user pastes `Read the answers:
+<path>` or the JSON. Never read the `.html` file.
 
 - `answers` holds only the items with input, keyed by id.
-- `pick` is the option id. `dunno` means "I don't know", and `other` means
-  the note holds the answer. `done` marks a ticked checklist item.
+- `pick` is the option id, or a list on a decision with `multi`. `dunno` is
+  "I don't know", `other` puts the answer in the note. `done` is a tick.
 - An item missing from `answers` got no answer.
 
 Report the round, worst first:
@@ -120,8 +122,13 @@ with `"previous": "round-1"`. The page shows the earlier rounds folded, and
 `depends` shows the earlier answer next to a question. New ids continue the
 numbers.
 
-Hand each settled decision worth keeping to `h2xd:docs-adr`. Hand each settled
-fact to `h2xd:docs-wiki`.
+Run `render` on the new form, then go back to step 6. The open page loads the
+new round by itself. Do not start a second server or give a new URL. When the
+last round is answered, run `to-page.ts done <last form>`. The open page then
+shows every decision of the chain.
+
+Hand every `decision` page and each settled decision worth keeping to
+`h2xd:docs-adr`. Hand each settled fact to `h2xd:docs-wiki`.
 
 Done when no decision is open, or the user chose to stop, and each settled
 decision has a record or the user declined one.

@@ -9,26 +9,31 @@
 <body>
 <form id="page" class="page t-{{ t }}" method="dialog" autocomplete="off">
 <header class="head">
-<p class="kicker">{{ t }}{{#if multiRound}} · Round {{ round }}{{/if}}</p>
+<p class="kicker">{{ typeLabel }}{{#if multiRound}} · Round {{ round }}{{/if}}</p>
 <h1>{{{ title }}}</h1>
 <p class="intro">{{{ intro }}}</p>
+{{#if summary}}<section class="summary"><h2>Summary</h2><ul>{{#each summary}}<li>{{{ this }}}</li>{{/each}}</ul></section>{{/if}}
 {{#if recipient}}<dl class="recipient">{{#if from}}<dt>From</dt><dd>{{ from }}</dd>{{/if}}{{#if to}}<dt>To</dt><dd>{{ to }}</dd>{{/if}}{{#if deadline}}<dt>By</dt><dd>{{ deadline }}</dd>{{/if}}{{#if purpose}}<dt>Why</dt><dd>{{{ purpose }}}</dd>{{/if}}</dl>{{/if}}
 </header>
 {{> history }}
 {{> body }}
-<footer class="bar">
+{{#if interactive}}<footer class="bar">
 <div id="result" hidden>
+<p id="working" hidden><span class="spinner"></span>The agent is working on the next round. It opens here.</p>
 <p id="result-label"></p>
 <textarea id="out" readonly rows="2"></textarea>
 <button type="button" id="copy">Copy</button>
 </div>
+<p id="saved" hidden></p>
 <div class="bar-row">
 <span class="progress" data-total="{{ total }}">{{ progressLabel }} </span>
 <button type="submit" id="save">Save answers</button>
 </div>
 </footer>
-</form>
+{{/if}}</form>
+{{#if interactive}}<dialog id="confirm"><h2>Check your answers</h2><ol id="review"></ol>
+<div class="actions"><button type="button" class="quiet" id="back">Back</button><button type="button" id="send">Submit</button></div></dialog>
 <script type="application/json" id="meta">{{{ meta }}}</script>
-<script>{{{ js }}}</script>
+<script>{{{ js }}}</script>{{/if}}
 </body>
 </html>

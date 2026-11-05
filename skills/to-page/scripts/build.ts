@@ -8,7 +8,7 @@ import { createHash } from "node:crypto"
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join } from "node:path"
 import { checkForm, parseJson } from "./check.ts"
-import { BUILT_IN_PICKS, MORE, type ChecklistForm, type Form, type GrillingForm, type Option, type QuestionnaireForm } from "./schema.ts"
+import { BUILT_IN_PICKS, MORE, type ChecklistForm, type DecisionForm, type Form, type GrillingForm, type Option, type QuestionnaireForm } from "./schema.ts"
 import { CheckError, type Issue } from "./shape.ts"
 import { compile, render } from "./template.ts"
 import { inlineMarkdown } from "./inline-markdown.ts"
@@ -16,7 +16,8 @@ import { inlineMarkdown } from "./inline-markdown.ts"
 const HERE = import.meta.dirname
 const SUFFIX = ".form.json"
 
-export type Answer = { done?: boolean; pick?: string; note?: string }
+/** `pick` is a list only on a decision with `multi: true`. */
+export type Answer = { done?: boolean; pick?: string | string[]; note?: string }
 export type Answers = { t: string; id: string; form: string; saved: string; answers: Record<string, Answer> }
 
 /** One round of the chain, earliest first. Only the last round may have no answers yet. */
@@ -51,9 +52,10 @@ export function parseAnswers(value: unknown, where: string): Answers {
   for (const [key, entry] of Object.entries(answers)) {
     if (typeof entry !== "object" || entry === null) return fail(`answer "${key}" must be an object`)
     const [done, pick, note] = ["done", "pick", "note"].map((key) => field(entry, key))
+    const picks = Array.isArray(pick) ? pick.filter((entry): entry is string => typeof entry === "string") : undefined
     parsed[key] = {
       ...(done === true ? { done } : {}),
-      ...(typeof pick === "string" ? { pick } : {}),
+      ...(typeof pick === "string" ? { pick } : picks !== undefined && picks.length > 0 ? { pick: picks } : {}),
       ...(typeof note === "string" ? { note } : {}),
     }
   }
@@ -89,7 +91,7 @@ export function loadChain(file: string): Round[] {
       round.answers = answers
     }
     rounds.unshift(round)
-    current = form.t !== "checklist" && form.previous !== undefined ? join(dirname(current), `${form.previous}${SUFFIX}`) : undefined
+    current = (form.t === "grilling" || form.t === "questionnaire") && form.previous !== undefined ? join(dirname(current), `${form.previous}${SUFFIX}`) : undefined
   }
   chainIssues(rounds)
   return rounds
@@ -147,8 +149,9 @@ function optionView(name: string, option: Option, rec: string | undefined, prese
   return { name, id: option.id, label: md(option.label), reason: md(option.reason), recommended, checked: recommended && preselect === true }
 }
 
-function pickLabel(opts: Option[], pick: string | undefined): string | undefined {
+function pickLabel(opts: Option[], pick: string | string[] | undefined): string | undefined {
   if (pick === undefined) return undefined
+  if (Array.isArray(pick)) return pick.map((one) => pickLabel(opts, one)).join(", ")
   if (pick in BUILT_IN_PICKS) return BUILT_IN_PICKS[pick === "dunno" ? "dunno" : "other"]
   return opts.find((option) => option.id === pick)?.label ?? `${pick}, not an option any more`
 }
@@ -171,6 +174,7 @@ function checklistView(form: ChecklistForm) {
   }
 }
 
+const TYPE_LABELS = { checklist: "Checklist", grilling: "Decisions", questionnaire: "Questionnaire", decision: "Decision" } as const
 const PRIORITY_LABELS = { blocker: "Blocker", important: "Important", nice: "Nice to have" } as const
 
 function grillingView(form: GrillingForm, rounds: Round[]) {
@@ -246,13 +250,49 @@ function questionnaireView(form: QuestionnaireForm) {
   }
 }
 
+/** The table of options against drivers, and the option cards with MADR's good and bad. */
+function decisionView(form: DecisionForm) {
+  return {
+    recipient: form.from !== undefined || form.to !== undefined || form.purpose !== undefined || form.deadline !== undefined,
+    from: form.from,
+    to: form.to,
+    purpose: md(form.purpose),
+    deadline: form.deadline,
+    items: form.items.map((item) => ({
+      id: item.id,
+      q: md(item.q),
+      context: md(item.context),
+      input: item.multi === true ? "checkbox" : "radio",
+      drivers: item.drivers.map(md),
+      rows: item.options.map((option) => ({
+        label: md(option.label),
+        recommended: option.id === item.rec,
+        cells: option.scores.map((value) => ({ value, squares: [1, 2, 3, 4, 5].map((step) => step <= value) })),
+      })),
+      opts: [
+        ...item.options.map((option) => ({
+          ...optionView(`${item.id}.pick`, { id: option.id, label: option.label, reason: option.id === item.rec ? item.reason : undefined }, item.rec, false),
+          pc: [...(option.good ?? []).map((line) => ({ kind: "good", line: md(line) })), ...(option.bad ?? []).map((line) => ({ kind: "bad", line: md(line) }))],
+        })),
+        ...builtInPicks(`${item.id}.pick`),
+      ],
+    })),
+  }
+}
+
+/** The options of any item, so a view of earlier rounds reads every page type. */
+function optsOf(item: Form["items"][number]): Option[] {
+  return "options" in item ? item.options : (item.opts ?? [])
+}
+
+/** The rounds with their answers, for the folded history or the done page. */
 function historyView(rounds: Round[]) {
-  return rounds.slice(0, -1).map((round, index) => ({
+  return rounds.map((round, index) => ({
     round: index + 1,
     title: md(round.form.title),
     items: round.form.items.map((item) => {
       const answer = round.answers?.answers[item.id]
-      const opts: Option[] = item.opts ?? []
+      const opts = optsOf(item)
       return {
         id: item.id,
         q: md("title" in item ? (item.q ?? item.title) : item.q),
@@ -273,19 +313,26 @@ export function renderPage(rounds: Round[]): string {
   const { form } = round
   const answersName = `${round.name}.answers.json`
   const meta = { t: form.t, id: form.id, form: round.hash, file: answersName }
-  const typeView = form.t === "checklist" ? checklistView(form) : form.t === "grilling" ? grillingView(form, rounds) : questionnaireView(form)
+  const typeView =
+    form.t === "checklist" ? checklistView(form)
+    : form.t === "grilling" ? grillingView(form, rounds)
+    : form.t === "questionnaire" ? questionnaireView(form)
+    : decisionView(form)
   const view = {
     ...typeView,
     t: form.t,
+    interactive: true,
+    typeLabel: TYPE_LABELS[form.t],
     title: md(form.title),
     plainTitle: form.title,
     intro: md(form.intro),
+    summary: form.summary?.map(md),
     round: rounds.length,
     multiRound: rounds.length > 1,
     total: form.items.length,
     progressLabel: form.t === "checklist" ? "Done" : "Answered",
     countPicks: form.t !== "checklist",
-    history: historyView(rounds),
+    history: historyView(rounds.slice(0, -1)),
     css: asset("assets/base.css"),
     js: asset("assets/app.js"),
     meta: JSON.stringify(meta).replace(/</g, "\\u003c"),
@@ -303,6 +350,44 @@ export function build(file: string): string {
   const rounds = loadChain(file)
   const html = renderPage(rounds)
   const { html: out } = pathsOf(file)
+  writeFileSync(out, html)
+  return out
+}
+
+/** The page for the end of a chain: every decision of every round and its answer, with nothing left to submit. */
+export function renderDone(rounds: Round[]): string {
+  const last = rounds[rounds.length - 1]
+  const all = historyView(rounds)
+  const picks = rounds.flatMap((round) => round.form.items.map((item) => round.answers?.answers[item.id]))
+  const open = picks.filter((answer) => answer === undefined || answer.pick === "dunno" || (answer.pick === undefined && answer.note === undefined)).length
+  const view = {
+    t: "done",
+    interactive: false,
+    typeLabel: "Done",
+    title: md(last.form.title),
+    plainTitle: last.form.title,
+    intro: open === 0 ? "Every decision is settled." : `${picks.length - open} of ${picks.length} decisions are settled. ${open} stay open.`,
+    rounds: all.map((round) => ({ ...round, title: rounds.length > 1 ? `Round ${round.round}: ${round.title}` : round.title })),
+    css: asset("assets/base.css"),
+  }
+  const partials = { body: compile(asset("assets/done.html"), "assets/done.html"), history: compile("", "history") }
+  return render(compile(asset("assets/layout.html"), "assets/layout.html"), view, partials)
+}
+
+/** Writes `done.html` next to the form, from the chain that ends at `file`. Returns the page path. */
+export function buildDone(file: string): string {
+  const rounds = loadChain(file)
+  const last = rounds[rounds.length - 1]
+  const { answers } = pathsOf(file)
+  if (existsSync(answers)) {
+    const saved = withFile(basename(answers), () => parseAnswers(parseJson(readFileSync(answers, "utf8")), "top level"))
+    if (saved.form !== last.hash) {
+      throw new CheckError([{ where: basename(file), message: `changed after ${basename(answers)} was saved. Render ${last.name} again, and let the user answer it` }])
+    }
+    last.answers = saved
+  }
+  const html = renderDone(rounds)
+  const out = join(dirname(file), "done.html")
   writeFileSync(out, html)
   return out
 }

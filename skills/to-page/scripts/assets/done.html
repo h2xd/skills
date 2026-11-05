@@ -1,0 +1,1 @@
+<section class="done">{{#each rounds}}<h2 class="theme">{{{ title }}}</h2><ul class="settled">{{#each items}}<li><span class="id">{{ id }}</span> {{{ q }}}<br>{{#if answer}}<b class="pick">{{{ answer }}}</b>{{else}}<span class="missing">No answer</span>{{/if}}{{#if note}} · <i>{{{ note }}}</i>{{/if}}</li>{{/each}}</ul>{{/each}}</section>

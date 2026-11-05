@@ -9,16 +9,19 @@
  *   node to-page.ts render <file>       check it and write the page next to it
  *   node to-page.ts serve <file>        render it, then serve its folder over HTTP
  *     [--host 127.0.0.1] [--port 0]     --host 0.0.0.0 opens it to the network
+ *   node to-page.ts wait <file>         exit once the answers to this form are saved
+ *     [--after <saved>]                 only answers saved after this ISO time count
+ *   node to-page.ts done <file>         write done.html: every decision of the chain
  */
 
-import { writeFileSync } from "node:fs"
-import { basename, dirname, join, resolve } from "node:path"
+import { existsSync, writeFileSync } from "node:fs"
+import { dirname, join, resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 import { parseArgs } from "node:util"
-import { build, loadChain } from "./build.ts"
+import { build, buildDone, loadChain, pathsOf } from "./build.ts"
 import { formatIssues } from "./check.ts"
 import { isPageType, PAGES } from "./schema.ts"
-import { pageServer, urlsOf } from "./serve.ts"
+import { pageServer, urlsOf, waitForAnswers } from "./serve.ts"
 import { CheckError } from "./shape.ts"
 import { spec, specMarkdown } from "./spec.ts"
 
@@ -32,11 +35,12 @@ const TYPES: Record<keyof typeof PAGES, string> = {
   checklist: "Items to work through and tick off, each with an optional question and a note.",
   grilling: "Questions with options and a recommendation, in rounds that build on the answers before.",
   questionnaire: "Broad questions for a customer or a person outside the team, grouped by theme, with open answers where options do not fit.",
+  decision: "One hard choice in depth: the options rated against the drivers, with the good and the bad of each.",
 }
 
 const { positionals, values } = parseArgs({
   allowPositionals: true,
-  options: { md: { type: "boolean" }, host: { type: "string", default: "127.0.0.1" }, port: { type: "string", default: "0" } },
+  options: { md: { type: "boolean" }, host: { type: "string", default: "127.0.0.1" }, port: { type: "string", default: "0" }, after: { type: "string" } },
 })
 const [command, argument] = positionals
 
@@ -48,7 +52,7 @@ function serve(file: string): void {
     console.error(`--port must be a number from 0 to 65535, got "${values.port}"`)
     process.exit(1)
   }
-  const server = pageServer(dirname(page), basename(page))
+  const server = pageServer(dirname(page), (path) => console.log(`answers: ${path}`))
   server.on("error", (error) => {
     console.error(`to-page serve: ${error.message}`)
     process.exit(1)
@@ -60,7 +64,7 @@ function serve(file: string): void {
   })
 }
 
-function run(): number | "serving" {
+function run(): number | "running" {
   switch (command) {
     case "types":
       for (const [type, summary] of Object.entries(TYPES)) console.log(`${type}: ${summary}`)
@@ -92,22 +96,51 @@ function run(): number | "serving" {
       }
       return 0
     }
+    case "done":
+      if (argument === undefined) {
+        console.error("usage: to-page done <dir>/round-N.form.json, the last round of the chain")
+        return 1
+      }
+      console.log(pathToFileURL(buildDone(resolve(argument))).href)
+      return 0
     case "serve":
       if (argument === undefined) {
         console.error("usage: to-page serve <dir>/round-1.form.json [--host 0.0.0.0] [--port 8080]")
         return 1
       }
       serve(resolve(argument))
-      return "serving"
+      return "running"
+    case "wait": {
+      if (argument === undefined) {
+        console.error("usage: to-page wait <dir>/round-1.form.json [--after <saved time of the answers you read>]")
+        return 1
+      }
+      const file = resolve(argument)
+      const { answers } = pathsOf(file)
+      if (!existsSync(file)) {
+        console.error(`to-page wait: ${file} does not exist`)
+        return 1
+      }
+      if (values.after !== undefined && Number.isNaN(Date.parse(values.after))) {
+        console.error(`--after must be an ISO time, such as the "saved" field of the answers, got "${values.after}"`)
+        return 1
+      }
+      void waitForAnswers(file, answers, values.after).then((source) => {
+        console.log(`Read the answers: ${answers}`)
+        console.log(source)
+        process.exit(0)
+      })
+      return "running"
+    }
     default:
-      console.error("usage: to-page types | spec <type> | check <file> | render <file> | serve <file>")
+      console.error("usage: to-page types | spec <type> | check <file> | render <file> | serve <file> | wait <file> | done <file>")
       return 1
   }
 }
 
 try {
   const code = run()
-  if (code !== "serving") process.exit(code)
+  if (code !== "running") process.exit(code)
 } catch (error) {
   if (!(error instanceof CheckError)) throw error
   console.error(formatIssues(error))

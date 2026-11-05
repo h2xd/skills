@@ -99,6 +99,9 @@ const restored = await evaluate(`document.querySelector("textarea[name]").value 
 checks.push({ name: "draft", pass: restored === true, detail: "a note and a pick survive a reload" })
 
 await evaluate(`document.getElementById("save").click()`, true)
+const reviewed = await evaluate(`document.getElementById("confirm").open && document.querySelectorAll("#review li").length`)
+checks.push({ name: "review", pass: Number(reviewed) > 0, detail: `Submit opens the review with every item: ${reviewed}` })
+await evaluate(`document.getElementById("send").click()`, true)
 await new Promise((done) => setTimeout(done, 500))
 const saved = await evaluate(`(() => {
   if (document.getElementById("result").hidden) return "no result shown"

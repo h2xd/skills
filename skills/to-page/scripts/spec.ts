@@ -8,6 +8,8 @@ import { join } from "node:path"
 import { HELPERS, PAGES, RULES, type PageType } from "./schema.ts"
 
 const COMMON_RULES = [
+  "The title names the topic only. The page shows the type and the round above it.",
+  "Write a summary on every page: 1 to 5 short bullets on what is at stake, what is settled and what this page asks.",
   "Text fields accept `code`, **bold**, [link](url) and \\n. Never write HTML.",
   "An unknown field is an error. JSON keeps only the last of two equal keys, so never repeat a key.",
 ]

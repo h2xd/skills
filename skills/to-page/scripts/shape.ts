@@ -67,6 +67,17 @@ export const id: Shape<string> = {
   },
 }
 
+/** A whole number from 1 to 5, such as the rating of one option on one criterion. */
+export const score: Shape<number> = {
+  type: "1..5",
+  parse(value, at) {
+    if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > 5) {
+      fail(at, `must be a whole number from 1 to 5, got ${JSON.stringify(value)}`)
+    }
+    return value
+  },
+}
+
 export function oneOf<const L extends readonly string[]>(...literals: L): Shape<L[number]> {
   return {
     type: literals.map((literal) => `"${literal}"`).join("|"),

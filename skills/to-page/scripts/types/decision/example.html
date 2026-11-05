@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSV export runner</title>
+<style>:root{--bg:#faf7f0;--card:#fffdf7;--ink:#2a2622;--muted:#776f64;--line:#e4dccd;--accent:#9c4221;--accent-soft:#f5e8dc;--ok:#2f7d4f;--rec:#d9822b;--rec-soft:#fdf1e3;--rec-line:#eccaa4;--red:#c0392b;--red-soft:#fbe7e4;--blue:#2563a8;--blue-soft:#e5eef8;--grey:#6b6f76;--grey-soft:#eceae6;--on-accent:#fff;--radius:4px;--gap:16px;--font:Charter,"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,monospace;color-scheme:light dark}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1915;--card:#221f1a;--ink:#ece5d8;--muted:#a69c8c;--line:#3a342b;--accent:#e3956a;--accent-soft:#33261c;--ok:#7cc79a;--rec:#f0a65a;--rec-soft:#33261a;--rec-line:#5c4227;--red:#f08070;--red-soft:#3a1f1b;--blue:#7fb0ec;--blue-soft:#1c2a3b;--grey:#a8a49c;--grey-soft:#2e2b26;--on-accent:#1b1915}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 var(--font);-webkit-font-smoothing:antialiased}
+.page{max-width:760px;margin:0 auto;padding:40px 16px 0;counter-reset:done}
+.kicker{margin:0;color:var(--muted);font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase}
+h1{margin:6px 0 12px;font-size:38px;font-weight:600;line-height:1.15;letter-spacing:-.02em}
+.intro{margin:0 0 var(--gap);color:var(--muted);font-size:18px}
+.recipient{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0 0 var(--gap);padding:12px 16px;border:1px solid var(--line);border-radius:var(--radius);font-size:15px}
+.recipient dt{color:var(--muted)}.recipient dd{margin:0}
+code{font:.85em var(--mono);background:var(--accent-soft);padding:1px 5px;border-radius:3px}
+a{color:var(--accent)}
+.facts{margin:0 0 var(--gap);padding:12px 16px 12px 32px;background:var(--accent-soft);border-radius:var(--radius);font-size:15px}
+.summary{margin:8px -24px 24px;padding:20px 24px;background:var(--card);border-radius:6px}
+.summary h2{margin:0 0 6px;color:var(--accent);font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase}
+.summary ul{margin:0;padding-left:18px}
+.items{list-style:none;margin:0;padding:0;display:grid}
+.item{border-bottom:1px solid var(--line);padding:28px 0;scroll-margin-top:16px}
+.t-checklist .item:has(.item-head input:checked) .item-title{text-decoration:line-through;text-decoration-color:var(--muted)}
+.item-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:600}
+.item-head input{width:20px;height:20px;margin:0;accent-color:var(--ok)}
+.id{font-style:italic;color:var(--muted);font-size:15px;font-weight:400}
+.block{margin-left:auto;font-size:12px}
+.text,.why,.note{margin:10px 0 0}
+.why{color:var(--muted)}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--line);padding-left:10px}
+.where{margin:10px 0 0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.where li{font-size:14px;border:1px solid var(--line);border-radius:var(--radius);padding:3px 10px}
+.where span{color:var(--muted)}
+.q{border:0;margin:12px 0 0;padding:0;min-width:0}
+.q legend{padding:0;font-size:22px;font-weight:600;line-height:1.3}
+.t-checklist .q legend{font-size:17px}
+.badge{display:inline-flex;align-items:center;gap:5px;font:600 11px var(--sans);letter-spacing:.05em;text-transform:uppercase;color:var(--grey);background:var(--grey-soft);padding:3px 9px;border-radius:999px;white-space:nowrap;vertical-align:2px}
+.prio::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.prio-blocker .prio{color:var(--red);background:var(--red-soft)}
+.prio-important .prio{color:var(--blue);background:var(--blue-soft)}
+.opt .badge{color:var(--rec);background:var(--rec-soft)}
+.depends{margin:12px 0 0;padding:8px 12px;list-style:none;font-size:15px;border:1px solid var(--line);border-radius:var(--radius);color:var(--muted)}
+.answer{display:block;margin-top:2px;font-size:14px;color:var(--ink)}
+.depends li+li{margin-top:6px}
+.opts{display:grid;gap:8px;margin-top:14px}
+.opt{position:relative;display:grid;grid-template-columns:auto 1fr;align-items:start;gap:2px 10px;padding:10px 14px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);cursor:pointer;transition:background .12s,border-color .12s}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin:7px 0 0;accent-color:var(--accent)}
+.opt small{grid-column:2;color:var(--muted);font-size:14px}
+.opt.rec{border-color:var(--rec-line)}
+.opt:has(:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt.built-in{padding:6px 14px;font-size:15px;color:var(--muted)}
+.opts:has(.built-in){grid-template-columns:1fr 1fr}
+.opts .opt:not(.built-in){grid-column:1/-1}
+.t-checklist .opts{grid-template-columns:repeat(auto-fit,minmax(180px,1fr))}.t-checklist .opts .opt{grid-column:auto}
+.opts.folded{grid-template-columns:1fr}
+.opts.folded .opt:not(:has(:checked)){display:none}
+.opts.folded .opt:has(:checked)::after{content:"Change";position:absolute;top:11px;right:14px;font:13px var(--sans);color:var(--accent)}
+:is(.t-grilling,.t-decision) .item:not(:has(.opts :checked))>textarea:placeholder-shown{display:none}
+textarea{display:block;width:100%;margin-top:12px;padding:9px 12px;font:16px/1.45 var(--font);color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:var(--radius);resize:vertical;field-sizing:content;min-height:42px}
+textarea:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.context{margin:0 0 4px}
+.grid{overflow-x:auto;margin-top:14px;border:1px solid var(--line);border-radius:var(--radius)}
+.grid table{width:100%;border-collapse:collapse;font-size:15px}
+.grid th,.grid td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line)}
+.grid thead th{font:600 12px var(--sans);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;vertical-align:bottom}
+.grid tbody tr:last-child>*{border-bottom:0}
+.grid tr.rec{background:var(--rec-soft)}
+.score{display:inline-flex;gap:3px}
+.score i{width:10px;height:10px;border:1px solid var(--muted);border-radius:2px}
+.score i.on{background:var(--ink);border-color:var(--ink)}
+.pc{grid-column:2;margin:4px 0 0;padding:0;list-style:none;font-size:14px;color:var(--muted)}
+.pc li::before{display:inline-block;width:14px;font-weight:600}
+.pc .good::before{content:"+";color:var(--ok)}.pc .bad::before{content:"\2212";color:var(--red)}
+.settled{list-style:none;padding:0;display:grid;gap:12px}
+.refs{margin-top:10px;font-size:15px}.refs summary{cursor:pointer;color:var(--muted)}
+.history{margin:0 0 var(--gap)}
+.theme{margin:32px 0 0;font-size:24px}
+.history details{border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px}
+.history summary{cursor:pointer;font-weight:600}
+.history ul{margin:10px 0 0;padding:0;list-style:none;display:grid;gap:10px;font-size:15px}
+input[data-done]:checked,textarea[data-done]:not(:placeholder-shown),.opts[data-done]:has(:checked){counter-increment:done}
+.bar{position:sticky;bottom:0;margin:24px -16px 0;padding:12px 16px 16px;background:linear-gradient(transparent,var(--bg) 24%)}
+.bar-row{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 18px;background:var(--card);border:1px solid var(--line);border-radius:6px;box-shadow:0 6px 24px rgb(0 0 0/.08)}
+.progress{flex:1;font-weight:600}
+.progress::after{content:counter(done) " of " attr(data-total)}
+button{font:600 15px var(--sans);color:var(--on-accent);background:var(--accent);border:0;border-radius:var(--radius);padding:10px 20px;cursor:pointer}
+button:hover{filter:brightness(1.08)}
+button:disabled{opacity:.6;cursor:default}
+button.quiet{color:var(--ink);background:none;border:1px solid var(--line)}
+#result{margin-bottom:10px;padding:14px 16px;background:var(--card);border:1px solid var(--line);border-radius:6px}
+#result p{margin:0;font-weight:600}
+#result textarea{font:13px var(--mono);margin:8px 0}
+#saved{display:table;margin:0 0 8px;padding:4px 12px;font:13px var(--sans);color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px}#saved[hidden]{display:none}
+#working{display:flex;align-items:center;gap:10px;margin-bottom:10px;color:var(--accent)}#working[hidden]{display:none}
+.spinner{width:16px;height:16px;border:2px solid var(--accent-soft);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+dialog{width:min(640px,calc(100% - 32px));max-height:85vh;padding:24px 28px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px}
+dialog::backdrop{background:rgb(0 0 0/.4)}
+dialog h2{margin:0 0 12px;font-size:24px}
+#review{margin:0 0 20px;padding:0;list-style:none;display:grid;gap:12px}
+#review .pick,.settled .pick{display:inline-block;margin-top:4px;padding:2px 10px;color:var(--accent);background:var(--accent-soft);border-radius:var(--radius)}
+#review .missing,.settled .missing{color:var(--red)}
+.actions{display:flex;justify-content:flex-end;gap:8px}
+@media (max-width:560px){.opts:has(.built-in){grid-template-columns:1fr}h1{font-size:30px}.summary{margin:8px -16px 24px;padding:16px}}
+@media print{.bar,textarea:placeholder-shown{display:none}.page{padding-top:0}.item{break-inside:avoid}body{background:#fff}}
+</style>
+</head>
+<body>
+<form id="page" class="page t-decision" method="dialog" autocomplete="off">
+<header class="head">
+<p class="kicker">Decision</p>
+<h1>CSV export runner</h1>
+<p class="intro">Pick where the export runs. The table rates each option on each driver.</p>
+<section class="summary"><h2>Summary</h2><ul><li>Large exports take longer than the 30 s request timeout.</li><li>Who may export is settled: admins only.</li><li>This page decides where the export runs.</li></ul></section>
+
+</header>
+
+
+<ol class="items">
+<li class="item" id="D1">
+<p class="context">An export of 50 k orders takes about 90 s. The request timeout is 30 s.</p>
+<fieldset class="q"><legend>Where does the CSV export run?</legend>
+<div class="grid"><table><thead><tr><th>Option</th><th>Large exports</th><th>Effort</th><th>Running cost</th></tr></thead>
+<tbody><tr><th>In the request</th><td><span class="score" role="img" aria-label="1 of 5"><i class="on"></i><i></i><i></i><i></i><i></i></span></td><td><span class="score" role="img" aria-label="5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="score" role="img" aria-label="5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td></tr><tr class="rec"><th>In a background job</th><td><span class="score" role="img" aria-label="5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="score" role="img" aria-label="3 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></span></td><td><span class="score" role="img" aria-label="4 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i></span></td></tr><tr><th>In a separate export service</th><td><span class="score" role="img" aria-label="5 of 5"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td><span class="score" role="img" aria-label="1 of 5"><i class="on"></i><i></i><i></i><i></i><i></i></span></td><td><span class="score" role="img" aria-label="2 of 5"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></span></td></tr></tbody></table></div>
+<div class="opts" data-done><label class="opt"><input type="radio" name="D1.pick" value="request"><span class="opt-label">In the request</span><ul class="pc"><li class="good">No new parts</li><li class="bad">Fails above about 15 k orders</li></ul></label><label class="opt rec"><input type="radio" name="D1.pick" value="job"><span class="opt-label">In a background job <em class="badge">recommended</em></span><small>Handles every size with the runner we already operate.</small><ul class="pc"><li class="good">Uses the job runner we have</li><li class="bad">Needs a way to hand the file back</li></ul></label><label class="opt"><input type="radio" name="D1.pick" value="service"><span class="opt-label">In a separate export service</span><ul class="pc"><li class="bad">A new service to deploy and watch</li></ul></label><label class="opt built-in"><input type="radio" name="D1.pick" value="dunno"><span class="opt-label">I don&#39;t know</span></label><label class="opt built-in"><input type="radio" name="D1.pick" value="other"><span class="opt-label">Something else</span></label></div>
+</fieldset>
+<textarea name="D1.note" rows="1" placeholder="Note, also with a pick"></textarea>
+</li>
+</ol>
+
+<footer class="bar">
+<div id="result" hidden>
+<p id="working" hidden><span class="spinner"></span>The agent is working on the next round. It opens here.</p>
+<p id="result-label"></p>
+<textarea id="out" readonly rows="2"></textarea>
+<button type="button" id="copy">Copy</button>
+</div>
+<p id="saved" hidden></p>
+<div class="bar-row">
+<span class="progress" data-total="1">Answered </span>
+<button type="submit" id="save">Save answers</button>
+</div>
+</footer>
+</form>
+<dialog id="confirm"><h2>Check your answers</h2><ol id="review"></ol>
+<div class="actions"><button type="button" class="quiet" id="back">Back</button><button type="button" id="send">Submit</button></div></dialog>
+<script type="application/json" id="meta">{"t":"decision","id":"example-export-runner","form":"17a637262057","file":"example.answers.json"}</script>
+<script>// to-page: draft, save and copy. Every call that needs a user gesture is the
+// first call in its own click handler, with no await before it.
+(() => {
+  const meta = JSON.parse(document.getElementById("meta").textContent)
+  const form = document.getElementById("page")
+  const result = document.getElementById("result")
+  const label = document.getElementById("result-label")
+  const out = document.getElementById("out")
+  const copy = document.getElementById("copy")
+  // In Chrome and WebKit every file:// page shares one storage, so key by path.
+  const key = "to-page:" + location.pathname
+  const store = (run) => {
+    try {
+      return run(localStorage)
+    } catch {
+      return null
+    }
+  }
+
+  // Fills the form from [name, value] pairs, and folds each single-pick list with a pick.
+  // A value is a list for the picks of a multi decision.
+  const fill = (pairs) => {
+    for (const [name, value] of pairs) {
+      for (const one of [value].flat()) {
+        const field = [...form.querySelectorAll(`[name="${name}"]`)].find((input) => input.type !== "radio" && input.type !== "checkbox" || input.value === one || name.endsWith(".done"))
+        if (field?.type === "radio" || field?.type === "checkbox") field.checked = true
+        else if (field) field.value = one
+      }
+    }
+    for (const input of form.querySelectorAll(".opts [type=radio]:checked")) {
+      if (!input.defaultChecked) input.closest(".opts").classList.add("folded")
+    }
+  }
+  const draft = store((s) => s.getItem(key))
+  if (draft) fill(JSON.parse(draft))
+  // A pick folds the other options away. A click on the folded pick opens them again.
+  // The label click comes first, then the browser clicks the input: fold on that one.
+  form.addEventListener("click", (event) => {
+    const opts = event.target.closest(".opts")
+    if (!opts) return
+    if (opts.classList.contains("folded")) {
+      event.preventDefault()
+      opts.classList.remove("folded")
+    } else if (event.target.matches("[type=radio]")) opts.classList.add("folded")
+  })
+  form.addEventListener("input", () => store((s) => s.setItem(key, JSON.stringify([...new FormData(form)]))))
+
+  const collect = () => {
+    const answers = {}
+    for (const [name, raw] of new FormData(form)) {
+      const value = raw.trim()
+      if (!value) continue
+      const at = name.lastIndexOf(".")
+      const id = name.slice(0, at)
+      const field = name.slice(at + 1)
+      const answer = (answers[id] ??= {})
+      if (field === "done") answer.done = true
+      else if (form.querySelector(`[name="${name}"][type=checkbox]`)) (answer[field] ??= []).push(value)
+      else answer[field] = value
+    }
+    return { t: meta.t, id: meta.id, form: meta.form, saved: new Date().toISOString(), answers }
+  }
+
+  const show = (text, value) => {
+    label.textContent = text
+    out.value = value
+    out.hidden = copy.hidden = false
+    out.rows = Math.min(8, value.split("\n").length + 1)
+    result.hidden = false
+    store((s) => s.removeItem(key))
+  }
+
+  const folder = decodeURIComponent(location.pathname.replace(/[^/]*$/, ""))
+  const served = location.protocol.startsWith("http")
+  // The server names each newer page in the folder, such as the next round.
+  if (served && window.EventSource) {
+    new EventSource("/events").onmessage = (event) => {
+      if (event.data !== location.pathname) location.assign(event.data)
+    }
+  }
+  const save = document.getElementById("save")
+  if (served) save.textContent = "Submit answers"
+  // Saved answers come back into the form, so a reload never looks empty.
+  // A submit after that replaces them on purpose.
+  let replace = false
+  if (served) {
+    fetch(meta.file)
+      .then((response) => (response.ok ? response.json() : null))
+      .then((saved) => {
+        if (saved?.form !== meta.form) return
+        if (!draft) fill(Object.entries(saved.answers).flatMap(([id, answer]) => Object.entries(answer).map(([field, value]) => [`${id}.${field}`, value])))
+        replace = true
+        save.textContent = "Replace answers"
+        const note = document.getElementById("saved")
+        note.textContent = `Submitted ${new Date(saved.saved).toLocaleString()}. Submit again to replace.`
+        note.hidden = false
+      })
+      .catch(() => {})
+  }
+
+  const download = (json) => {
+    const link = document.createElement("a")
+    link.href = URL.createObjectURL(new Blob([json], { type: "application/json" }))
+    link.download = meta.file
+    link.click()
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000)
+    show("Downloaded. Copy this and paste it to the agent:", json)
+  }
+
+  // Submit shows the answers for a last check. The save runs from the confirm click,
+  // so the picker still gets the user gesture it needs.
+  const dialog = document.getElementById("confirm")
+  const review = document.getElementById("review")
+  const text = (node) =>
+    [...(node?.childNodes ?? [])].filter((n) => !n.classList?.contains("badge") && !n.classList?.contains("id")).map((n) => n.textContent).join("").trim()
+  const line = (tag, value, kind) => {
+    const element = document.createElement(tag)
+    element.textContent = value
+    if (kind) element.className = kind
+    return element
+  }
+  form.addEventListener("submit", (event) => {
+    event.preventDefault()
+    const answers = collect().answers
+    review.replaceChildren(
+      ...[...form.querySelectorAll(".item[id]")].map((item) => {
+        const { done, note } = answers[item.id] ?? {}
+        const picks = [...item.querySelectorAll(".opts input:checked")].map((pick) => text(pick.closest(".opt").querySelector(".opt-label")))
+        const shown = picks.length ? picks.join(", ") : done ? "Done" : note
+        const entry = document.createElement("li")
+        entry.append(line("b", item.id + " "), text(item.querySelector("legend, .item-title")), document.createElement("br"))
+        entry.append(shown ? line("b", shown, "pick") : line("span", "No answer", "missing"))
+        if (note && shown !== note) entry.append(line("i", " · " + note))
+        return entry
+      }),
+    )
+    dialog.showModal()
+  })
+  document.getElementById("back").addEventListener("click", () => dialog.close())
+
+  document.getElementById("send").addEventListener("click", () => {
+    const json = JSON.stringify(collect())
+    if (!served && window.showSaveFilePicker) {
+      showSaveFilePicker({
+        id: "to-page",
+        suggestedName: meta.file,
+        types: [{ description: "Answers", accept: { "application/json": [".json"] } }],
+      })
+        .then(async (handle) => {
+          const writable = await handle.createWritable()
+          await writable.write(json)
+          await writable.close()
+          show("Saved. Copy this line and paste it to the agent:", "Read the answers: " + folder + handle.name)
+        })
+        .catch(() => download(json))
+      return dialog.close()
+    }
+    dialog.close()
+    if (!served) return download(json)
+    // Served by `to-page serve`: the server writes the file next to the form.
+    save.disabled = true
+    fetch(meta.file + (replace ? "?replace=1" : ""), { method: "POST", headers: { "content-type": "application/json" }, body: json })
+      .then(async (response) => {
+        // 409: the form changed, or someone else submitted first. Keep the draft and say so.
+        if (response.status === 409) {
+          save.disabled = false
+          label.textContent = "Not submitted. " + (await response.text())
+          out.hidden = copy.hidden = true
+          return (result.hidden = false)
+        }
+        if (!response.ok) throw new Error(await response.text())
+        show("If the agent does not answer, paste it this line:", "Read the answers: " + (await response.json()).path)
+        document.getElementById("working").hidden = false
+        save.textContent = "Submitted"
+      })
+      .catch(() => ((save.disabled = false), download(json)))
+  })
+
+  copy.addEventListener("click", (event) => {
+    const button = event.currentTarget
+    const fallback = () => {
+      out.select()
+      document.execCommand("copy")
+    }
+    const copied = () => (button.textContent = "Copied")
+    if (navigator.clipboard) navigator.clipboard.writeText(out.value).then(copied, () => (fallback(), copied()))
+    else (fallback(), copied())
+  })
+})()
+</script>
+</body>
+</html>

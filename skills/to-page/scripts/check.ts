@@ -101,7 +101,7 @@ type CheckedItem = { id: string; q?: string; opts?: Option[]; rec?: string; pres
 
 function ruleIssues(form: Form): Issue[] {
   const issues: Issue[] = []
-  const items: CheckedItem[] = form.items
+  const items: CheckedItem[] = form.t === "decision" ? form.items.map((item) => ({ ...item, opts: item.options })) : form.items
   const seen = new Map<string, number>()
   items.forEach((item, index) => {
     const where = `items[${index}] "${item.id}"`
@@ -120,6 +120,18 @@ function ruleIssues(form: Form): Issue[] {
       if (item.opts !== undefined && item.guess !== undefined) {
         issues.push({ where: `${where} › guess`, message: "only an open question has a guess. Remove guess, or remove opts" })
       }
+    }
+    if (form.t === "decision") {
+      const { drivers, options, reason } = form.items[index]
+      if (reason !== undefined && item.rec === undefined) issues.push({ where: `${where} › reason`, message: "needs rec, the option it gives the reason for" })
+      options.forEach((option, at) => {
+        if (option.scores.length !== drivers.length) {
+          issues.push({
+            where: `${where} › options[${at}] "${option.id}" › scores`,
+            message: `needs one score per driver, ${drivers.length}, got ${option.scores.length}`,
+          })
+        }
+      })
     }
     if (form.t !== "checklist") {
       for (const taken of optionIds.filter((optionId) => optionId in BUILT_IN_PICKS)) {

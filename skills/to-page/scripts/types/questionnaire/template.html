@@ -8,7 +8,7 @@
 {{#if open}}{{#if guess}}<p class="note"><b>Our best guess.</b> Correct it if it is wrong: {{{ guess }}}</p>{{/if}}
 <textarea name="{{ id }}.note" rows="2" placeholder="Your answer" data-done></textarea>
 {{else}}{{> options }}
-<textarea name="{{ id }}.note" rows="1" placeholder="Note, or your own answer"></textarea>{{/if}}
+<textarea name="{{ id }}.note" rows="1" placeholder="Note, also with a pick"></textarea>{{/if}}
 </fieldset>
 </li>
 {{/each}}</ol>
