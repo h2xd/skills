@@ -1,6 +1,6 @@
 # h2xd skills
 
-48 skills and 2 agents for Claude Code. They keep what an agent learns in the
+55 skills and 12 agents for Claude Code. They keep what an agent learns in the
 repo, where the next session finds it. They build on many great skill repos and
 grew out of my own projects.
 
@@ -19,6 +19,36 @@ An agent forgets a rule, but a lint does not. That is why this set lints so
 much: the docs, the glossary words, the commit messages, the PR bodies, and the
 language of the skills themselves. Where a rule can be a check, it is one, and
 it runs without an agent, in git hooks and in CI.
+
+## News
+
+**0.6.0 adds a design group and a committee.** See the
+[changelog](CHANGELOG.md) for every change.
+
+- **The design system lives in the repo.**
+  [`design-setup`](skills/design-setup/SKILL.md) builds one inventory of
+  reusable elements and an overview page. It also writes an agent view that
+  agents read with `curl` or from git.
+- **Each small design choice gets a log entry.**
+  [`design-log`](skills/design-log/SKILL.md) writes it, and later answers why
+  an element looks the way it does.
+- **Drift gets found.** [`design-tidy`](skills/design-tidy/SKILL.md) audits
+  the inventory against the code, fixes the safe findings and asks about the
+  rest.
+- **Claude Design gets a mirror.** [`design-mirror`](skills/design-mirror/SKILL.md)
+  exports the design pages, and your own sync skill pushes them. The repo
+  stays the only author.
+- **A committee judges UI variants.**
+  [`design-variants`](skills/design-variants/SKILL.md) lets three agents build
+  one screen, a tester walks each, and the committee picks one.
+- **The committee also judges plans and diffs.**
+  [`ask-committee`](skills/ask-committee/SKILL.md) convenes a design chapter
+  and an engineering chapter. Leads call members and workers through call
+  files, and the chair routes each call. The UX designer and the architect
+  can block. When the chapters disagree, you decide.
+  [`members.md`](skills/ask-committee/members.md) shows the hierarchy, and
+  [ADR 0002](docs/decisions/0002-ask-committee-hierarchy.md) records the
+  committee shape.
 
 ## Install
 
@@ -170,10 +200,11 @@ that another agent can pick up next week.
 
 ### Ask
 
-Three question words and a teacher. Ask them as often as you like.
+Three question words, a teacher and a committee. Ask them as often as you
+like.
 
 <details>
-<summary><b>Ask</b>: what, how, why, teach</summary>
+<summary><b>Ask</b>: what, how, why, teach, committee</summary>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -181,6 +212,7 @@ Three question words and a teacher. Ask them as often as you like.
 | `how` | Explains how code works and where new code belongs | You want the map before you change something | you |
 | `why` | Explains why code is the way it is, with sources | You want the reason behind a choice or a number | you |
 | `teach` | Explains a whole body of work plainly, built on `how` and `why` | You want to understand a whole part of the system | you |
+| `ask-committee` | A design chapter and an engineering chapter of reviewer agents vote. Each lead merges its chapter's votes, and the chair writes one verdict with every vote attached | You want a verdict on variants, a design, a plan or a diff | you |
 
 </details>
 
@@ -256,6 +288,24 @@ Five reviewers and one grim reaper.
 
 </details>
 
+### Design
+
+One inventory of every reusable element, kept tidy and mirrored to Claude
+Design. Agents build variants, and `ask-committee` judges them.
+
+<details>
+<summary><b>Design</b>: setup, log, tidy, mirror, variants</summary>
+
+| Skill | What it does | Use when | Starts |
+|---|---|---|---|
+| `design-setup` | Builds the inventory, the overview page, the agent view for curl, the design log and the design config page | A repo has no design system, or a hand-written one | auto |
+| `design-log` | Writes one dated entry per small design decision, links it from the inventory, and answers why an element looks that way | A design choice is made, or you ask why | auto |
+| `design-tidy` | Finds missing, dead and copied elements, literal values and stale intent entries. Fixes the safe ones and asks about the rest | Every few weeks, or after a burst of UI work | auto |
+| `design-mirror` | Exports the design pages as snapshots, diffs them against the last push, and writes the hand-off the user's sync skill pushes from. The repo stays the only author | The inventory, a token or a page changed | you |
+| `design-variants` | Three UI prototyper agents build one task as real pages, a usability tester agent reviews each, they revise once, and the committee picks one. It ends with a ticket | A screen or element has no obvious shape | you |
+
+</details>
+
 ### Session
 
 The end of one session is the start of the next.
@@ -278,13 +328,20 @@ The end of one session is the start of the next.
 - **`skill-polisher`** reads one skill in a new context, on a fast model. It
   fixes errors and walls of text, and suggests better names. `add-skill` sends
   one per skill.
+- **The committee** is ten `committee-*` agents in a design chapter and an
+  engineering chapter. `ask-committee` runs them, and `design-variants`
+  starts the UI prototyper and the usability tester.
+  [`skills/ask-committee/members.md`](skills/ask-committee/members.md) is the
+  one place for their tiers and calls. The two directors use the `fable`
+  model alias. When the CLI does not know it, `ask-committee` starts them
+  again with a model override.
 
 ## Layout
 
 ```
 .claude-plugin/   plugin and marketplace manifests
 skills/           one folder per skill
-agents/           comment-reaper, skill-polisher
+agents/           comment-reaper, skill-polisher, committee-*
 templates/        what setup copies into a repo
   scripts/        docs lint, find and resolve, commit and PR lint, review helpers, mutation runner
   githooks/       pre-commit, commit-msg

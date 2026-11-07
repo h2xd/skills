@@ -27,6 +27,7 @@ const CLI_SPECIFIC = [
   "Opus",
   "Sonnet",
   "Haiku",
+  "Fable",
 ]
 
 const EXAMPLE_MARKER = /(such as|for example)[^.]*$/i

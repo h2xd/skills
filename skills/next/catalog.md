@@ -78,6 +78,25 @@ explains the result plainly. Run them before a change to unfamiliar code.
   unclear.
 - `h2xd:prove-measure` before trusting a number.
 
+## Design system
+
+```
+design-setup → design-log → design-tidy → design-mirror
+                    ↑
+design-variants → ask-committee
+```
+
+- `h2xd:design-setup` once per repo: the inventory, the overview page, the
+  agent view and `docs/agents/design-system.md`.
+- `h2xd:design-log` records each small design decision as it is made.
+- `h2xd:design-tidy` every few weeks, or after a burst of UI work.
+- The user runs `/h2xd:design-mirror` after the inventory or a token changes,
+  so Claude Design shows the current system.
+- For a screen or element with no obvious shape, the user runs
+  `/h2xd:design-variants`. Its verdict comes from `/h2xd:ask-committee`, and
+  the choice goes to `h2xd:design-log`.
+- `/h2xd:ask-committee` also judges a plan or a diff on its own.
+
 ## Close calls
 
 - `h2xd:how` explains what the code does. `h2xd:why` explains why it is that
@@ -90,8 +109,17 @@ explains the result plainly. Run them before a change to unfamiliar code.
   nothing. `h2xd:docs-proofread` reads the whole wiki against itself and fixes
   words and links. `h2xd:docs-quiz` asks whether the wiki answers real
   questions.
-- `h2xd:review-pr` reviews the diff against the bar.
-  `h2xd:prove-blast-radius` looks for breakage outside the diff.
+- `h2xd:plan-prototype` builds a throwaway to answer one question.
+  `/h2xd:design-variants` builds three real UI pages for one screen and lets
+  the committee pick. `h2xd:code-arena` races full implementations.
+- `h2xd:review-pr` reviews a PR against the bar. `/h2xd:ask-committee`
+  judges options before the code exists, or a diff when taste and
+  architecture decide it. `h2xd:prove-blast-radius` looks for breakage
+  outside the diff.
+- `h2xd:design-setup` builds or audits the design system's structure.
+  `h2xd:design-tidy` cleans the content: elements, values and entries.
+- `h2xd:design-log` records a small design choice. `h2xd:docs-adr` records
+  one that passes its three tests.
 - `h2xd:plan-grill` asks up to four questions at a time in the chat.
   `h2xd:to-page` puts a checklist, a round of decisions or one decision in
   depth on a page, for the user or the team. `h2xd:to-questionnaire` puts broad questions on a page
@@ -149,6 +177,12 @@ explains the result plainly. Run them before a change to unfamiliar code.
 | Check an idea or claim against the docs wiki | `h2xd:docs-fact-check` |
 | Proofread the whole wiki, unattended, with several agents | `h2xd:docs-proofread` |
 | Test whether the wiki answers real questions | `h2xd:docs-quiz` |
+| Set up an in-repo design system with an inventory and an agent view | `h2xd:design-setup` |
+| Record a small design decision | `h2xd:design-log` |
+| Audit and clean up the design system | `h2xd:design-tidy` |
+| Export the design system and hand it to the Claude Design sync | `h2xd:design-mirror` |
+| Get three UI variants, reviewed and judged | `h2xd:design-variants` |
+| Get a verdict from a design and an engineering committee | `h2xd:ask-committee` |
 | Pass the work to a fresh session or agent | `h2xd:session-handoff` |
 | Turn a session's mistakes into lasting fixes | `h2xd:session-retro` |
 | Walk a person through steps only they can do | `h2xd:setup-wizard` |

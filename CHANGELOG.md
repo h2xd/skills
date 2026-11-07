@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0
+
+- A new design group. `design-setup` builds or audits one inventory of
+  reusable elements, an overview page, a design log, the config page
+  `docs/agents/design-system.md`, and an agent view. The agent view is
+  `index.json` and `llms.md`, generated, committed, and checked in CI and a
+  package script.
+- `design-log` records small design decisions as dated entries with ids, and
+  answers why an element looks the way it does. `design-tidy` runs ten checks
+  for drift between the inventory and the code.
+- `design-mirror` exports the design pages as snapshots, diffs them against
+  the last push, and writes the hand-off the user's sync skill pushes from.
+  The repo stays the only author.
+- `design-variants` runs three UI prototyper agents with a random stance
+  each, a usability tester, one revision, then the committee, and ends with
+  a ticket.
+- `ask-committee` runs a design and an engineering chapter of reviewer
+  agents, named `committee-<chapter>-<function>`. It defaults to a quick vote.
+  Full mode adds pages, spikes and measurements from worker agents. The
+  verdict keeps every vote. `members.md` holds the hierarchy.
+- `next` sends UI work without a design config to `design-setup` and a
+  settled design choice to `design-log`. `plan-prototype` points to
+  `design-variants` for variants agents build.
+- The skills lint treats Fable as a model name, like Opus.
+
 ## 0.5.0
 
 - `to-page` has a new page type, `decision`: one hard choice in depth. A

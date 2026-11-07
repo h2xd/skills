@@ -34,7 +34,9 @@ git log --oneline origin/HEAD..HEAD
 gh pr view --json number,isDraft,reviewDecision,statusCheckRollup
 ```
 
-Check that `agents.config.json` exists. Then read the conversation. An idea, a
+Check that `agents.config.json` exists. When the diff touches UI files, such
+as `.tsx`, `.vue`, `.svelte` or a stylesheet, check that
+`docs/agents/design-system.md` exists. Then read the conversation. An idea, a
 settled spec or a ticket number already places the user.
 
 Done when you can fill in the state lines of step 3.
@@ -53,6 +55,8 @@ Take the first row that matches:
 | A spec, no tickets | `/h2xd:to-tickets` |
 | A ticket to work on | `h2xd:code-implement` |
 | Something is broken, or checks fail | `h2xd:code-debug` |
+| A design choice was settled in the session | `h2xd:design-log` |
+| UI work, but no `docs/agents/design-system.md` | `h2xd:design-setup` |
 | Uncommitted changes | `h2xd:git-commit` |
 | Commits ahead of the base, no PR | `/h2xd:git-pr-body` |
 | An open PR without a review | `/h2xd:review-pr` |

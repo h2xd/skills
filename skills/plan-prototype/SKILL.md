@@ -1,6 +1,6 @@
 ---
 name: plan-prototype
-description: Build throwaway code that a person runs to answer one design question before anything is committed. A clickable HTML file for a state model or logic, or switchable variants on a real page for a UI. Builds two or three competing variants when the repo has no precedent for the design. Use when the user wants to check whether a state model, data shape or flow feels right, wants to see what a screen could look like, or faces a new interaction or architecture with nothing similar in the codebase.
+description: Build throwaway code that a person runs to answer one design question before anything is committed. A clickable HTML file for a state model or logic, or variants a person switches by hand on a real page for a UI. Builds two or three competing variants when the repo has no precedent for the design. Use when the user wants to check whether a state model, data shape or flow feels right, wants to see what a screen could look like, or faces a new interaction or architecture with nothing similar in the codebase.
 disable-model-invocation: true
 ---
 
@@ -30,7 +30,7 @@ Then pick the branch:
 | Question | Branch | Result |
 |---|---|---|
 | Does this logic, state model or data shape hold up? | [logic.md](logic.md) | One HTML file with buttons and guided scenarios |
-| What should this look like? | [ui.md](ui.md) | Variants on one route, switched by `?variant=` |
+| What should this look like? | [ui.md](ui.md) | Variants a person switches by hand on one route, with `?variant=`. For variants that agents build and a committee judges, use `/h2xd:design-variants` |
 
 When the question fits both and the user is away, pick by the code it touches.
 A backend module gets logic. A page or component gets UI. Write the assumption

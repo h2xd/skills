@@ -21,3 +21,13 @@ An entry looks like this:
 - **Meaning:** A customer's request to buy one or more products, from checkout until delivery.
 - **Avoid:** Purchase, transaction
 ```
+
+### Chair
+
+- **Meaning:** The main session that runs `h2xd:ask-committee`. It routes calls between the committee agents, merges the chapter positions into the verdict, and never votes.
+- **Avoid:** Moderator, orchestrator
+
+### Chapter
+
+- **Meaning:** One group of committee agents with one lead, its members and its workers. The committee has two: design and engineering.
+- **Avoid:** Team, panel, group
