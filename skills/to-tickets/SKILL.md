@@ -57,7 +57,10 @@ Cut the work by the rules in [`slicing.md`](slicing.md):
 - Each ticket crosses every layer it needs such as schema, API, UI and tests, narrowly.
 - A finished ticket can be shown working or checked on its own.
 - Each ticket fits one fresh agent session.
-- Prefactors come first.
+- Prefactors come first. A file that two tickets create is a prefactor. Make it
+  its own ticket that the others are blocked by, or give each ticket its own
+  file. Two tickets that both say "create it when it does not exist" conflict
+  on every rebase.
 - A wide refactor is the exception. Sequence it as expand, migrate, contract.
 
 Give each ticket its **blocking edges**: the tickets that must be done before
