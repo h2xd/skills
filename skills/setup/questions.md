@@ -115,7 +115,8 @@ no test catches. `h2xd:review-pr` runs it as Reviewer D. Recommended: on. Then
 the runner:
 
 - **`sh`**, recommended without a mutation tool: `scripts/prove-tests.sh`
-  applies the agent's mutants with `git apply` and runs the test command. It
+  applies the agent's mutants with `git apply`, adding `--unidiff-zero` for a
+  patch without context lines, and runs the test command. It
   needs only `sh` and `git`, so it works in any stack.
 - **`native`**, recommended when the stack has a tool: the agent picks the
   lines, the tool makes the mutants. Propose `nativeCommand` with `{ranges}`,

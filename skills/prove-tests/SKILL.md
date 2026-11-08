@@ -10,8 +10,8 @@ Flip `total > limit` to `total >= limit`, run the suite, and watch it stay
 green. That green run is a missing test. This skill plants the bugs a person
 could plausibly write, called mutants, and reports every one no test notices.
 
-Each survivor marks a behavior nothing pins down, and the test that kills it
-is the next useful test to write.
+Each survivor marks a behavior nothing pins down. The test that kills it is
+the next one to write.
 
 ## Settings
 
@@ -59,11 +59,11 @@ implement an acceptance criterion. Pick one mutant per place from
 `$WORK/mutants/NNN.patch`. List each in `$WORK/mutants.md` with its id,
 `path:line`, kind, the one-line change, and the acceptance criterion it breaks.
 
-**Runner `native`.** The tool makes the mutants, and you pick where. Join the
-ranges into `{ranges}`, as `path:start-end,...`, and the paths into `{files}`.
-Fill both into `nativeCommand`.
+**Runner `native`.** The tool makes the mutants, and you pick where. Fill
+`{ranges}`, as `path:start-end,...`, and `{files}` in `nativeCommand`.
 
-Done when `git apply --check` passes on every patch, or `nativeCommand` is filled.
+Done when each patch passes `git apply --check`, plus `--unidiff-zero` when
+it has no context lines, or `nativeCommand` is filled.
 
 ### 3. Run
 

@@ -66,6 +66,13 @@ describe("prove-tests.sh", () => {
     expect(prove().stdout).toStartWith("001\tkilled\t")
   })
 
+  test("keeps a patch with context anchored, so a moved first line is invalid", () => {
+    writeFileSync(join(repo, "notes.txt"), "z\nb\nc\nd\ne\nf\ng\nx\na\nb\nc\n")
+    sh("git add -A && git -c user.name=t -c user.email=t@t commit -qm moved")
+    writeFileSync(join(mutants, "001.patch"), "--- a/notes.txt\n+++ b/notes.txt\n@@ -1,3 +1,3 @@\n-a\n+A\n b\n c\n")
+    expect(prove().stdout).toStartWith("001\tinvalid\t")
+  })
+
   test("never touches the caller's files and removes its worktree", () => {
     mutant("001", LIB, LIB.replace("-gt", "-lt"))
     prove()

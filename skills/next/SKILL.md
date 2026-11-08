@@ -34,6 +34,10 @@ git log --oneline origin/HEAD..HEAD
 gh pr view --json number,isDraft,reviewDecision,mergeStateStatus
 ```
 
+When `mergeStateStatus` is `UNKNOWN`, run the command once more. When the token
+can read checks, `gh pr checks` tells a pending check from a failing one for
+`BLOCKED`.
+
 Check that `agents.config.json` exists. When the diff touches UI files, such
 as `.tsx`, `.vue`, `.svelte` or a stylesheet, check that
 `docs/agents/design-system.md` exists. Then read the conversation. An idea, a
@@ -54,14 +58,16 @@ Take the first row that matches:
 | Decisions settled, no spec | `h2xd:to-spec` |
 | A spec, no tickets | `/h2xd:to-tickets` |
 | A ticket to work on | `h2xd:code-implement` |
-| Something is broken, or checks fail | `h2xd:code-debug` |
+| Something is broken | `h2xd:code-debug` |
 | A design choice was settled in the session | `h2xd:design-log` |
 | UI work, but no `docs/agents/design-system.md` | `h2xd:design-setup` |
 | Uncommitted changes | `h2xd:git-commit` |
 | Commits ahead of the base, no PR | `h2xd:git-pr-body` |
 | An open PR without a review | `h2xd:review-pr` |
 | A PR with changes requested or open threads | `h2xd:review-fix` |
-| A PR approved, with `mergeStateStatus` `CLEAN` | Merge it, then `h2xd:session-retro` |
+| A PR with `mergeStateStatus` `UNSTABLE`, or `BLOCKED` while approved | `h2xd:code-debug` for the failing checks |
+| A PR with `mergeStateStatus` `DIRTY` or `BEHIND` | Rebase on the base, then `h2xd:next` again |
+| A PR approved, with `mergeStateStatus` `CLEAN` or `HAS_HOOKS` | Merge it, then `h2xd:session-retro` |
 
 A name that starts with `/` is user-only. The user types it, and you do not
 run it. Read `../<name>/SKILL.md` before you describe a skill. When the skill
