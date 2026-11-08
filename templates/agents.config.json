@@ -15,6 +15,7 @@
     "maxBodyParagraphs": 2
   },
   "pullRequests": { "closingKeyword": "Closes" },
+  "review": { "askAboveFiles": 20 },
   "worktreeSetup": [["npm", "install"]],
   "mutation": {
     "enabled": true,

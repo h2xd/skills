@@ -53,10 +53,10 @@ AskUserQuestion:
 
 1. **Scope.** This project only, or every project on this machine. Recommend
    this project, because the hook then travels with the repo.
-2. **Push.** Block every push, or allow plain pushes and block only force
-   pushes and remote deletes. Recommend blocking every push. Step 5 of
-   `h2xd:review-fix` runs `git push`, so a team that uses it needs
-   `--allow-push`.
+2. **Push.** Allow plain pushes and block only force pushes and remote
+   deletes, or block every push. Recommend allowing plain pushes.
+   `h2xd:git-pr-body` and `h2xd:review-fix` push on their own, so blocking
+   every push stops them halfway.
 3. **Changes to the list.** Name any command to add or remove. `h2xd:code-arena`
    cleans up with `git branch -D`. Under this hook the user runs that line.
 

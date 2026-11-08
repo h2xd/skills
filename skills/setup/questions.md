@@ -143,9 +143,10 @@ force push, `reset --hard`, `clean -f`, `branch -D`, `checkout .`,
 `restore .`. `h2xd:git-guardrails` installs it. Recommended: on, in project
 scope, so it travels with the repo.
 
-- **Block every push**, recommended when the user pushes by hand.
-- **Allow plain pushes** with `--allow-push`, recommended when the team uses
-  `h2xd:review-fix`, which runs `git push`. Force pushes stay blocked.
+- **Allow plain pushes** with `--allow-push`, recommended.
+  `h2xd:git-pr-body` and `h2xd:review-fix` push on their own. Force pushes and
+  remote deletes stay blocked.
+- **Block every push**, when the user pushes every branch by hand.
 - **Off**.
 
 When the CLI has no pre-command hook, say so and skip.
@@ -181,3 +182,12 @@ and adds one line to the agent instructions file.
   read a lot of agent text on GitHub.
 - **Keep the default**: no output style. GitHub text still starts with a
   summary, per `h2xd:setup-tone`'s `github-text.md`.
+
+## N. Review size
+
+`h2xd:review-pr` picks its reviewers from the diff and posts without asking.
+It asks once before it reviews a diff with more changed files than
+`review.askAboveFiles`. Recommended: `20`.
+
+- **20 files**, recommended.
+- **A different number**, such as `50` for a repo with many generated files.

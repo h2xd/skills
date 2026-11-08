@@ -77,7 +77,7 @@ Done when the user confirms.
    `docs.glossaries` with each path and its `requiredFields` from C. Set
    `decisionIssueRequiredFrom` to the next free record number, or `null` when F
    was no. Set `commits` from E, `pullRequests.closingKeyword` from G,
-   `worktreeSetup` from H and `mutation` from I.
+   `worktreeSetup` from H, `mutation` from I and `review.askAboveFiles` from N.
 2. **Scripts.** Copy `templates/scripts/` to `scripts/`, including
    `package.json`, which marks the folder as ES modules. Leave out `*.test.ts`,
    which assume the default config. Keep `prove-tests.sh` executable. On a

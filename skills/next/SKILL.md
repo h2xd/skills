@@ -7,8 +7,8 @@ description: "Say the one next step. Reads the branch, changes, PR, review and c
 
 The grilling is done, the decisions are settled, and more than forty skills
 could come next. Nobody remembers them all. This skill reads the repo, names
-the one step that comes next, gives a prompt for it, and asks before it starts
-anything.
+the one step that comes next, gives a prompt for it, and starts it when it is
+the only step that fits.
 
 The main flow:
 
@@ -58,9 +58,9 @@ Take the first row that matches:
 | A design choice was settled in the session | `h2xd:design-log` |
 | UI work, but no `docs/agents/design-system.md` | `h2xd:design-setup` |
 | Uncommitted changes | `h2xd:git-commit` |
-| Commits ahead of the base, no PR | `/h2xd:git-pr-body` |
-| An open PR without a review | `/h2xd:review-pr` |
-| A PR with changes requested or open threads | `/h2xd:review-fix` |
+| Commits ahead of the base, no PR | `h2xd:git-pr-body` |
+| An open PR without a review | `h2xd:review-pr` |
+| A PR with changes requested or open threads | `h2xd:review-fix` |
 | A PR approved and green | Merge it, then `h2xd:session-retro` |
 
 A name that starts with `/` is user-only. The user types it, and you do not
@@ -80,12 +80,12 @@ Next: <skill>, <why, in one line>.
 ```
 
 Then give one prompt in a code block, with the user's real nouns. "Grill the
-CSV export idea" beats "grill your idea". Ask with clickable options, through
-the CLI's question tool, such as AskUserQuestion. Offer two options: run it
-now, or something else.
+CSV export idea" beats "grill your idea".
 
-- On a yes to a model skill, run it.
+- When one row matched and the skill is a model skill, run it now.
 - For a user-only skill, tell the user to type the prompt.
+- For a help question, or when two skills fit, ask with clickable options,
+  through the CLI's question tool, such as AskUserQuestion.
 
 Done when the answer has the state lines, one next skill and one prompt.
 
@@ -99,7 +99,7 @@ Done when the answer has the state lines, one next skill and one prompt.
 
 ## Don't
 
-- Don't start a skill without a yes. Ask first.
+- Don't ask when one step fits. Run it, or give the user-only prompt.
 - Don't invent a skill. Route only to folders in `../`.
 - Don't send tickets from `/h2xd:to-tickets` through `/h2xd:plan-triage`. They
   are ready, so go to `h2xd:code-implement`.

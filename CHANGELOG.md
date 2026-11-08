@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.7.0
+
+- Fewer stops. `code-implement` now runs `git-pr-body`, `review-pr`,
+  `review-fix` and one more `review-pr` without asking between them. It
+  stops on a draft for a one-way door or a failed check.
+- `git-pr-body`, `review-pr` and `review-fix` are model-invocable, so other
+  skills and agents start them.
+- `git-pr-body` commits a dirty tree with `git-commit`, creates the issue when
+  none fits, then pushes and opens the PR without asking. A 🔴 one-way door
+  opens as a draft.
+- `review-pr` picks its reviewers and Reviewer A's effort from the diff, per
+  `reviewer-pick.md`. It asks only for a head mismatch, or when more files
+  change than `review.askAboveFiles` in `agents.config.json`, default `20`.
+  It posts every review, 🔴 included. Reviewer C, the comment reaper, runs
+  on the cheapest model, such as Haiku.
+- `review-fix` commits, pushes and replies without asking while the checks
+  pass. It pushes or fast-forwards a head mismatch by itself.
+- `next` starts the next skill when only one fits.
+- `git-guardrails` and `setup` now recommend allowing plain pushes. Force
+  pushes and remote deletes stay blocked.
+
 ## 0.6.0
 
 - A new design group. `design-setup` builds or audits one inventory of

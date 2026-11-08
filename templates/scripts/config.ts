@@ -40,6 +40,10 @@ export type Config = {
     /** The keyword every PR body opens with, one line per ticket. */
     closingKeyword: string
   }
+  review: {
+    /** h2xd:review-pr asks before it reviews a diff with more changed files than this. */
+    askAboveFiles: number
+  }
   /**
    * Commands a fresh worktree needs before it can typecheck, each as argv.
    * review-pr, review-fix and code-arena run them.
@@ -88,6 +92,7 @@ export const DEFAULTS: Config = {
     maxBodyParagraphs: 2,
   },
   pullRequests: { closingKeyword: "Closes" },
+  review: { askAboveFiles: 20 },
   worktreeSetup: [["npm", "install"]],
   mutation: {
     enabled: true,
@@ -121,6 +126,7 @@ export function mergeConfig(overrides: Overrides): Config {
     docs: { ...DEFAULTS.docs, ...overrides.docs },
     commits: { ...DEFAULTS.commits, ...overrides.commits },
     pullRequests: { ...DEFAULTS.pullRequests, ...overrides.pullRequests },
+    review: { ...DEFAULTS.review, ...overrides.review },
     worktreeSetup: overrides.worktreeSetup ?? DEFAULTS.worktreeSetup,
     mutation: { ...DEFAULTS.mutation, ...overrides.mutation },
   }

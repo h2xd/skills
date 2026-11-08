@@ -40,6 +40,9 @@
   "pullRequests": {
     "closingKeyword": "Closes"
   },
+  "review": {
+    "askAboveFiles": 20
+  },
   "worktreeSetup": [
     [
       "npm",
