@@ -147,7 +147,7 @@ for patch in "$MUTANTS"/*.patch; do
   case ",$ONLY," in ",,"|*",$id,"*) ;; *) continue ;; esac
   start=$(date +%s)
   zero=
-  grep -q '^ ' "$patch" || zero=--unidiff-zero
+  awk '/^@@/{h=1;next} /^(diff |--- |\+\+\+ )/{h=0} h&&/^ /{f=1} END{exit !f}' "$patch" || zero=--unidiff-zero
   if ! git -C "$WT" apply $zero "$patch" 2>/dev/null; then
     emit "$id" invalid 0
     invalid=$((invalid + 1))

@@ -34,8 +34,9 @@ git log --oneline origin/HEAD..HEAD
 gh pr view --json number,isDraft,reviewDecision,mergeStateStatus
 ```
 
-When `mergeStateStatus` is `UNKNOWN`, run the command once more. When the token
-can read checks, `gh pr checks` tells a pending check from a failing one for
+When `mergeStateStatus` is `UNKNOWN`, run the command once more. When it is
+still `UNKNOWN`, report the checks as unknown and do not pick a merge row. When
+the token can read checks, `gh pr checks` tells a pending check from a failing one for
 `BLOCKED`.
 
 Check that `agents.config.json` exists. When the diff touches UI files, such
@@ -66,8 +67,9 @@ Take the first row that matches:
 | An open PR without a review | `h2xd:review-pr` |
 | A PR with changes requested or open threads | `h2xd:review-fix` |
 | A PR with `mergeStateStatus` `UNSTABLE`, or `BLOCKED` while approved | `h2xd:code-debug` for the failing checks |
+| A PR with `mergeStateStatus` `BLOCKED` and `reviewDecision` `REVIEW_REQUIRED` | Ask a person with write access for a review |
 | A PR with `mergeStateStatus` `DIRTY` or `BEHIND` | Rebase on the base, then `h2xd:next` again |
-| A PR approved, with `mergeStateStatus` `CLEAN` or `HAS_HOOKS` | Merge it, then `h2xd:session-retro` |
+| A reviewed PR with `reviewDecision` `APPROVED` or empty, and `mergeStateStatus` `CLEAN` or `HAS_HOOKS` | Merge it, then `h2xd:session-retro` |
 
 A name that starts with `/` is user-only. The user types it, and you do not
 run it. Read `../<name>/SKILL.md` before you describe a skill. When the skill
