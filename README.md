@@ -80,6 +80,7 @@ It asks about:
 - the hooks and CI workflows that enforce the rules
 - the commands a fresh worktree runs before it can typecheck
 - mutation testing, and which runner plants the bugs
+- the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
 - a hook that stops the agent from running destructive git commands
 - the triage labels
 - module boundaries, for TypeScript repos
@@ -104,17 +105,18 @@ flowchart TD
     spec -->|split| tickets[to-tickets]
   end
   subgraph build [Build]
-    impl[code-implement] -->|PR body| body[git-pr-body]
+    impl[code-implement] -->|opens the PR| body[git-pr-body]
     impl -.->|something breaks| debug[code-debug]
     debug -.->|fixed, with a test| impl
   end
   subgraph ship [Review and learn]
     review[review-pr] -->|open threads| fix[review-fix]
+    fix -.->|one more review| review
     fix -->|merged| retro[session-retro]
   end
   idea -->|questions until nothing is open| grill
   tickets -->|one ticket| impl
-  body -->|five reviewers| review
+  body -->|up to five reviewers| review
   retro -->|lessons become checks| idea
 ```
 
@@ -127,7 +129,7 @@ Not sure where you are in it? `/h2xd:next` knows.
 | **Docs stay true.** `docs/` is an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) in [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md), with a project glossary and a technical glossary. | `docs-wiki`, `docs-glossary` | The docs lint, in `pre-commit` and CI |
 | **Decisions do not overlap.** Every decision record starts as an issue, after a search for records on the same question. | `docs-adr` | The docs lint fails a record without its issue. The PR lint fails a body without `Closes #<n>`. |
 | **History explains itself.** Closed types and scopes, a short body, the reasoning in the footer. | `git-commit`, `git-pr-body` | The `commit-msg` hook and CI |
-| **Reviews hold the bar.** Five reviewers per PR review: correctness, standards, comments, mutation testing and blast radius. | `review-pr`, `review-fix` | The `review` script runs every mechanical step |
+| **Reviews hold the bar.** Up to five reviewers per PR review, picked from the diff: correctness, standards, comments, mutation testing and blast radius. | `review-pr`, `review-fix` | The `review` script runs every mechanical step |
 
 ## Skills
 
@@ -228,7 +230,7 @@ looks, and the loops that turn a ticket into a passing change.
 |---|---|---|---|
 | `code-rules` | How an agent works: asking, context, scripts, order of work, failed fixes | Any task bigger than a one-line edit | auto |
 | `code-quality` | The quality and architecture bar, and the smells reviewers check | You write or review code that more than one function calls | auto |
-| `code-implement` | Works one ticket from branch to PR body | You pick a ticket to build | auto |
+| `code-implement` | Works one ticket from branch to a reviewed PR, with no stops between | You pick a ticket to build | auto |
 | `code-tdd` | Test-first when the change is clear, ending with a mutation check | You want test-first work or a regression test | auto |
 | `code-debug` | Builds a command that goes red on the bug, then fixes the root cause | Something is broken and the cause is unknown | auto |
 | `code-architecture` | Finds shallow modules and other weak spots, ranked | You want refactoring targets | you |
@@ -267,7 +269,7 @@ History is the one record every future session reads. Make it worth reading.
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
 | `git-commit` | Writes a commit message the hook accepts and the next session can use | Before every commit | auto |
-| `git-pr-body` | Writes a PR body: closing line, summary, evidence, merge danger | You open a PR | you |
+| `git-pr-body` | Writes a PR body: closing line, summary, evidence, merge danger. Then pushes and opens the PR | You open a PR | auto |
 | `git-guardrails` | Installs a hook that stops agents from destructive git commands | You want no surprise pushes or resets | you |
 
 </details>
@@ -281,8 +283,8 @@ Five reviewers and one grim reaper.
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
-| `review-pr` | Reviews a PR with five reviewers and posts one review | A PR is ready | you |
-| `review-fix` | Fixes the review threads, replies and resolves them | A PR has comments to address | you |
+| `review-pr` | Picks up to five reviewers from the diff, then posts one review without asking | A PR is ready | auto |
+| `review-fix` | Fixes the review threads, pushes, replies and resolves them. Asks only when a check fails | A PR has comments to address | auto |
 | `review-code-comments` | Sends the comment reaper over a diff | Before review, or when the comments in a diff only repeat the code | auto |
 | `review-skills` | Finds skills that overlap and proposes exact fixes | The wrong skill fires, or after adding several | you |
 

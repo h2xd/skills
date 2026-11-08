@@ -1,8 +1,7 @@
 ---
 name: review-fix
-description: Address the unresolved review threads on a PR, the given number or the current branch's. Triages the threads, has a subagent apply the fixes and prove mutation fixes, removes narrating comments with h2xd:review-code-comments, then commits, pushes, replies on each thread and resolves the fulfilled ones. Use after a review, from review-pr or a person.
+description: Address the unresolved review threads on a PR, the given number or the current branch's. Triages the threads, has a subagent apply the fixes and prove mutation fixes, removes narrating comments with h2xd:review-code-comments, then commits, pushes, replies on each thread and resolves the fulfilled ones, without asking while the checks pass. Use after a review, from review-pr or a person.
 argument-hint: "[pr-number]"
-disable-model-invocation: true
 ---
 
 # Review fix
@@ -11,12 +10,11 @@ A reviewer leaves ten comments. Nine are right, one is wrong, and every one
 needs an answer on the thread. This skill fixes the nine, declines the one with
 a reason, and closes only the threads the pushed code really answers.
 
-You are the orchestrator. You gather the threads, triage them, gate each public
-step and summarize. A subagent makes the code changes. Every hand-off goes
+You are the orchestrator. You gather the threads, triage them, check the fixes
+and summarize. You ask only about an **ask** item, a failing check, a dirty
+tree or a diverged head. A subagent makes the code changes. Every hand-off goes
 through a file in your scratchpad, called `$WORK` below.
 
-Declined threads stay open for the reviewer. Fixed threads close once the
-pushed code does what the comment asked.
 The `node scripts/review.ts` subcommands from `h2xd:setup` do the mechanical
 work. Run one command per shell call, never chained with `&&` or `;`.
 
@@ -43,10 +41,11 @@ node scripts/review.ts threads <pr> --worktree $WORKTREE --out $WORK/threads.md
 ```
 
 - **No PR found:** stop. Tell the user to pass its number.
-- **"Dirty tree" warning:** stop and ask. The fixer's changes must be the only
-  changes in the commit.
-- **"Head mismatch" warning:** ask whether to pull or push first. Comment line
-  numbers refer to the pushed head.
+- **"Dirty tree" warning:** stop and ask. The fixes must be the commit's only
+  changes.
+- **"Head mismatch" warning:** comment line numbers refer to the pushed head.
+  When only the local branch is ahead, run `git push`. When only the remote is
+  ahead, run `git pull --ff-only`. When both moved, stop and ask.
 
 Done when `threads.md` lists every unresolved item with an id. Threads are `T1`,
 `T2`. Findings under "Outside the diff" in review summaries are `S1`, `S2`.
@@ -61,7 +60,8 @@ change or the reason. Show it as a table. Take each **ask** item to the user
 with clickable options, through the CLI's question tool, such as
 AskUserQuestion. Ask at most four per call, recommendation first.
 
-Done when every item is fix or decline, and the user confirmed the plan.
+Done when every item is fix or decline, and each **ask** item has the user's
+answer.
 
 ### 3. Apply the fixes
 
@@ -76,25 +76,18 @@ triage.
 Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`. It
 removes narration such as "per review".
 
+When a check in `changes.md` fails, show it with `git diff --stat`. Ask with
+clickable options: fix it first, or stop with the changes uncommitted.
+
 Done when every fix row matches the diff, the comment report is accepted, and
 the checks in `changes.md` pass.
 
-### 4. Gate the commit and the replies
+### 4. Draft the replies
 
-Draft one reply per item into `$WORK/replies.md`:
+Draft one reply per item into `$WORK/replies.md`, in the formats of
+[`replies.md`](replies.md).
 
-- **fix:** `Fixed in <sha>: <what changed, one sentence>.`
-- **mutation fix:** `Fixed in <sha>: <test name> now kills this mutant.`
-- **decline:** `Not changed: <reason, citing the file or decision record>.`
-
-End each reply with `Co-Authored-By: <model> <noreply@anthropic.com>`, in the
-format of `## Commits`. Fixes name the fixer's model. Declines name yours.
-
-Write to `../setup-tone/github-text.md` and `../add-soul/SKILL.md`, in one or
-two sentences. Keep `<sha>` until step 5. Show `git diff --stat`, the checks and the replies. Ask with clickable options:
-commit, push and reply. Edit first. Or stop with the changes uncommitted.
-
-Done when the user chose one. Go on only on an explicit yes.
+Done when `replies.md` has one reply per item.
 
 ### 5. Commit, push, reply
 
@@ -130,7 +123,8 @@ Lead with the commit SHA and the PR URL. Then one line per item, worst first:
 🟢 <id> <path:line>: fixed and resolved, <what changed> (<reply URL>)
 ```
 
-Name any failure already on the base branch. Name a worktree you created. `git worktree remove <path>` cleans it up.
+Name any failure already on the base branch. Name a worktree you created.
+`git worktree remove <path>` cleans it up.
 
 Done when every item has its line.
 
@@ -143,7 +137,7 @@ Done when every item has its line.
 
 ## Don't
 
-- Don't commit, push or reply without an explicit yes. Show the diff and the replies first.
+- Don't commit, push or reply while a check fails. Show the failure and ask.
 - Don't force-push. Stop and ask when the remote moved ahead.
 - Don't resolve a declined thread. Leave it open for the reviewer.
 - Don't change production code to kill a mutant. Write the test.

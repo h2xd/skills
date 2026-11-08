@@ -1,8 +1,8 @@
 # Drafter brief
 
 The drafter turns the reviewers' findings into one GitHub review. It gets this
-file's path, `context.md`, every `review-*.md`, and `reviewer-brief.md` for the
-severity scale.
+file's path, `context.md`, every `review-*.md`, `pick.md` and
+`reviewer-brief.md` for the severity scale.
 
 ## 1. Merge
 
@@ -88,7 +88,8 @@ Done when the event is one of `REQUEST_CHANGES`, `APPROVE` or `COMMENT`.
 2. A count per severity.
 3. The 🔴 and 🟡 findings, one line each, with `path:line` and the action.
 4. The "Outside the diff" section.
-5. Reviewer D's status lines and Reviewer E's `safety fact:` line, when they
+5. The reviewers that ran and why the others did not, from `pick.md`. Then
+   Reviewer D's status lines and Reviewer E's `safety fact:` line, when they
    ran.
 6. A `Co-Authored-By` line for each model that took part.
 

@@ -1,7 +1,6 @@
 ---
 name: git-pr-body
-description: Write a pull request body that opens with the closing keyword, one line per issue, then shows the change as a diagram, gives before and after evidence, and rates the merge danger. Lints the body, shows it, and opens or edits the PR only after a yes. Use when opening a PR, when rewriting a PR body, or when `node scripts/lint-pr-body.ts` fails in CI.
-disable-model-invocation: true
+description: Write a pull request body that opens with the closing keyword, one line per issue, then shows the change as a diagram, gives before and after evidence, and rates the merge danger. Lints the body, pushes, and opens or edits the PR without asking, as a draft for a one-way door. Use when opening a PR, when a branch is ready for review, when rewriting a PR body, or when `node scripts/lint-pr-body.ts` fails in CI.
 ---
 
 # PR body
@@ -27,8 +26,8 @@ proof it works, and what a bad merge breaks.
 
 Find the base with `git symbolic-ref --short refs/remotes/origin/HEAD`, minus
 `origin/`, unless the user named one. Run `git log --format='%h %s%n%b' <base>..HEAD`,
-`git diff <base>...HEAD` and `git status --short`. When the tree is dirty, ask
-whether to commit the work first with `h2xd:git-commit`.
+`git diff <base>...HEAD` and `git status --short`. When the tree is dirty,
+commit the work with `h2xd:git-commit` first, then read the log again.
 
 Done when you can say what the PR changes and why without naming a file.
 
@@ -41,9 +40,11 @@ Look for more with **Search**.
 - An issue the PR finishes gets a `Closes #<n>` line.
 - An issue it only works toward gets a `Refs #<n>` line in the summary.
 
-When no issue is finished, CI rejects the body. Stop and ask: create an issue
-with the **Create** operation, or leave the PR unopened. Creating an issue is
-public, so it needs a yes too.
+When no issue is finished, CI rejects the body. Create one with the **Create**
+operation. Its title is the PR title from step 5. Its body says what the
+commits change and why, in two or three bullets. Its label is the bug role's
+label from the `## Triage` table for a `fix`, and the enhancement role's
+label otherwise. The PR then closes it.
 
 Done when every issue number is read, and each is marked closes or refs.
 
@@ -57,45 +58,12 @@ Done when `sed -n '1,/^$/p' "$BODY_FILE"` prints only closing lines.
 
 ### 4. Write the sections
 
-Fill the template below, per
+Fill the template, per
 [`../setup-tone/github-text.md`](../setup-tone/github-text.md). Skip preambles.
 Name things by the glossary headings, as `h2xd:docs-glossary` sets them.
 
-```markdown
-## Summary
-
-- <what changes, at most three bullets>
-
-Refs #<n>
-
-<diagram, diff sketch, or tree>
-
-## Evidence
-
-- **Before:** <screenshot, output, or failing test run>
-  **After:** <screenshot, output, or passing test run>
-
-## Merge danger
-
-🟢 two-way door | 🔴 one-way door: <why>
-
-🟡 blast radius: <one word>. <optional: what a bad merge would break>
-```
-
-- **Summary.** Pick the smallest view that makes the point, from
-  [`visuals.md`](visuals.md). One view is usual. Three is the most. Drop the
-  `Refs` line when the PR finishes every issue it touches.
-- **Evidence.** A screenshot is best when the change is visible and the
-  environment can take one. Next best is a test or command run. Name the test
-  that failed before and passes now, and put long output in `<details>`. Run
-  it yourself. Never write that a check passed without its output.
-- **Door.** Keep one door line. A two-way door is cheap to revert. A one-way
-  door is not, such as a migration that drops data, a published API or
-  package version, a deleted record, or a message already sent.
-- **Blast radius.** Write one word for the widest scope a bad merge reaches,
-  such as `module`, `service`, `consumers` or `users`. Consider layout shift,
-  broken consumers, mobile widths and stored data. For a one-way door, run
-  `h2xd:prove-blast-radius` and cite its confirmed risks.
+The template and the rule for each section are in
+[`sections.md`](sections.md).
 
 Done when every section has content or says why it does not apply, and each
 diagram fits on one screen.
@@ -114,24 +82,36 @@ check CI runs. Fix the line it names and run it again.
 
 Done when it exits 0.
 
-### 7. Show and ask
+### 7. Pick ready or draft
 
-Opening a PR is public, so print the title, the base branch and the whole
-body. Offer open, draft, or edit first as clickable options, through the CLI's
-question tool, such as AskUserQuestion. On an edit, change the file and return
-to step 6.
+Read the door line from step 4. A 🔴 one-way door opens as a draft, so a
+person marks it ready. Everything else opens ready for review. Do not ask.
 
-Done when the user picked open or draft.
+Done when you know ready or draft.
 
 ### 8. Push and open
 
 Push with `git push -u origin HEAD`. Open the PR with the **Open a PR**
 operation in `docs/agents/issue-tracker.md`, with `$BODY_FILE` as the body.
-Make it a draft when the user chose it. For an existing PR, use the edit form
+Make it a draft when step 7 says so. For an existing PR, use the edit form
 of the same operation. A local tracker has no PRs, so stop after the push.
+
+- **Push rejected, remote ahead:** stop and report. Never force-push.
+- **Push blocked by a hook:** stop. Tell the user to run the push, or to
+  allow plain pushes with `h2xd:git-guardrails`.
 
 Done when the operation prints the PR URL, and the body there matches
 `$BODY_FILE`.
+
+### 9. Report
+
+```
+🔴 <step>: <what blocked the push or the PR, and the next action>
+🟡 <item>: <an issue created in step 2, or a draft for a one-way door>
+🟢 <PR URL>: <title>, ready or draft, closes #<n>
+```
+
+Done when the PR URL, or the blocker, has its line.
 
 ## Do
 
@@ -145,6 +125,7 @@ Done when the operation prints the PR URL, and the body there matches
   configured keyword, `Closes #<n>`.
 - Don't put two issues on one closing line. Write one line per issue.
 - Don't close an issue the PR only works toward. Use `Refs #<n>` in the summary.
-- Don't push or open the PR without a yes. Show the body and ask in step 7.
+- Don't ask before you push or open. Report the URL after. Make a one-way
+  door a draft instead.
 - Don't pass the body with `--body`. Shell quoting breaks backticks. Use `--body-file`.
 - Don't paste the whole diff as the summary. Pick one view from `visuals.md`.

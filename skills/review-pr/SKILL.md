@@ -1,17 +1,16 @@
 ---
 name: review-pr
-description: Review a PR, the given number or the current branch's, with five reviewers, then post one GitHub review that approves or requests changes. The reviewers cover correctness, standards, comments, tests by mutation check, and blast radius. Findings become Conventional Comments. Use for a code review of a PR. review-fix acts on the result.
+description: Review a PR, the given number or the current branch's, with up to five reviewers picked from the diff, then post one GitHub review that approves or requests changes, without asking. The reviewers cover correctness, standards, comments, tests by mutation check, and blast radius. Findings become Conventional Comments. Use for a code review of a PR, or after opening one. review-fix acts on the result.
 argument-hint: "[pr-number]"
-disable-model-invocation: true
 ---
 
 # Review PR
 
-One reviewer reads the diff and sees the diff. Five reviewers, each with one
-lens, also see the caller that breaks, the test that proves nothing and the
+One reviewer reads the diff and sees the diff. Up to five reviewers, each with
+one lens, also see the caller that breaks, the test that proves nothing and the
 comment that lies. You brief them, merge what they find, and post one review.
 
-You are the orchestrator. You gather context, brief the reviewers, gate the
+You are the orchestrator. You gather context, pick and brief the reviewers,
 post and summarize. Subagents do the reading and writing. Every hand-off goes
 through a file in your scratchpad, called `$WORK` below, so file dumps stay out
 of your context.
@@ -49,29 +48,36 @@ node scripts/review.ts context <pr> --worktree $WORKTREE --out $WORK/context.md
 ```
 
 - **No PR found:** stop. Tell the user to open one or pass its number.
-- **"Head mismatch" warning:** the review covers the pushed head. Ask whether
-  to push first.
-- **"Dirty tree" or "Wrong branch" warning:** say what the reviewers will read.
-  Ask whether to go on.
+- **"Head mismatch" warning:** the local head differs from the pushed head.
+  Ask whether to push first. This is one of the two times you ask.
+- **"Dirty tree" or "Wrong branch" warning:** go on. The reviewers read the
+  pushed head. Say so in the summary.
 
 Done when `context.md` names `$WORKTREE`, the PR number and URL, owner and
 repo, the base branch, the head SHA, the PR author, the `gh` login, every
 changed file, every linked issue with its text, every page that links a changed
 file, and the existing review threads.
 
-### 2. Launch the reviewers
+### 2. Pick the reviewers
 
-Start the reviewers in one message, as background subagents, through the CLI's
-subagent tool, such as Agent. Each prompt holds the path to `context.md`,
+Follow [`reviewer-pick.md`](reviewer-pick.md). `node scripts/review.ts fleet`
+sizes the diff as small, middle, large or critical, and picks the reviewers
+and the effort for Reviewer A. You ask only for a large change.
+
+Done when `$WORK/pick.md` exists.
+
+### 3. Launch the reviewers
+
+Start the picked reviewers in one message, as background subagents, through
+the CLI's subagent tool, such as Agent. Each prompt holds the path to `context.md`,
 `$WORKTREE`, its lens, its output file, and the path to
-[`reviewer-brief.md`](reviewer-brief.md). Leave out Reviewer D when
-`mutation.enabled` in `agents.config.json` is `false`.
+[`reviewer-brief.md`](reviewer-brief.md).
 
 | Reviewer | Model | Lens | Output |
 |---|---|---|---|
-| A, correctness | Strongest, such as Opus | The CLI's own code review of the PR at high effort, for example the `code-review` skill, with no `--comment` and no `--fix`. Without one, look for bugs, broken contracts, data loss and security holes. | `review-a.md` |
+| A, correctness | Strongest, such as Opus | The CLI's own code review of the PR at the effort in `pick.md`, for example the `code-review` skill, with no `--comment` and no `--fix`. Without one, look for bugs, broken contracts, data loss and security holes. | `review-a.md` |
 | B, standards | Strongest, such as Opus | The diff `git diff origin/<base>...HEAD` against the standards, spec and docs below. | `review-b.md` |
-| C, comments | Fast, such as Sonnet | The `h2xd:comment-reaper` agent, **report only**, on the same diff. A comment it would reap is a 🟡 with a `suggestion` that deletes it. A `MUST KILL` is a 🟡 that names the reshape, or a 🔴 when it removes a suppression that protects correctness. | `review-c.md` |
+| C, comments | Cheapest, such as Haiku | The `h2xd:comment-reaper` agent, **report only**, on the same diff. A comment it would reap is a 🟡 with a `suggestion` that deletes it. A `MUST KILL` is a 🟡 that names the reshape, or a 🔴 when it removes a suppression that protects correctness. | `review-c.md` |
 | D, tests | Fast, such as Sonnet | `h2xd:prove-tests`, **report only**, on the same diff, with the linked issues as acceptance criteria. | `review-d.md` |
 | E, blast radius | Strongest, such as Opus | `h2xd:prove-blast-radius`, **report only**, on the same diff. It finds what breaks outside the diff and proves it with output. Its `file` may sit outside the diff. | `review-e.md` |
 
@@ -87,25 +93,17 @@ Reviewer B checks three things:
   makes untrue, a new term without a glossary entry, or a contradicted record
   is 🟡. Breaking an accepted record is 🔴.
 
-Done when every launched reviewer's file exists. When one fails, name the
-missing lens and ask whether to go on without it.
+Done when every launched reviewer's file exists. When one fails, start it
+once more. When it fails again, go on without it, and name the missing lens in
+the summary.
 
-### 3. Draft the review
+### 4. Draft the review
 
 Start one subagent on a fast model, such as Sonnet. Give it the paths to
 `context.md`, every `review-*.md`, `reviewer-brief.md` and
-[`drafter.md`](drafter.md), which holds its instructions.
+[`drafter.md`](drafter.md), which holds its instructions, and `pick.md`.
 
 Done when the checks at the end of `drafter.md` pass.
-
-### 4. Gate the post
-
-Show the user the event, the counts and the 🔴 and 🟡 subjects. Point to
-`$WORK/preview.md` for the full text. Ask with clickable options, through the
-CLI's question tool, such as AskUserQuestion. The options are post as is, edit
-first, or cancel. On edit, take the changes into `review.json` and ask again.
-
-Done when the user chose post or cancel.
 
 ### 5. Post
 
@@ -120,8 +118,8 @@ Done when the call returns a review URL.
 
 ### 6. Summarize in chat
 
-Lead with the verdict and the review URL. Then give one line per finding, worst
-first:
+Lead with the verdict, the review URL and the reviewers that ran. Then give
+one line per finding, worst first:
 
 ```
 🔴 <path:line>: <action to take>, reviewer <A-E>
@@ -143,7 +141,9 @@ Done when every 🔴 and 🟡 finding has its line.
 
 ## Don't
 
-- Don't post without an explicit yes. A review is public. Ask at the gate.
+- Don't ask before you post, 🔴 included. Post, then summarize. Ask only for a
+  head mismatch or a large change.
 - Don't mark a smell 🔴 on its own. Name the concrete failure, or make it 🟡.
-- Don't approve your own PR, because GitHub refuses it. Post `COMMENT` with the verdict in the first line.
+- Don't approve your own PR, because GitHub refuses it. Post `COMMENT` with
+  the verdict in the first line.
 - Don't paste reviewer output into your context. Read the counts and subjects.

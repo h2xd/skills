@@ -116,8 +116,7 @@ nothing this pass started still runs.
 ### 7. Ship or stop
 
 For **changed**: re-read every changed file and create a branch. Commit with
-`h2xd:git-commit`. Open one PR under the instructions file's `## Pull requests`
-rules, with the body from `../git-pr-body/SKILL.md`.
+`h2xd:git-commit`. Open one PR with `h2xd:git-pr-body`.
 For **clean** or **blocked**: no branch, no PR.
 Offer to file each product gap with the **Create** operation in
 `docs/agents/issue-tracker.md`.

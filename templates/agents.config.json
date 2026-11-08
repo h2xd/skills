@@ -15,6 +15,11 @@
     "maxBodyParagraphs": 2
   },
   "pullRequests": { "closingKeyword": "Closes" },
+  "review": {
+    "small": { "files": 10, "lines": 500 },
+    "middle": { "files": 20, "lines": 1000 },
+    "criticalPaths": []
+  },
   "worktreeSetup": [["npm", "install"]],
   "mutation": {
     "enabled": true,

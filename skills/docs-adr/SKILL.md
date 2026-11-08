@@ -120,11 +120,9 @@ record.
    supersede, the footer also names the old record's path.
 2. Comment on the issue with the record's path and status, through the
    **Comment** operation.
-3. Write the PR body per `../git-pr-body/SKILL.md`. Link the issue with the
+3. Open the PR with `h2xd:git-pr-body`. Link the issue with the
    **Link a PR** operation, which on GitHub is a `Closes #<n>` line. When the
    record ships with the code it decides, the PR body has both closing lines.
-
-Pushing and opening a PR are public. Ask first.
 
 Done when the record cites the issue, the issue names the record, and the PR
 closes the issue.
@@ -147,4 +145,4 @@ them. This overrides the sentence-case rule 17 in
 - Don't open a second issue for a question already in flight. Comment on the open one.
 - Don't edit an accepted record's decision. Supersede it with a new record.
 - Don't invent decision-makers, options or drivers. Write "Not recorded."
-- Don't push or open the PR without a yes. Show the commands first.
+- Don't ask before you push or open the PR. `h2xd:git-pr-body` opens a one-way door as a draft.

@@ -16,6 +16,7 @@ in step with the files, and `node scripts/lint-docs.ts` fails when it drifts.
 
 * [Add a decision page type to to-page](/decisions/0001-to-page-decision-type.md) - Why h2xd:to-page gets a third page type for one hard choice, and how its form, page and answers differ from grilling.
 * [Shape the ask-committee hierarchy](/decisions/0002-ask-committee-hierarchy.md) - Why h2xd:ask-committee has a design and an engineering chapter with leads, members and workers, and why agents call each other through call files.
+* [Let the ship skills act, then report](/decisions/0003-act-then-report.md) - Why git-pr-body, review-pr and review-fix push, open, post and reply without a yes, and which few cases still stop for the user.
 
 ## Research
 

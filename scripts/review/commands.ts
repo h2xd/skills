@@ -5,6 +5,7 @@ import { resolve } from "node:path"
 import { parseArgs } from "node:util"
 import { config } from "../config.ts"
 import { type ContextData, formatContext } from "./context.ts"
+import { formatFleet, parseNumstat, pickFleet } from "./fleet.ts"
 import {
   authenticatedLogin,
   commentOnPullRequest,
@@ -247,6 +248,37 @@ export function resolveCommand(argv: string[]): void {
   const outcome = resolveThreads(positionals, resolveThread)
   for (const line of outcome.lines) console.log(line)
   if (outcome.failed) process.exit(1)
+}
+
+export function fleetCommand(argv: string[]): void {
+  const { values } = parseArgs({
+    args: argv,
+    options: {
+      base: { type: "string" },
+      worktree: { type: "string" },
+      "one-way-door": { type: "boolean", default: false },
+      out: { type: "string" },
+    },
+  })
+  const base = requireArgument(
+    values.base,
+    "fleet --base <branch> [--worktree PATH] [--one-way-door] [--out FILE]",
+  )
+  const worktree = values.worktree ?? "."
+  const numstat = run([
+    "git",
+    "-C",
+    worktree,
+    "diff",
+    "--numstat",
+    `origin/${base}...HEAD`,
+  ])
+  const fleet = pickFleet(
+    parseNumstat(numstat),
+    { ...config.review, mutationEnabled: config.mutation.enabled },
+    values["one-way-door"],
+  )
+  emit(formatFleet(fleet), values.out)
 }
 
 export function optionsCommand(argv: string[]): void {

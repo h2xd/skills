@@ -35,6 +35,6 @@ message. `.githooks/commit-msg` rejects a malformed one.
 
 Every PR body opens with `<closingKeyword> #<n>` on its own line, one line per
 issue.
-Merging is what closes an issue. `/h2xd:git-pr-body` writes the body.
+Merging is what closes an issue. `h2xd:git-pr-body` writes the body.
 `node scripts/lint-pr-body.ts` checks it in CI.
 ```
