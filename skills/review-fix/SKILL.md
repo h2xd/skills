@@ -93,10 +93,11 @@ Done when `replies.md` has one reply per item.
 
 1. Commit with `h2xd:git-commit`. Put the PR URL in the footer as `Refs:`.
 2. Run `git push`. When the remote moved ahead, stop and ask.
-3. Re-read the PR body. A fix that changes a number, a word or a file the body
-   names makes that sentence untrue. Update it with
-   `gh pr edit <pr> --body-file`, and run `node scripts/lint-pr-body.ts` on the
-   new body.
+3. Re-read the PR body with `gh pr view <pr> --json body -q .body`. A fix
+   that changes a number, a word or a file the body names makes that
+   sentence untrue. Write the new body to `$WORK/body.md`, run
+   `PR_BODY="$(cat $WORK/body.md)" node scripts/lint-pr-body.ts`, then
+   `gh pr edit <pr> --body-file $WORK/body.md`.
 4. Post the replies:
 
    ```sh
