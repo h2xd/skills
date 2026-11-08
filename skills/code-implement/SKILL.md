@@ -11,7 +11,9 @@ a passing test and a commit that names `#42`. A ticket from `/h2xd:to-tickets`
 or `/h2xd:plan-triage` already says what to build and how to check it.
 
 This skill turns the ticket into a branch, tested commits and a reviewed PR. It
-makes no new decisions. When the ticket is not clear enough to build, it stops
+makes no new decisions. You orchestrate. A subagent on a fast model writes the
+code, and reviewers on the strongest model check it. Hand-offs go through files
+in your scratchpad, called `$WORK` below. When the ticket is not clear enough to build, it stops
 and says why.
 
 ## Steps
@@ -47,18 +49,18 @@ Done when `git branch --show-current` prints the new branch.
 
 ### 3. Build each criterion
 
-Load `h2xd:code-rules` and `h2xd:code-quality`. Then run `h2xd:code-tdd` once
-for the whole ticket:
+1. Write `$WORK/ticket.md`: the ticket number, the branch, and the acceptance
+   criteria in the ticket's order.
+2. Agree the test entry points with the user once, per step 3 of
+   `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
+3. Start one subagent on a fast model, such as Sonnet, through the CLI's
+   subagent tool, such as Agent. Give it the paths to `ticket.md` and
+   [`implementer.md`](implementer.md), which holds its instructions.
+4. Read `$WORK/built.md` and `git log --oneline <base>..HEAD`. A criterion
+   marked `not built` goes to the report.
 
-- Give it the acceptance criteria, in the ticket's order, as its behavior
-  list. The user confirms the test entry points once.
-- Commit with `h2xd:git-commit` after the slices of each criterion. The
-  footer says `Refs: #<n>`. The commit for the last criterion says
-  `Closes: #<n>`.
-- Tell code-tdd to skip its own prove-tests step. Step 4 runs it once on the
-  whole branch.
-
-Done when every criterion has a passing test and a commit.
+Done when every criterion has a passing test and a commit, or a reason in
+`built.md`.
 
 ### 4. Check the whole change
 

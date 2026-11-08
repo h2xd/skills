@@ -23,7 +23,7 @@ Take the first row that matches:
 | Only docs, such as `*.md` under `docs/` and `README.md` | B, C |
 | Only test files | A, D |
 | Only config, CI or hooks, such as `.github/`, `*.json`, `*.yml` and `.githooks/` | A, B, E |
-| Code, at most 100 changed lines | A, C, D |
+| Code, at most 100 changed lines | A, C |
 | Code, more than 100 changed lines | A, B, C, D, E |
 
 - A file that an agent reads as instructions, such as a `SKILL.md`, an agent

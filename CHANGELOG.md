@@ -17,6 +17,10 @@
   on the cheapest model, such as Haiku.
 - `review-fix` commits, pushes and replies without asking while the checks
   pass. It pushes or fast-forwards a head mismatch by itself.
+- `code-implement` hands the build to a subagent on a fast model, such as
+  Sonnet. Reviewers on the strongest model, such as Opus, check it. A small
+  code diff gets two reviewers: A on the strongest model and the comment
+  reaper on the cheapest.
 - `next` starts the next skill when only one fits.
 - `git-guardrails` and `setup` now recommend allowing plain pushes. Force
   pushes and remote deletes stay blocked.
