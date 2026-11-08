@@ -66,6 +66,16 @@ describe("prove-tests.sh", () => {
     expect(prove().stdout).toStartWith("001\tkilled\t")
   })
 
+  test("applies a zero-context patch that carries a diffstat", () => {
+    writeFileSync(join(repo, "lib.sh"), `# top\n${LIB}# bottom\n`)
+    sh("git add -A && git -c user.name=t -c user.email=t@t commit -qm three")
+    writeFileSync(
+      join(mutants, "001.patch"),
+      ` lib.sh | 2 +-\n 1 file changed\n\n--- a/lib.sh\n+++ b/lib.sh\n@@ -2 +2 @@\n-${LIB}+${LIB.replace("-gt", "-lt")}`,
+    )
+    expect(prove().stdout).toStartWith("001\tkilled\t")
+  })
+
   test("keeps a patch with context anchored, so a moved first line is invalid", () => {
     writeFileSync(join(repo, "notes.txt"), "z\nb\nc\nd\ne\nf\ng\nx\na\nb\nc\n")
     sh("git add -A && git -c user.name=t -c user.email=t@t commit -qm moved")
