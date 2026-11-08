@@ -56,6 +56,16 @@ describe("prove-tests.sh", () => {
     expect(statuses).toEqual(["001 killed", "002 survived", "003 timeout", "004 invalid"])
   })
 
+  test("applies a patch that has no context lines", () => {
+    writeFileSync(join(repo, "lib.sh"), `# top\n${LIB}# bottom\n`)
+    sh("git add -A && git -c user.name=t -c user.email=t@t commit -qm three")
+    writeFileSync(
+      join(mutants, "001.patch"),
+      `--- a/lib.sh\n+++ b/lib.sh\n@@ -2 +2 @@\n-${LIB}+${LIB.replace("-gt", "-lt")}`,
+    )
+    expect(prove().stdout).toStartWith("001\tkilled\t")
+  })
+
   test("never touches the caller's files and removes its worktree", () => {
     mutant("001", LIB, LIB.replace("-gt", "-lt"))
     prove()
