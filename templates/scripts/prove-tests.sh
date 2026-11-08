@@ -7,7 +7,8 @@
 #     [--setup CMD] [--timeout-factor N] [--only ID,ID] [--out FILE]
 #   sh scripts/prove-tests.sh --native CMD [--setup CMD]
 #
-# DIR holds one unified diff per mutant, NNN.patch, applied with `git apply`.
+# DIR holds one unified diff per mutant, NNN.patch, with or without context
+# lines, applied with `git apply --unidiff-zero`.
 # Each result is a line `<id>\t<status>\t<seconds>`:
 #   killed    the test command failed
 #   timeout   it ran past the baseline times the factor; counts as killed
@@ -145,7 +146,7 @@ for patch in "$MUTANTS"/*.patch; do
   id=$(basename "$patch" .patch)
   case ",$ONLY," in ",,"|*",$id,"*) ;; *) continue ;; esac
   start=$(date +%s)
-  if ! git -C "$WT" apply "$patch" 2>/dev/null; then
+  if ! git -C "$WT" apply --unidiff-zero "$patch" 2>/dev/null; then
     emit "$id" invalid 0
     invalid=$((invalid + 1))
     continue
