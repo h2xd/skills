@@ -93,7 +93,11 @@ Done when `replies.md` has one reply per item.
 
 1. Commit with `h2xd:git-commit`. Put the PR URL in the footer as `Refs:`.
 2. Run `git push`. When the remote moved ahead, stop and ask.
-3. Post the replies:
+3. Re-read the PR body. A fix that changes a number, a word or a file the body
+   names makes that sentence untrue. Update it with
+   `gh pr edit <pr> --body-file`, and run `node scripts/lint-pr-body.ts` on the
+   new body.
+4. Post the replies:
 
    ```sh
    node scripts/review.ts reply <pr> $WORK/replies.md --sha <short sha> --threads $WORK/threads.md
@@ -103,7 +107,8 @@ Done when `replies.md` has one reply per item.
    comment. It posts nothing and exits 1 when a `<sha>` would remain or a
    thread id is missing.
 
-Done when every item has a reply URL.
+Done when the PR body is true to the pushed head and every item has a reply
+URL.
 
 ### 6. Resolve fulfilled threads
 
