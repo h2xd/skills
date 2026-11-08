@@ -80,7 +80,7 @@ It asks about:
 - the hooks and CI workflows that enforce the rules
 - the commands a fresh worktree runs before it can typecheck
 - mutation testing, and which runner plants the bugs
-- how many changed files make a PR review ask before it starts
+- the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
 - a hook that stops the agent from running destructive git commands
 - the triage labels
 - module boundaries, for TypeScript repos

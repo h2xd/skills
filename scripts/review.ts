@@ -9,6 +9,7 @@
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
  *   node scripts/review.ts resolve <thread-id>...
  *   node scripts/review.ts options --validate <review.json>
+ *   node scripts/review.ts fleet --base <branch> [--worktree PATH] [--one-way-door] [--out FILE]
  *
  * Output is markdown on stdout, or in the file given by --out. A failure prints
  * one line to stderr and exits 1. The logic lives in scripts/review/.
@@ -16,6 +17,7 @@
 
 import {
   contextCommand,
+  fleetCommand,
   optionsCommand,
   replyCommand,
   resolveCommand,
@@ -30,6 +32,7 @@ const COMMANDS: Record<string, (argv: string[]) => void> = {
   reply: replyCommand,
   resolve: resolveCommand,
   options: optionsCommand,
+  fleet: fleetCommand,
 }
 
 const [name, ...rest] = process.argv.slice(2)

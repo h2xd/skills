@@ -10,17 +10,19 @@
 - `git-pr-body` commits a dirty tree with `git-commit`, creates the issue when
   none fits, then pushes and opens the PR without asking. A 🔴 one-way door
   opens as a draft.
-- `review-pr` picks its reviewers and Reviewer A's effort from the diff, per
-  `reviewer-pick.md`. It asks only for a head mismatch, or when more files
-  change than `review.askAboveFiles` in `agents.config.json`, default `20`.
-  It posts every review, 🔴 included. Reviewer C, the comment reaper, runs
-  on the cheapest model, such as Haiku.
+- `review-pr` starts only the reviewers the diff needs. The new
+  `node scripts/review.ts fleet` sizes the diff from the `review` limits in
+  `agents.config.json`. Small, fewer than 10 files and 500 lines, gets A and
+  the comment reaper. Middle, fewer than 20 files and 1000 lines, adds one
+  lens per kind of file. Large gets all five after a question. Critical, a
+  one-way door or a path under `review.criticalPaths`, gets all five at once.
+- `review-pr` posts every review, 🔴 included. It asks only for a head
+  mismatch or a large change. The comment reaper runs on the cheapest model,
+  such as Haiku.
 - `review-fix` commits, pushes and replies without asking while the checks
   pass. It pushes or fast-forwards a head mismatch by itself.
 - `code-implement` hands the build to a subagent on a fast model, such as
-  Sonnet. Reviewers on the strongest model, such as Opus, check it. A small
-  code diff gets two reviewers: A on the strongest model and the comment
-  reaper on the cheapest.
+  Sonnet. Reviewers on the strongest model, such as Opus, check it.
 - `next` starts the next skill when only one fits.
 - `git-guardrails` and `setup` now recommend allowing plain pushes. Force
   pushes and remote deletes stay blocked.

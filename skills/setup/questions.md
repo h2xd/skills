@@ -185,9 +185,14 @@ and adds one line to the agent instructions file.
 
 ## N. Review size
 
-`h2xd:review-pr` picks its reviewers from the diff and posts without asking.
-It asks once before it reviews a diff with more changed files than
-`review.askAboveFiles`. Recommended: `20`.
+`h2xd:review-pr` sizes each diff and starts only the reviewers it needs:
+two for a small change, all five for a critical or large one. It asks only
+before a large review. The limits live in `review`.
 
-- **20 files**, recommended.
-- **A different number**, such as `50` for a repo with many generated files.
+- **Keep the defaults**, recommended: small is fewer than 10 files and 500
+  lines, middle fewer than 20 files and 1000 lines.
+- **Other limits**, such as higher ones for a repo with many generated files.
+
+Then `review.criticalPaths`: path prefixes where any change gets all five
+reviewers. Propose the repo's migrations, auth and payment folders, such as
+`migrations/` or `src/auth/`. Recommended: those that exist, or none.

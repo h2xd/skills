@@ -40,9 +40,14 @@ export type Config = {
     /** The keyword every PR body opens with, one line per ticket. */
     closingKeyword: string
   }
+  /** Read by `review.ts fleet`, which picks the h2xd:review-pr reviewers. */
   review: {
-    /** h2xd:review-pr asks before it reviews a diff with more changed files than this. */
-    askAboveFiles: number
+    /** Fewer files and fewer lines than this is a small change: two reviewers. */
+    small: { files: number; lines: number }
+    /** Fewer than this is a middle change. More is large: all five, after a question. */
+    middle: { files: number; lines: number }
+    /** Path prefixes, such as "migrations/", that make any change critical: all five. */
+    criticalPaths: string[]
   }
   /**
    * Commands a fresh worktree needs before it can typecheck, each as argv.
@@ -92,7 +97,11 @@ export const DEFAULTS: Config = {
     maxBodyParagraphs: 2,
   },
   pullRequests: { closingKeyword: "Closes" },
-  review: { askAboveFiles: 20 },
+  review: {
+    small: { files: 10, lines: 500 },
+    middle: { files: 20, lines: 1000 },
+    criticalPaths: [],
+  },
   worktreeSetup: [["npm", "install"]],
   mutation: {
     enabled: true,

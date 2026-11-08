@@ -60,8 +60,9 @@ file, and the existing review threads.
 
 ### 2. Pick the reviewers
 
-Follow [`reviewer-pick.md`](reviewer-pick.md). It counts the diff, picks the
-reviewers and the effort for Reviewer A, and asks only for a big diff.
+Follow [`reviewer-pick.md`](reviewer-pick.md). `node scripts/review.ts fleet`
+sizes the diff as small, middle, large or critical, and picks the reviewers
+and the effort for Reviewer A. You ask only for a large change.
 
 Done when `$WORK/pick.md` exists.
 
@@ -141,7 +142,7 @@ Done when every 🔴 and 🟡 finding has its line.
 ## Don't
 
 - Don't ask before you post, 🔴 included. Post, then summarize. Ask only for a
-  head mismatch or a big diff.
+  head mismatch or a large change.
 - Don't mark a smell 🔴 on its own. Name the concrete failure, or make it 🟡.
 - Don't approve your own PR, because GitHub refuses it. Post `COMMENT` with
   the verdict in the first line.
