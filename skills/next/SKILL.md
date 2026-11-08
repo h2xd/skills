@@ -31,7 +31,7 @@ Run each command once. Skip the ones that do not apply.
 git status --short
 git branch --show-current
 git log --oneline origin/HEAD..HEAD
-gh pr view --json number,isDraft,reviewDecision,statusCheckRollup
+gh pr view --json number,isDraft,reviewDecision,mergeStateStatus
 ```
 
 Check that `agents.config.json` exists. When the diff touches UI files, such
@@ -61,7 +61,7 @@ Take the first row that matches:
 | Commits ahead of the base, no PR | `h2xd:git-pr-body` |
 | An open PR without a review | `h2xd:review-pr` |
 | A PR with changes requested or open threads | `h2xd:review-fix` |
-| A PR approved and green | Merge it, then `h2xd:session-retro` |
+| A PR approved, with `mergeStateStatus` `CLEAN` | Merge it, then `h2xd:session-retro` |
 
 A name that starts with `/` is user-only. The user types it, and you do not
 run it. Read `../<name>/SKILL.md` before you describe a skill. When the skill
