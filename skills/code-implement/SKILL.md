@@ -85,15 +85,16 @@ Stop the chain early when a check fails, or when the PR opened as a draft. A
 draft means `h2xd:git-pr-body` rated the change a one-way door, one that is
 hard to undo. Report the draft and let the user decide.
 
-Done when the second review has no open threads or the second fix pushed,
-or the chain stopped with a reason.
+Done when no step is left whose condition is true, or the chain stopped early
+with a reason.
 
 ### 6. Report
 
 ```
 🔴 <criterion>: <not built, and why>
 🟡 <item>: <a check left open, a follow-up ticket to file>
-🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <review verdict>
+🟡 <n> threads still open: <why each one is open>
+🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
 Done when every acceptance criterion has its line.
