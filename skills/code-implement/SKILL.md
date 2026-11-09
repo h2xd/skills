@@ -78,13 +78,15 @@ Run each skill in order, without asking between them:
 1. `h2xd:git-pr-body` for ticket `#<n>`. It pushes and opens the PR.
 2. `h2xd:review-pr` on that PR. It posts the review.
 3. `h2xd:review-fix` when the review left threads. It pushes the fixes.
-4. `h2xd:review-pr` once more when step 3 pushed. Then stop.
+4. `h2xd:review-pr` once more when step 3 pushed.
+5. `h2xd:review-fix` once more when the second review left threads. Then stop.
 
 Stop the chain early when a check fails, or when the PR opened as a draft. A
 draft means `h2xd:git-pr-body` rated the change a one-way door, one that is
 hard to undo. Report the draft and let the user decide.
 
-Done when the second review is posted, or the chain stopped with a reason.
+Done when the second review has no open threads or the second fix pushed,
+or the chain stopped with a reason.
 
 ### 6. Report
 
@@ -108,4 +110,4 @@ Done when every acceptance criterion has its line.
 - Don't start on a ticket with an open blocker. Name the blocker.
 - Don't change the acceptance criteria to fit the code. Ask the user.
 - Don't fold an unrelated fix into the branch. File it as its own ticket.
-- Don't run `h2xd:review-fix` a second time. Report the threads still open.
+- Don't start a third review or a third fix. Report the threads still open.
