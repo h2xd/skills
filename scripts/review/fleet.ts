@@ -4,7 +4,12 @@
  * one starts all five.
  */
 
-export type FileChange = { path: string; lines: number; hash: string | null }
+export type FileChange = {
+  path: string
+  from: string | null
+  lines: number
+  hash: string | null
+}
 
 export type FleetSettings = {
   small: { files: number; lines: number }
@@ -39,13 +44,19 @@ export function parseNumstat(text: string): FileChange[] {
   const tokens = text.split("\0")
   const changes: FileChange[] = []
   for (let i = 0; i < tokens.length; i++) {
-    const [added, deleted, path, ...more] = tokens[i].split("\t")
-    if (deleted === undefined || path === undefined) continue
+    const match = /^(\d+|-)\t(\d+|-)\t([\s\S]*)$/.exec(tokens[i])
+    if (match === null) continue
+    const [, added, deleted, rest] = match
     const count = (value: string) => (value === "-" ? 0 : Number(value))
     const lines = count(added) + count(deleted)
-    const moved = path === ""
-    const name = moved ? tokens[(i += 2)] : [path, ...more].join("\t")
-    changes.push({ path: name, lines, hash: null })
+    if (rest === "") {
+      const from = tokens[i + 1]
+      const path = tokens[i + 2]
+      i += 2
+      changes.push({ path, from, lines, hash: null })
+    } else {
+      changes.push({ path: rest, from: null, lines, hash: null })
+    }
   }
   return changes
 }
@@ -132,10 +143,16 @@ export function pickFleet(
   const files = counted.length
   const lines = counted.reduce((sum, change) => sum + change.lines, 0)
   const kinds = new Set(counted.map((change) => kindOf(change.path)))
+  const inCriticalPath = (path: string) =>
+    settings.criticalPaths.some((prefix) => path.startsWith(prefix))
   const critical = notIgnored
-    .map((change) => change.path)
-    .filter((path) =>
-      settings.criticalPaths.some((prefix) => path.startsWith(prefix)),
+    .filter(
+      (change) =>
+        inCriticalPath(change.path) ||
+        (change.from !== null && inCriticalPath(change.from)),
+    )
+    .map((change) =>
+      change.from === null ? change.path : `${change.from} => ${change.path}`,
     )
   const withMutation = (reviewers: string[]) =>
     settings.mutationEnabled
