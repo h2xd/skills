@@ -1,6 +1,12 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type FileChange, parseNumstat, pickFleet } from "./fleet.ts"
+import {
+  type FileChange,
+  formatFleet,
+  parseNumstat,
+  parseRaw,
+  pickFleet,
+} from "./fleet.ts"
 
 const SETTINGS = {
   small: { files: 10, lines: 500 },
@@ -109,6 +115,93 @@ describe("pickFleet", () => {
       "B",
       "C",
       "E",
+    ])
+  })
+
+  test("two changed files with the same content count once", () => {
+    const changes = [
+      { path: "src/a.ts", lines: 10, hash: "aaa111" },
+      { path: "src/copy/a.ts", lines: 10, hash: "aaa111" },
+    ]
+    const fleet = pickFleet(changes, SETTINGS, false)
+    expect([fleet.files, fleet.lines]).toEqual([1, 10])
+  })
+
+  test("different hashes and missing hashes count as before", () => {
+    const changes = [
+      { path: "src/a.ts", lines: 10, hash: "aaa111" },
+      { path: "src/b.ts", lines: 10, hash: "bbb222" },
+      { path: "src/c.ts", lines: 10 },
+      { path: "src/d.ts", lines: 10 },
+    ]
+    const fleet = pickFleet(changes, SETTINGS, false)
+    expect([fleet.files, fleet.lines]).toEqual([4, 40])
+    expect(fleet.reasons.some((reason) => reason.includes("cop"))).toBe(false)
+  })
+
+  test("deleted files and empty files are never copies of each other", () => {
+    const zeros = "0".repeat(40)
+    const empty = "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    const changes = [
+      { path: "src/a.ts", lines: 5, hash: zeros },
+      { path: "src/b.ts", lines: 5, hash: zeros },
+      { path: "src/c.ts", lines: 0, hash: empty },
+      { path: "src/d.ts", lines: 0, hash: empty },
+    ]
+    expect(pickFleet(changes, SETTINGS, false).files).toBe(4)
+  })
+
+  test("the reasons name the copies that were left out", () => {
+    const changes = [
+      { path: "src/a.ts", lines: 10, hash: "aaa111" },
+      { path: "src/b.ts", lines: 10, hash: "aaa111" },
+      { path: "src/c.ts", lines: 10, hash: "aaa111" },
+    ]
+    const fleet = pickFleet(changes, SETTINGS, false)
+    expect(fleet.reasons).toContain(
+      "2 copies left out: src/b.ts and src/c.ts repeat src/a.ts",
+    )
+  })
+
+  test("a copy in a critical path still makes the change critical", () => {
+    const changes = [
+      { path: "src/a.ts", lines: 3, hash: "aaa111" },
+      { path: "migrations/a.ts", lines: 3, hash: "aaa111" },
+    ]
+    expect(pickFleet(changes, SETTINGS, false).size).toBe("critical")
+  })
+
+  test("formatFleet prints the copies line", () => {
+    const changes = [
+      { path: "src/a.ts", lines: 10, hash: "aaa111" },
+      { path: "src/b.ts", lines: 10, hash: "aaa111" },
+    ]
+    const text = formatFleet(pickFleet(changes, SETTINGS, false))
+    expect(text).toContain(
+      "- 1 copy left out: src/b.ts repeats src/a.ts",
+    )
+  })
+})
+
+describe("parseRaw", () => {
+  test("reads the new hash and the path, and joins the line counts", () => {
+    const raw = [
+      ":100644 100644 1111111 2222222 M\tsrc/a.ts",
+      ":100644 000000 3333333 0000000 D\tsrc/gone.ts",
+    ].join("\n")
+    const numstat = [
+      { path: "src/a.ts", lines: 5 },
+      { path: "src/gone.ts", lines: 9 },
+    ]
+    expect(parseRaw(raw, numstat)).toEqual([
+      { path: "src/a.ts", lines: 5, hash: "2222222" },
+      { path: "src/gone.ts", lines: 9, hash: "0000000" },
+    ])
+  })
+
+  test("keeps a file the raw output does not list, without a hash", () => {
+    expect(parseRaw("", [{ path: "x.ts", lines: 2 }])).toEqual([
+      { path: "x.ts", lines: 2 },
     ])
   })
 })

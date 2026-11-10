@@ -4,7 +4,8 @@
  * one starts all five.
  */
 
-export type FileChange = { path: string; lines: number }
+/** `hash` is the blob hash of the new content. A file without one never counts as a copy. */
+export type FileChange = { path: string; lines: number; hash?: string }
 
 export type FleetSettings = {
   small: { files: number; lines: number }
@@ -46,6 +47,66 @@ export function parseNumstat(text: string): FileChange[] {
     })
 }
 
+/** Reads `git diff --raw --no-abbrev --no-renames` and adds each new blob hash to the numstat changes. */
+export function parseRaw(text: string, changes: FileChange[]): FileChange[] {
+  const hashes = new Map<string, string>()
+  for (const line of text.split("\n")) {
+    const [meta, ...rest] = line.split("\t")
+    const fields = meta.split(" ")
+    if (!meta.startsWith(":") || fields.length < 5 || rest.length === 0) continue
+    hashes.set(rest.join("\t"), fields[3])
+  }
+  return changes.map((change) => {
+    const hash = hashes.get(change.path)
+    return hash === undefined ? change : { ...change, hash }
+  })
+}
+
+const NO_CONTENT = /^0+$/
+const EMPTY_BLOBS = [
+  "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+  "473a0f4c3be8a93681a267e3b1e9a7dcda1185436fe141f7749120a303721813",
+]
+
+/** A deleted file has an all-zero hash and an empty file has the empty blob. Neither is a copy. */
+function copyKey(change: FileChange): string | undefined {
+  const { hash } = change
+  if (hash === undefined || NO_CONTENT.test(hash)) return undefined
+  return EMPTY_BLOBS.includes(hash) ? undefined : hash
+}
+
+function leaveOutCopies(changes: FileChange[]): {
+  kept: FileChange[]
+  copies: { path: string; of: string }[]
+} {
+  const first = new Map<string, string>()
+  const kept: FileChange[] = []
+  const copies: { path: string; of: string }[] = []
+  for (const change of changes) {
+    const key = copyKey(change)
+    const original = key === undefined ? undefined : first.get(key)
+    if (key !== undefined && original !== undefined) {
+      copies.push({ path: change.path, of: original })
+      continue
+    }
+    if (key !== undefined) first.set(key, change.path)
+    kept.push(change)
+  }
+  return { kept, copies }
+}
+
+function describeCopies(copies: { path: string; of: string }[]): string {
+  const originals = [...new Set(copies.map((copy) => copy.of))]
+  const names = copies.map((copy) => copy.path)
+  const list = (items: string[]) =>
+    items.length > 1
+      ? `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
+      : items[0]
+  const noun = copies.length === 1 ? "copy" : "copies"
+  const verb = copies.length === 1 ? "repeats" : "repeat"
+  return `${copies.length} ${noun} left out: ${list(names)} ${verb} ${list(originals)}`
+}
+
 function kindOf(path: string): "docs" | "tests" | "config" | "code" {
   if (INSTRUCTIONS.test(path)) return "code"
   if (path.endsWith(".md")) return "docs"
@@ -59,13 +120,14 @@ export function pickFleet(
   settings: FleetSettings,
   oneWayDoor: boolean,
 ): Fleet {
-  const counted = changes.filter(
+  const notIgnored = changes.filter(
     (change) => !IGNORED.some((pattern) => pattern.test(change.path)),
   )
+  const { kept: counted, copies } = leaveOutCopies(notIgnored)
   const files = counted.length
   const lines = counted.reduce((sum, change) => sum + change.lines, 0)
   const kinds = new Set(counted.map((change) => kindOf(change.path)))
-  const critical = counted
+  const critical = notIgnored
     .map((change) => change.path)
     .filter((path) =>
       settings.criticalPaths.some((prefix) => path.startsWith(prefix)),
@@ -85,7 +147,7 @@ export function pickFleet(
     reviewers: withMutation(reviewers),
     effort: size === "small" ? "medium" : "high",
     ask: size === "large",
-    reasons,
+    reasons: copies.length > 0 ? [...reasons, describeCopies(copies)] : reasons,
   })
 
   if (oneWayDoor || critical.length > 0) {
