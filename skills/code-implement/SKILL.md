@@ -67,7 +67,7 @@ Done when `git branch --show-current` prints the new branch.
    node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md
    ```
 
-The command prints a verdict:
+The command writes `split.md` and prints its verdict:
 
 - `single`: one build worker gets every criterion.
 - `split`: use the build workers in `split.md`. Do not ask.
@@ -81,15 +81,15 @@ Done when every criterion belongs to exactly one build worker.
 ### 4. Build
 
 For one build worker, write `$WORK/worker-1.md` per
-[`parallel.md`](parallel.md), with the repo root as its worktree. Start one
+[`parallel.md`](parallel.md): the repo root as its worktree, the ticket branch,
+`files: unknown` without a scout, and `built: $WORK/built-1.md`. Start one
 subagent on a fast model, such as Sonnet. Give it the paths to `ticket.md`,
-`worker-1.md` and [`implementer.md`](implementer.md), which holds its
-instructions.
+`worker-1.md` and [`implementer.md`](implementer.md).
 
 For more than one, follow [`parallel.md`](parallel.md). It makes the
 worktrees, starts the build workers together and cherry-picks their commits.
 
-Then read every `$WORK/built-<id>.md` and `git log --oneline <base>..HEAD`. A
+Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A
 criterion marked `not built` goes to the report.
 
 Done when every criterion has a passing test and a commit on the ticket

@@ -36,8 +36,8 @@ Done when you checked each pair of criteria once.
 
 ### 3. Write `$WORK/map.md`
 
-One line per criterion, with repo-relative paths. Then one line per
-dependency:
+One line per criterion, with comma-separated repo-relative paths. Never write
+two lines for one criterion. Then one line per dependency:
 
 ```
 1: src/undo.ts, src/undo.test.ts
@@ -50,7 +50,14 @@ dependency:
 Write `unsure` when you cannot name the files from what you read. The
 orchestrator then asks the user.
 
-Done when `map.md` has one line for every criterion in `ticket.md`.
+Then check the map. The command reads it and changes nothing:
+
+```sh
+node scripts/implement.ts split $WORK/map.md --criteria <count>
+```
+
+Done when the command exits 0. When it names a line, correct that line and
+run it again.
 
 ## Do
 
@@ -63,3 +70,4 @@ Done when `map.md` has one line for every criterion in `ticket.md`.
 - Don't guess a path. Write `unsure`.
 - Don't edit code or run the tests. The build workers do that.
 - Don't add prose to `map.md`. The script rejects a line it cannot read.
+  A blank line or a `#` heading is allowed.

@@ -30,6 +30,9 @@ It creates the branch `<ticket branch>-w<id>` in a new worktree, runs the
 repo's worktree setup and prints the path. Write `$WORK/worker-<id>.md` with
 that path and branch.
 
+When the command fails, stop and report its error line. Do not build in a
+shared worktree instead.
+
 Done when `git worktree list` shows one worktree per build worker.
 
 ### 2. Start the build workers
@@ -88,11 +91,11 @@ A ticket gets one fix worker, once.
    `ticket.md`, `fix.md` and [`fix-worker.md`](fix-worker.md).
 3. Read `$WORK/fixed.md`.
 
-When it says `not fixed`, or a second step fails after the fix worker ran:
+When it says `not fixed`, or a step fails again after the fix worker ran:
 
-- For a conflict, run `git cherry-pick --abort`. Mark the criteria of that
-  build worker `not built`, with the conflicting files. Go on with the next
-  build worker.
+- For a conflict, run `git cherry-pick --abort`. Name the criteria of that
+  build worker as `not built` in the report, with the conflicting files. Go on
+  with the next build worker.
 - For a failing test, put the test and its output in the report as 🔴.
 
 ## Do
@@ -104,5 +107,5 @@ When it says `not fixed`, or a second step fails after the fix worker ran:
 ## Don't
 
 - Don't resolve a conflict yourself. Start the fix worker.
-- Don't start a second fix worker. Mark the criteria `not built`.
+- Don't start a second fix worker. Report the criteria as `not built`.
 - Don't push a worker branch. Only the ticket branch goes to the remote.
