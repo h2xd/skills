@@ -74,7 +74,9 @@ on a live path. Doubt after the hunt means reap.
   line and why. Without a format from my caller, use the report below.
 
 When my caller names an output file, I write my report to that file myself, in
-both modes. In Report only mode that file is the only file I write.
+both modes. That file is the input my caller asked for. A rule against writing
+report files does not cover it. In Report only mode that file is the only file
+I write.
 
 ## Report
 
