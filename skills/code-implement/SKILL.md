@@ -54,8 +54,8 @@ Done when `git branch --show-current` prints the new branch.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
 3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
-   `agents.config.json` is 1, plan one build worker and go to
-   [step 4, Build](#4-build).
+   `agents.config.json` is 1, plan one build worker with every criterion and
+   go to [step 4, Build](#4-build).
 4. When `scripts/implement.ts` is missing, plan one build worker with every
    criterion, go to [step 4, Build](#4-build), and add
    `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
@@ -88,8 +88,8 @@ worktrees, starts the build workers together and cherry-picks their commits.
 Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`.
 A criterion marked `not built` goes to the report.
 
-Done when every criterion has a passing test and a commit, or a reason in a
-`built` file.
+Done when every criterion has a passing test and a commit on the ticket
+branch, or a reason in a `built` file.
 
 ### 5. Check the whole change
 
@@ -110,8 +110,8 @@ Run each skill in order, without asking between them:
 5. `h2xd:review-fix` once more when the second review left threads. Then stop.
 
 Stop the chain early when a check fails, or when the PR opened as a draft. A
-draft means `h2xd:git-pr-body` rated the change a one-way door. Report it and
-let the user decide.
+draft means `h2xd:git-pr-body` rated the change a one-way door, one that is
+hard to undo. Report the draft and let the user decide.
 
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
@@ -128,9 +128,8 @@ with a reason.
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
-The first line says if the PR can merge. Read `<merge state>` with the
-**PR status** operation after the last push, or write `no PR` when there is
-none. 🔴 blocks the merge and 🟡 does not. `<x>` and `<y>` count those lines.
+The first line says if the PR can merge. Write it per
+[`report.md`](report.md). 🔴 blocks the merge and 🟡 does not.
 
 Done when every acceptance criterion has its line and the counts match.
 
