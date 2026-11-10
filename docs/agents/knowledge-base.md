@@ -32,4 +32,4 @@ English everywhere, in ASD-STE100, per `.claude/output-styles/asd-ste100.md`.
 
 ## Outside the bundle
 
-`README.md`, `CHANGELOG.md` and the skill files under `skills/` stay outside the bundle. `CLAUDE.md` holds the repo rules.
+`README.md` and the skill files under `skills/` stay outside the bundle. `CLAUDE.md` holds the repo rules.

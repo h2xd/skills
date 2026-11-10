@@ -23,7 +23,7 @@ it runs without an agent, in git hooks and in CI.
 ## News
 
 **0.6.0 adds a design group and a committee.** See the
-[changelog](CHANGELOG.md) for every change.
+[releases](https://github.com/h2xd/skills/releases) for every change.
 
 - **The design system lives in the repo.**
   [`design-setup`](skills/design-setup/SKILL.md) builds one inventory of
