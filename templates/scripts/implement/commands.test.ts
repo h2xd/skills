@@ -311,6 +311,7 @@ describe("implement.ts worktree and cleanup", () => {
     const made = repo.implement("worktree", "1")
 
     expect(made.status).toBe(1)
+    expect(made.stderr).toContain("`false` exited with")
     expect(repo.branches()).toEqual([TICKET, "main"])
     expect(repo.worktrees()).toEqual([repo.dir])
     expect(existsSync(repo.worktreePath("1"))).toBe(false)
