@@ -56,25 +56,24 @@ Done when `git branch --show-current` prints the new branch.
    criteria in the ticket's order, numbered from 1.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
-3. When the ticket has fewer than 3 criteria, plan one build worker with all
-   of them. Then go to step 4.
-4. Start one scout on the cheapest model, such as Haiku, through the CLI's
+3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
+   `agents.config.json` is 1, plan one build worker with all of them. Then go
+   to step 4.
+4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
+   since this version. Plan one build worker with every criterion, go to
+   step 4, and add `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the
+   report.
+5. Start one scout on the cheapest model, such as Haiku, through the CLI's
    subagent tool, such as Agent. Give it the paths to `ticket.md` and
    [`scout.md`](scout.md). It writes `$WORK/map.md`.
-5. Group the criteria:
+6. Group the criteria:
 
    ```sh
    node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md
    ```
 
-The command writes `split.md` and prints its verdict:
-
-- `single`: one build worker gets every criterion.
-- `split`: use the build workers in `split.md`. Do not ask.
-- `ask`: the scout was unsure of a criterion. Show `split.md` and ask with
-  clickable options, through the CLI's question tool, such as AskUserQuestion.
-  The options are accept the split, one build worker, or name the files. For
-  named files, put them in `map.md` and run the command again.
+The command writes `split.md` and prints its verdict. Act on it per
+[`planning.md`](planning.md).
 
 Done when every criterion belongs to exactly one build worker.
 
@@ -84,7 +83,7 @@ For one build worker, write `$WORK/worker-1.md` per
 [`parallel.md`](parallel.md): the repo root as its worktree, the ticket branch,
 `files: unknown` without a scout, and `built: $WORK/built-1.md`. Start one
 subagent on a fast model, such as Sonnet. Give it the paths to `ticket.md`,
-`worker-1.md` and [`implementer.md`](implementer.md).
+`worker-1.md` and [`build-worker.md`](build-worker.md).
 
 For more than one, follow [`parallel.md`](parallel.md). It makes the
 worktrees, starts the build workers together and cherry-picks their commits.

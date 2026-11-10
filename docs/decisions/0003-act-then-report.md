@@ -47,7 +47,7 @@ is expensive to undo, and every other step is cheap to undo.
 | [`git-pr-body`](../../skills/git-pr-body/SKILL.md) | Commits a dirty tree, creates a missing issue, pushes, opens the PR | Never. A 🔴 one-way door opens as a draft |
 | [`review-pr`](../../skills/review-pr/SKILL.md) | Sizes the diff with `review.ts fleet` and starts only the reviewers it needs, posts every review, 🔴 included | A head mismatch, or a large change |
 | [`review-fix`](../../skills/review-fix/SKILL.md) | Commits, pushes, replies, resolves | An **ask** item in triage, a failing check, a diverged head |
-| [`code-implement`](../../skills/code-implement/SKILL.md) | Runs the three skills above, then one more review and one more fix | Stops on a draft or a failed check |
+| [`code-implement`](../../skills/code-implement/SKILL.md) | Runs the three skills above, then one more review and one more fix | The test entry points once, a criterion the scout is unsure of, a draft or a failed check |
 | [`next`](../../skills/next/SKILL.md) | Starts the next skill when only one fits | Two skills fit, or a help question |
 | [`git-guardrails`](../../skills/git-guardrails/SKILL.md) | Recommends `--allow-push` | Force pushes and remote deletes stay blocked |
 
@@ -78,3 +78,10 @@ push, a post or a reply.
 * Good, because nothing ever waits.
 * Bad, because a one-way door merges into review with no draft, and a big diff
   starts five strong-model reviewers with no warning.
+
+## More Information
+
+Corrected for PR #20 and issue #19: the `code-implement` row said it stops only
+on a draft or a failed check. The skill also asks for the test entry points
+once and for a criterion the scout is unsure of. Those asks were already in
+the skill when the record was written or came with the build workers.

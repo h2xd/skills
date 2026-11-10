@@ -30,6 +30,10 @@ It creates the branch `<ticket branch>-w<id>` in a new worktree, runs the
 repo's worktree setup and prints the path. Write `$WORK/worker-<id>.md` with
 that path and branch.
 
+When a worktree or branch of the same ticket is left from an earlier run, run
+`node scripts/implement.ts cleanup <id>` first. It removes them only when
+their commits are on the ticket branch.
+
 When the command fails, stop and report its error line. Do not build in a
 shared worktree instead.
 
@@ -40,14 +44,19 @@ Done when `git worktree list` shows one worktree per build worker.
 Start all build workers in one message, so they run at the same time. Use a
 fast model, such as Sonnet, through the CLI's subagent tool, such as Agent.
 Give each one the paths to `ticket.md`, its `worker-<id>.md` and
-[`implementer.md`](implementer.md).
+[`build-worker.md`](build-worker.md).
+
+When the tests use a fixed port, a shared database or another resource outside
+the worktree, the build workers can fail each other's tests. Set
+`implement.maxWorkers` to 1 in `agents.config.json` instead.
 
 Done when every `$WORK/built-<id>.md` exists.
 
 ### 3. Cherry-pick the commits
 
 On the ticket branch, take the build workers in the order of their ids. That
-is the order of their first criterion.
+is the order of their first criterion. Before each one, record the pre-pick
+sha with `git rev-parse HEAD`.
 
 ```sh
 git cherry-pick <ticket branch>..<ticket branch>-w<id>
@@ -71,12 +80,11 @@ Done when the tests pass, or the failure is in the report.
 For each build worker whose commits are on the ticket branch:
 
 ```sh
-git worktree remove <path>
-git branch -D <ticket branch>-w<id>
+node scripts/implement.ts cleanup <id>
 ```
 
-Keep the worktree of a build worker whose commits did not land. Name it in
-the report.
+The command checks that every commit landed. It refuses and keeps the worktree
+when one did not. Name that worktree in the report.
 
 Done when `git worktree list` shows only the worktrees you named in the
 report.
@@ -91,11 +99,16 @@ A ticket gets one fix worker, once.
    `ticket.md`, `fix.md` and [`fix-worker.md`](fix-worker.md).
 3. Read `$WORK/fixed.md`.
 
+Done when `fixed.md` exists and the failed step was run again.
+
 When it says `not fixed`, or a step fails again after the fix worker ran:
 
-- For a conflict, run `git cherry-pick --abort`. Name the criteria of that
-  build worker as `not built` in the report, with the conflicting files. Go on
-  with the next build worker.
+- For a conflict, undo the cherry-pick, then name the criteria of that build
+  worker as `not built` in the report, with the conflicting files. Go on with
+  the next build worker.
+  - When the cherry-pick is still in progress, run `git cherry-pick --abort`.
+  - When the fix worker finished it, run
+    `git revert --no-edit <pre-pick sha>..HEAD`.
 - For a failing test, put the test and its output in the report as 🔴.
 
 ## Do
@@ -107,5 +120,6 @@ When it says `not fixed`, or a step fails again after the fix worker ran:
 ## Don't
 
 - Don't resolve a conflict yourself. Start the fix worker.
-- Don't start a second fix worker. Report the criteria as `not built`.
+- Don't start a second fix worker. Report a conflict's criteria as
+  `not built`, and a red test as 🔴.
 - Don't push a worker branch. Only the ticket branch goes to the remote.

@@ -206,5 +206,7 @@ and worktree. `implement.maxWorkers` is the most build workers that run at
 once.
 
 - **3**, recommended: the default.
-- **1**: no split. One build worker builds every criterion in order.
+- **1**: no split. One build worker builds every criterion in order. Choose
+  it when the tests use a fixed port, a shared database or another resource
+  outside the worktree.
 - **Another number**, such as 2 for a machine that runs slow test suites.

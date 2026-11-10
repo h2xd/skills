@@ -24,8 +24,9 @@ plan-grill → to-spec → to-tickets → code-implement → review-pr → revie
    as a tracker issue. `h2xd:to-tickets` splits it into tickets with blocking
    edges. Work the tickets in order, blockers first. When the build fits in one
    session, skip both and build here.
-4. `h2xd:code-implement` works one ticket: branch, `h2xd:code-tdd` per
-   acceptance criterion, and `h2xd:git-commit`. Then it runs `h2xd:git-pr-body`,
+4. `h2xd:code-implement` works one ticket: branch, then build workers
+   that run `h2xd:code-tdd` on criteria groups in parallel, and
+   `h2xd:git-commit`. Then it runs `h2xd:git-pr-body`,
    `h2xd:review-pr` and `h2xd:review-fix` without stopping.
    `h2xd:code-quality` and `h2xd:lang-ts-base` set the bar while writing.
 5. `h2xd:git-commit` writes each commit message.

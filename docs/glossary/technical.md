@@ -43,14 +43,20 @@ An entry looks like this:
 ### Criteria group
 
 - **Meaning:** The acceptance criteria of one ticket that one [build worker](#build-worker) gets, because they share files or depend on each other. A criterion is in exactly one criteria group.
-- **Code:** [`skills/code-implement/SKILL.md`](../../skills/code-implement/SKILL.md)
+- **Code:** [`templates/scripts/implement/split.ts`](../../templates/scripts/implement/split.ts)
 - **Avoid:** Slice, batch, chunk
 
 ### Build worker
 
-- **Meaning:** A subagent on a fast model that builds one [criteria group](#criteria-group) test-first, in its own git worktree and branch. At most three run at once.
-- **Code:** [`skills/code-implement/implementer.md`](../../skills/code-implement/implementer.md)
+- **Meaning:** A subagent on a fast model that builds one [criteria group](#criteria-group) test-first, in its own git worktree and branch. At most `implement.maxWorkers` run at once, 3 by default.
+- **Code:** [`skills/code-implement/build-worker.md`](../../skills/code-implement/build-worker.md)
 - **Avoid:** Implementer agent, implementation agent
+
+### Fix worker
+
+- **Meaning:** The one subagent on a fast model that repairs a failed cherry-pick or a red test on the ticket branch, once per ticket.
+- **Code:** [`skills/code-implement/fix-worker.md`](../../skills/code-implement/fix-worker.md)
+- **Avoid:** Repair agent, merge worker
 
 ### Scout
 

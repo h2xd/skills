@@ -4,34 +4,45 @@
  * criteria group, so no two build workers write the same file.
  */
 
+import path from "node:path"
+
 export type FileMap = {
-  /** The files per criterion number. `null` means the scout was unsure. */
-  files: Map<number, string[] | null>
-  /** Pairs of a criterion and the criterion it needs. */
-  needs: [number, number][]
+  files: Map<number, { unsure: true } | { unsure: false; files: string[] }>
+  needs: { criterion: number; needed: number }[]
 }
 
 export type SplitSettings = { maxWorkers: number }
 
 export type Verdict = "single" | "split" | "ask"
 
-export type Worker = { id: number; criteria: number[]; files: string[] }
+export type BuildWorker = { id: number; criteria: number[]; files: string[] }
 
-export type Split = { verdict: Verdict; workers: Worker[]; reasons: string[] }
+export type Split = { verdict: Verdict; workers: BuildWorker[]; reasons: string[] }
 
-/** A ticket with fewer criteria than this is not worth a scout and worktrees. */
 export const MIN_CRITERIA = 3
 
 const FILES_LINE = /^(\d+):\s*(.+)$/
 const NEEDS_LINE = /^(\d+) needs (\d+)$/
 
-/**
- * Reads the scout's map: `<n>: <file>, <file>` or `<n>: unsure` per criterion,
- * and `<n> needs <m>` per dependency. Headings and blank lines are skipped.
- */
+function parseFiles(criterion: number, value: string): string[] {
+  const entries = value
+    .split(",")
+    .map((entry) => entry.trim().replaceAll("`", ""))
+    .filter((entry) => entry !== "")
+  if (entries.length === 0) {
+    throw new Error(`criterion ${criterion} has no files, write unsure`)
+  }
+  return entries.map((entry) => {
+    if (entry.endsWith("/")) {
+      throw new Error(`criterion ${criterion}: "${entry}" is a folder, name its files`)
+    }
+    return path.posix.normalize(entry).replace(/^\.\//, "")
+  })
+}
+
 export function parseFileMap(text: string, criteriaCount: number): FileMap {
-  const files = new Map<number, string[] | null>()
-  const needs: [number, number][] = []
+  const files: FileMap["files"] = new Map()
+  const needs: FileMap["needs"] = []
   const known = (criterion: number) => {
     if (criterion < 1 || criterion > criteriaCount) {
       throw new Error(
@@ -46,7 +57,10 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
     if (line === "" || line.startsWith("#")) return
     const needsMatch = NEEDS_LINE.exec(line)
     if (needsMatch) {
-      needs.push([known(Number(needsMatch[1])), known(Number(needsMatch[2]))])
+      needs.push({
+        criterion: known(Number(needsMatch[1])),
+        needed: known(Number(needsMatch[2])),
+      })
       return
     }
     const filesMatch = FILES_LINE.exec(line)
@@ -59,11 +73,8 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
     files.set(
       criterion,
       value === "unsure"
-        ? null
-        : value
-            .split(",")
-            .map((file) => file.trim().replaceAll("`", ""))
-            .filter((file) => file !== ""),
+        ? { unsure: true }
+        : { unsure: false, files: parseFiles(criterion, value) },
     )
   })
 
@@ -75,7 +86,6 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
   return { files, needs }
 }
 
-/** The criteria groups: criteria joined by a shared file or a `needs` pair. */
 function connectedGroups(map: FileMap): number[][] {
   const parent = new Map<number, number>()
   for (const criterion of map.files.keys()) parent.set(criterion, criterion)
@@ -89,14 +99,14 @@ function connectedGroups(map: FileMap): number[][] {
   const union = (a: number, b: number) => parent.set(find(a), find(b))
 
   const firstUser = new Map<string, number>()
-  for (const [criterion, files] of map.files) {
-    for (const file of files ?? []) {
+  for (const [criterion, entry] of map.files) {
+    for (const file of entry.unsure ? [] : entry.files) {
       const other = firstUser.get(file)
       if (other === undefined) firstUser.set(file, criterion)
       else union(criterion, other)
     }
   }
-  for (const [criterion, needed] of map.needs) union(criterion, needed)
+  for (const { criterion, needed } of map.needs) union(criterion, needed)
 
   const groups = new Map<number, number[]>()
   for (const criterion of map.files.keys()) {
@@ -109,7 +119,7 @@ function connectedGroups(map: FileMap): number[][] {
 const bySizeThenFirst = (a: number[], b: number[]) =>
   a.length - b.length || a[0] - b[0]
 
-function toWorkers(groups: number[][], map: FileMap): Worker[] {
+function toWorkers(groups: number[][], map: FileMap): BuildWorker[] {
   return groups
     .map((group) => [...group].sort((a, b) => a - b))
     .sort((a, b) => a[0] - b[0])
@@ -117,23 +127,31 @@ function toWorkers(groups: number[][], map: FileMap): Worker[] {
       id: index + 1,
       criteria,
       files: [
-        ...new Set(criteria.flatMap((criterion) => map.files.get(criterion) ?? [])),
+        ...new Set(
+          criteria.flatMap((criterion) => {
+            const entry = map.files.get(criterion)
+            return entry === undefined || entry.unsure ? [] : entry.files
+          }),
+        ),
       ].sort(),
     }))
 }
 
 export function planSplit(map: FileMap, settings: SplitSettings): Split {
   const all = [...map.files.keys()].sort((a, b) => a - b)
+  const unsure = all.filter((criterion) => map.files.get(criterion)?.unsure)
+  const unsureReasons = unsure.map(
+    (criterion) => `criterion ${criterion}: the scout is unsure of its files`,
+  )
   const single = (reason: string): Split => ({
     verdict: "single",
     workers: toWorkers([all], map),
-    reasons: [reason],
+    reasons: [reason, ...unsureReasons],
   })
   if (all.length < MIN_CRITERIA) {
     return single(`fewer than ${MIN_CRITERIA} criteria`)
   }
 
-  const unsure = all.filter((criterion) => map.files.get(criterion) === null)
   const isLoneUnsure = (group: number[]) =>
     group.length === 1 && unsure.includes(group[0])
   const connected = connectedGroups(map)
@@ -141,25 +159,26 @@ export function planSplit(map: FileMap, settings: SplitSettings): Split {
   if (groups.length === 0) {
     return single("the scout is unsure of the files of every criterion")
   }
+  const independent = groups.length
   const largest = [...groups].sort((a, b) => b.length - a.length || a[0] - b[0])[0]
   largest.push(...connected.filter(isLoneUnsure).flat())
 
-  const independent = groups.length
   while (groups.length > Math.max(settings.maxWorkers, 1)) {
     const [smallest, next, ...rest] = [...groups].sort(bySizeThenFirst)
     groups = [[...smallest, ...next], ...rest]
   }
   if (groups.length === 1) {
+    if (independent > 1) {
+      return single(`the cap is ${settings.maxWorkers} build worker`)
+    }
     return single(
-      independent === 1
-        ? "every criterion shares a file or a dependency with another"
-        : `the cap is ${settings.maxWorkers} build worker`,
+      unsure.length > 0
+        ? "the criteria with known files form one criteria group"
+        : "every criterion shares a file or a dependency with another",
     )
   }
 
-  const reasons = unsure.map(
-    (criterion) => `criterion ${criterion}: the scout is unsure of its files`,
-  )
+  const reasons = [...unsureReasons]
   reasons.push(`${independent} criteria groups share no file and no dependency`)
   if (independent > groups.length) {
     reasons.push(

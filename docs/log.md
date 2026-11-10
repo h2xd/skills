@@ -8,6 +8,10 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 
 * **Update**: Add Criteria group, Build worker and Scout to the [technical glossary](/glossary/technical.md), for parallel work in code-implement.
 
+* **Update**: Add Fix worker to the [technical glossary](/glossary/technical.md), and rename the Build worker brief to `build-worker.md`.
+
+* **Correction**: [0003](/decisions/0003-act-then-report.md) now lists the asks of code-implement: the test entry points, an unsure criterion, a draft or a failed check.
+
 ## 2026-11-08
 
 * **Decision**: [0003](/decisions/0003-act-then-report.md) lets the ship skills push, open, post and reply without a yes.

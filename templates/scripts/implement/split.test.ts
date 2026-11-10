@@ -18,9 +18,32 @@ describe("parseFileMap", () => {
       "# Map\n\n1: src/a.ts, `src/a.test.ts`\n2: unsure\n2 needs 1\n",
       2,
     )
-    expect(map.files.get(1)).toEqual(["src/a.ts", "src/a.test.ts"])
-    expect(map.files.get(2)).toBe(null)
-    expect(map.needs).toEqual([[2, 1]])
+    expect(map.files.get(1)).toEqual({
+      unsure: false,
+      files: ["src/a.ts", "src/a.test.ts"],
+    })
+    expect(map.files.get(2)).toEqual({ unsure: true })
+    expect(map.needs).toEqual([{ criterion: 2, needed: 1 }])
+  })
+
+  test("reads one file in two spellings as one file", () => {
+    const map = parseFileMap("1: ./src/a.ts, src//b.ts, src/x/../c.ts\n", 1)
+    expect(map.files.get(1)).toEqual({
+      unsure: false,
+      files: ["src/a.ts", "src/b.ts", "src/c.ts"],
+    })
+  })
+
+  test("rejects a criterion with an empty file list", () => {
+    expect(() => parseFileMap("1: ,\n", 1)).toThrow(
+      "criterion 1 has no files, write unsure",
+    )
+  })
+
+  test("rejects a folder", () => {
+    expect(() => parseFileMap("1: src/\n", 1)).toThrow(
+      'criterion 1: "src/" is a folder, name its files',
+    )
   })
 
   test("rejects a line it cannot read", () => {
@@ -125,6 +148,22 @@ describe("planSplit", () => {
 
   test("only unsure criteria are a single build worker", () => {
     expect(plan("1: unsure\n2: unsure\n3: unsure\n", 3).verdict).toBe("single")
+  })
+
+  test("two spellings of one file join one criteria group", () => {
+    expect(criteriaOf("1: ./src/a.ts\n2: src/a.ts\n3: src/b.ts\n", 3)).toEqual([
+      [1, 2],
+      [3],
+    ])
+  })
+
+  test("an unsure criterion in the only group is named, not called a shared file", () => {
+    const split = plan("1: a.ts\n2: a.ts\n3: unsure\n", 3)
+    expect(split.verdict).toBe("single")
+    expect(split.reasons).toEqual([
+      "the criteria with known files form one criteria group",
+      "criterion 3: the scout is unsure of its files",
+    ])
   })
 })
 
