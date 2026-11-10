@@ -13,7 +13,7 @@ its own git worktree, and builds the result from the strongest one plus the
 best ideas of the rest. It costs N full builds, so only the user starts it.
 
 `$WORK` is a scratchpad directory, and every hand-off is a file in it. Run one
-command per shell call.
+command per shell call. Chain only stage and commit, as `h2xd:git-commit` does.
 
 ## Steps
 
