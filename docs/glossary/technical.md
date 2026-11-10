@@ -39,3 +39,21 @@ An entry looks like this:
 - **Meaning:** The scratchpad directory, `$WORK/committee/`, that holds every file of one committee run: the question, votes, calls, task copies, answers, positions and the verdict.
 - **Code:** [`skills/ask-committee/calls.md`](../../skills/ask-committee/calls.md)
 - **Avoid:** Committee directory, work folder
+
+### Criteria group
+
+- **Meaning:** The acceptance criteria of one ticket that one [build worker](#build-worker) gets, because they share files or depend on each other. A criterion is in exactly one criteria group.
+- **Code:** [`skills/code-implement/SKILL.md`](../../skills/code-implement/SKILL.md)
+- **Avoid:** Slice, batch, chunk
+
+### Build worker
+
+- **Meaning:** A subagent on a fast model that builds one [criteria group](#criteria-group) test-first, in its own git worktree and branch. At most three run at once.
+- **Code:** [`skills/code-implement/implementer.md`](../../skills/code-implement/implementer.md)
+- **Avoid:** Implementer agent, implementation agent
+
+### Scout
+
+- **Meaning:** The read-only subagent on the cheapest model that maps each acceptance criterion of a ticket to the files it touches. It marks a criterion `unsure` when it cannot name them.
+- **Code:** [`skills/code-implement/scout.md`](../../skills/code-implement/scout.md)
+- **Avoid:** Explorer, mapper

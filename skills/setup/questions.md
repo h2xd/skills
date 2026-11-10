@@ -197,3 +197,14 @@ before a large review. The limits live in `review`.
 Then `review.criticalPaths`: path prefixes where any change gets all five
 reviewers. Propose the repo's migrations, auth and payment folders, such as
 `migrations/` or `src/auth/`. Recommended: those that exist, or none.
+
+## O. Build workers
+
+`h2xd:code-implement` splits a ticket with three or more acceptance criteria
+into criteria groups that share no file. Each group gets its own build worker
+and worktree. `implement.maxWorkers` is the most build workers that run at
+once.
+
+- **3**, recommended: the default.
+- **1**: no split. One build worker builds every criterion in order.
+- **Another number**, such as 2 for a machine that runs slow test suites.

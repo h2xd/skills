@@ -4,6 +4,10 @@ Append-only, newest first. Every change to a page gets one entry, on one line:
 a bold verb, the linked page, and what changed in about 20 words. The details
 belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer entry.
 
+## 2026-11-10
+
+* **Update**: Add Criteria group, Build worker and Scout to the [technical glossary](/glossary/technical.md), for parallel work in code-implement.
+
 ## 2026-11-08
 
 * **Decision**: [0003](/decisions/0003-act-then-report.md) lets the ship skills push, open, post and reply without a yes.
