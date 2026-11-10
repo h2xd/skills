@@ -58,11 +58,11 @@ Done when `git branch --show-current` prints the new branch.
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
 3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
    `agents.config.json` is 1, plan one build worker with all of them. Then go
-   to step 4.
+   to [step 4, Build](#4-build).
 4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
    since this version. Plan one build worker with every criterion, go to
-   step 4, and add `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the
-   report.
+   [step 4, Build](#4-build), and add
+   `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
 5. Start one scout on the cheapest model, such as Haiku, through the CLI's
    subagent tool, such as Agent. Give it the paths to `ticket.md` and
    [`scout.md`](scout.md). It writes `$WORK/map.md`.
@@ -81,9 +81,10 @@ Done when every criterion belongs to exactly one build worker.
 
 For one build worker, write `$WORK/worker-1.md` per
 [`parallel.md`](parallel.md): the repo root as its worktree, the ticket branch,
-`files: unknown` without a scout, and `built: $WORK/built-1.md`. Start one
-subagent on a fast model, such as Sonnet. Give it the paths to `ticket.md`,
-`worker-1.md` and [`build-worker.md`](build-worker.md).
+`criteria:` with every criterion, `files: unknown` without a scout, and
+`built: $WORK/built-1.md`. Start one subagent on a fast model, such as Sonnet.
+Give it the paths to `ticket.md`, `worker-1.md` and
+[`build-worker.md`](build-worker.md).
 
 For more than one, follow [`parallel.md`](parallel.md). It makes the
 worktrees, starts the build workers together and cherry-picks their commits.

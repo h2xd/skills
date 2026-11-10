@@ -59,8 +59,12 @@ is the order of their first criterion. Before each one, record the pre-pick
 sha with `git rev-parse HEAD`.
 
 ```sh
-git cherry-pick <ticket branch>..<ticket branch>-w<id>
+git cherry-pick -x <ticket branch>..<ticket branch>-w<id>
 ```
+
+The `-x` flag adds a `(cherry picked from commit <sha>)` line to each commit.
+`cleanup` reads it to know that a commit landed, also after the fix worker
+resolved a conflict by hand.
 
 Skip a build worker whose `built` file has no `built` line. It made no commit.
 When a cherry-pick stops on a conflict, use the fix worker below.
@@ -86,6 +90,9 @@ node scripts/implement.ts cleanup <id>
 The command checks that every commit landed. It refuses and keeps the worktree
 when one did not. Name that worktree in the report.
 
+Don't run `cleanup` for a build worker you reverted. Name its worktree in the
+report.
+
 Done when `git worktree list` shows only the worktrees you named in the
 report.
 
@@ -99,7 +106,10 @@ A ticket gets one fix worker, once.
    `ticket.md`, `fix.md` and [`fix-worker.md`](fix-worker.md).
 3. Read `$WORK/fixed.md`.
 
-Done when `fixed.md` exists and the failed step was run again.
+Done when `fixed.md` exists. After `fixed`, the **Done when** of the failed step
+holds. For a conflict, `git status --short` prints nothing and no cherry-pick
+is in progress. For a red test, the test command passes. Never run the
+cherry-pick of that build worker again.
 
 When it says `not fixed`, or a step fails again after the fix worker ran:
 

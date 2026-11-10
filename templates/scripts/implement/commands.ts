@@ -5,11 +5,16 @@ import { parseArgs } from "node:util"
 import { config } from "../config.ts"
 import { run, runAllowingFailure } from "../review/shell.ts"
 import {
-  findWorktreeForBranch,
   newWorktreePath,
   parseWorktreeList,
+  type WorktreeEntry,
 } from "../review/worktree.ts"
-import { unlandedCommits } from "./landed.ts"
+import {
+  planCleanup,
+  unlandedCommits,
+  workerBranchName,
+  worktreeBlocker,
+} from "./landed.ts"
 import { formatSplit, parseFileMap, planSplit } from "./split.ts"
 
 const SPLIT_USAGE = "split <map.md> --criteria <count> [--out FILE]"
@@ -68,18 +73,28 @@ function removeWorkerBranch(workerBranch: string): void {
   run(["git", "update-ref", "-d", `refs/heads/${workerBranch}`])
 }
 
+function workerBranchFor(id: string): string {
+  return workerBranchName(ticketBranch(), id)
+}
+
+function worktreeEntries(): WorktreeEntry[] {
+  return parseWorktreeList(run(["git", "worktree", "list", "--porcelain"]))
+}
+
 export function worktreeCommand(argv: string[]): void {
   const id = workerIdFrom(argv, WORKTREE_USAGE)
-  const workerBranch = `${ticketBranch()}-w${id}`
-  const [mainWorktree] = parseWorktreeList(
-    run(["git", "worktree", "list", "--porcelain"]),
-  )
-  const path = newWorktreePath(mainWorktree.path, workerBranch)
-  if (branchExists(workerBranch) || existsSync(path)) {
-    throw new Error(
-      `${workerBranch} or ${path} exists. Run \`node scripts/implement.ts cleanup ${id}\` first`,
-    )
-  }
+  const workerBranch = workerBranchFor(id)
+  const worktrees = worktreeEntries()
+  const path = newWorktreePath(worktrees[0].path, workerBranch)
+  const blocker = worktreeBlocker({
+    id,
+    workerBranch,
+    path,
+    branchExists: branchExists(workerBranch),
+    pathExists: existsSync(path),
+    worktrees,
+  })
+  if (blocker) throw new Error(blocker)
   run(["git", "worktree", "add", "-b", workerBranch, path, "HEAD"])
   try {
     for (const command of config.worktreeSetup) run(command, path)
@@ -94,18 +109,32 @@ export function worktreeCommand(argv: string[]): void {
 export function cleanupCommand(argv: string[]): void {
   const id = workerIdFrom(argv, CLEANUP_USAGE)
   const branch = ticketBranch()
-  const workerBranch = `${branch}-w${id}`
-  const unlanded = unlandedCommits(run(["git", "cherry", branch, workerBranch]))
-  if (unlanded.length > 0) {
-    throw new Error(
-      `${workerBranch} keeps its worktree, these commits are not on ${branch}: ${unlanded.join(", ")}`,
-    )
-  }
-  const entry = findWorktreeForBranch(
-    parseWorktreeList(run(["git", "worktree", "list", "--porcelain"])),
+  const workerBranch = workerBranchName(branch, id)
+  const worktrees = worktreeEntries()
+  const exists = branchExists(workerBranch)
+  const plan = planCleanup({
     workerBranch,
+    path: newWorktreePath(worktrees[0].path, workerBranch),
+    branchExists: exists,
+    worktrees,
+  })
+  if (plan.kind === "refuse") throw new Error(plan.message)
+  if (plan.checkLanded) {
+    const unlanded = unlandedCommits(
+      run(["git", "cherry", branch, workerBranch]),
+      run(["git", "log", "--format=%B", `${workerBranch}..${branch}`]),
+    )
+    if (unlanded.length > 0) {
+      throw new Error(
+        `${workerBranch} keeps its worktree, these commits are not on ${branch}: ${unlanded.join(", ")}`,
+      )
+    }
+  }
+  if (plan.removeWorktree) run(["git", "worktree", "remove", plan.removeWorktree])
+  if (exists) removeWorkerBranch(workerBranch)
+  console.log(
+    plan.removeWorktree || exists
+      ? `removed ${workerBranch}`
+      : `nothing to remove for ${workerBranch}`,
   )
-  if (entry) run(["git", "worktree", "remove", entry.path])
-  removeWorkerBranch(workerBranch)
-  console.log(`removed ${workerBranch}`)
 }

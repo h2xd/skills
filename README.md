@@ -231,7 +231,7 @@ looks, and the loops that turn a ticket into a passing change.
 |---|---|---|---|
 | `code-rules` | How an agent works: asking, context, scripts, order of work, failed fixes | Any task bigger than a one-line edit | auto |
 | `code-quality` | The quality and architecture bar, and the smells reviewers check | You write or review code that more than one function calls | auto |
-| `code-implement` | Works one ticket from branch to a reviewed PR with parallel build workers, with no stops between | You pick a ticket to build | auto |
+| `code-implement` | Works one ticket from branch to a reviewed PR with parallel build workers, asking only for test entry points and unsure files | You pick a ticket to build | auto |
 | `code-tdd` | Test-first when the change is clear, ending with a mutation check | You want test-first work or a regression test | auto |
 | `code-debug` | Builds a command that goes red on the bug, then fixes the root cause | Something is broken and the cause is unknown | auto |
 | `code-architecture` | Finds shallow modules and other weak spots, ranked | You want refactoring targets | you |

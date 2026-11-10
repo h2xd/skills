@@ -6,6 +6,8 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 
 ## 2026-11-10
 
+* **Decision**: [0004](/decisions/0004-ask-at-four-stops.md) supersedes [0003](/decisions/0003-act-then-report.md), adding input the agent cannot get alone as a fourth stop.
+
 * **Update**: Add Criteria group, Build worker and Scout to the [technical glossary](/glossary/technical.md), for parallel work in code-implement.
 
 * **Update**: Add Fix worker to the [technical glossary](/glossary/technical.md), and rename the Build worker brief to `build-worker.md`.

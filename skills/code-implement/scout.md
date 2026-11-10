@@ -47,8 +47,8 @@ two lines for one criterion. Then one line per dependency:
 4 needs 2
 ```
 
-Write `unsure` when you cannot name the files from what you read. The
-orchestrator then asks the user.
+Write `unsure` when you cannot name the files from what you read. When the split
+still has more than one build worker, the orchestrator asks the user.
 
 Then check the map. The command reads it and changes nothing:
 
