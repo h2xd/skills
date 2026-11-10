@@ -1,6 +1,6 @@
 ---
 name: code-implement
-description: "Work one ticket from start to PR: read its acceptance criteria, branch, build them test-first, and commit after each. Then open the PR with h2xd:git-pr-body, review it with h2xd:review-pr and fix the threads with h2xd:review-fix, without stopping between them. Use when the user names a ticket to work on, says implement, or picks the next ticket."
+description: "Work one ticket from start to PR: read its acceptance criteria, branch, build them test-first with parallel build workers, and commit after each. Then open the PR with h2xd:git-pr-body, review it with h2xd:review-pr and fix the threads with h2xd:review-fix, without stopping between them. Use when the user names a ticket to work on, says implement, or picks the next ticket."
 argument-hint: "[ticket number]"
 ---
 
@@ -11,10 +11,13 @@ a passing test and a commit that names `#42`. A ticket from `/h2xd:to-tickets`
 or `/h2xd:plan-triage` already says what to build and how to check it.
 
 This skill turns the ticket into a branch, tested commits and a reviewed PR. It
-makes no new decisions. You orchestrate. A subagent on a fast model writes the
-code, and reviewers on the strongest model check it. Hand-offs go through files
-in your scratchpad, called `$WORK` below. When the ticket is not clear enough to build, it stops
-and says why.
+makes no new decisions. You orchestrate. Build workers on a fast model write
+the code, and reviewers on the strongest model check it. Hand-offs go through
+files in your scratchpad, called `$WORK` below. When the ticket is not clear
+enough to build, it stops and says why.
+
+A **build worker** builds one **criteria group**, the criteria that share
+files or need each other. Groups run at the same time, each in its own worktree.
 
 ## Steps
 
@@ -47,22 +50,52 @@ git switch -c <type>/<n>-<slug> origin/$(git symbolic-ref --short refs/remotes/o
 
 Done when `git branch --show-current` prints the new branch.
 
-### 3. Build each criterion
+### 3. Plan the build workers
 
 1. Write `$WORK/ticket.md`: the ticket number, the branch, and the acceptance
-   criteria in the ticket's order.
+   criteria in the ticket's order, numbered from 1.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
-3. Start one subagent on a fast model, such as Sonnet, through the CLI's
+3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
+   `agents.config.json` is 1, plan one build worker with all of them. Then go
+   to [step 4, Build](#4-build).
+4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
+   since this version. Plan one build worker with every criterion, go to
+   [step 4, Build](#4-build), and add
+   `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
+5. Start one scout on the cheapest model, such as Haiku, through the CLI's
    subagent tool, such as Agent. Give it the paths to `ticket.md` and
-   [`implementer.md`](implementer.md), which holds its instructions.
-4. Read `$WORK/built.md` and `git log --oneline <base>..HEAD`. A criterion
-   marked `not built` goes to the report.
+   [`scout.md`](scout.md). It writes `$WORK/map.md`.
+6. Group the criteria:
 
-Done when every criterion has a passing test and a commit, or a reason in
-`built.md`.
+   ```sh
+   node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md
+   ```
 
-### 4. Check the whole change
+The command writes `split.md` and prints its verdict. Act on it per
+[`planning.md`](planning.md).
+
+Done when every criterion belongs to exactly one build worker.
+
+### 4. Build
+
+For one build worker, write `$WORK/worker-1.md` per
+[`parallel.md`](parallel.md): the repo root as its worktree, the ticket branch,
+`criteria:` with every criterion, `files: unknown` without a scout, and
+`built: $WORK/built-1.md`. Start one subagent on a fast model, such as Sonnet.
+Give it the paths to `ticket.md`, `worker-1.md` and
+[`build-worker.md`](build-worker.md).
+
+For more than one, follow [`parallel.md`](parallel.md). It makes the
+worktrees, starts the build workers together and cherry-picks their commits.
+
+Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A
+criterion marked `not built` goes to the report.
+
+Done when every criterion has a passing test and a commit on the ticket
+branch, or a reason in a `built` file.
+
+### 5. Check the whole change
 
 1. Run the lint, typecheck and test commands from the agent instructions file.
 2. Run `h2xd:prove-tests` on the branch diff.
@@ -71,7 +104,7 @@ Done when every criterion has a passing test and a commit, or a reason in
 Done when every check passes, and each surviving mutant has a test or a
 reason.
 
-### 5. Open, review and fix
+### 6. Open, review and fix
 
 Run each skill in order, without asking between them:
 
@@ -88,12 +121,14 @@ hard to undo. Report the draft and let the user decide.
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
 
-### 6. Report
+### 7. Report
 
 ```
 🔴 <criterion>: <not built, and why>
 🟡 <item>: <a check left open, a follow-up ticket to file>
 🟡 <n> threads still open: <why each one is open>
+🟡 <worktree path>: kept, because its commits did not land
+🟢 split: <n> build workers, criteria <numbers per worker>
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
@@ -112,3 +147,4 @@ Done when every acceptance criterion has its line.
 - Don't change the acceptance criteria to fit the code. Ask the user.
 - Don't fold an unrelated fix into the branch. File it as its own ticket.
 - Don't start a third review or a third fix. Report the threads still open.
+- Don't ask about a `split` verdict. Split, and name the workers in the report.

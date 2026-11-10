@@ -20,6 +20,7 @@
     "middle": { "files": 20, "lines": 1000 },
     "criticalPaths": []
   },
+  "implement": { "maxWorkers": 3 },
   "worktreeSetup": [["npm", "install"]],
   "mutation": {
     "enabled": true,

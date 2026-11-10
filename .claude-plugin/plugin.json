@@ -1,6 +1,6 @@
 {
   "name": "h2xd",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "description": "55 skills and 12 agents for Claude Code, grouped as setup, docs, plan, ask, code, prove, git, review, design and session. Lints keep docs, decisions, commits and PR bodies true, with five-reviewer PR reviews and mutation testing.",
   "author": {
     "name": "h2xd"

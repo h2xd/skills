@@ -49,9 +49,14 @@ export type Config = {
     /** Path prefixes, such as "migrations/", that make any change critical: all five. */
     criticalPaths: string[]
   }
+  /** Read by `implement.ts split`, which groups a ticket for h2xd:code-implement. */
+  implement: {
+    /** The most build workers that run at once. 1 turns the split off. */
+    maxWorkers: number
+  }
   /**
-   * Commands a fresh worktree needs before it can typecheck, each as argv.
-   * review-pr, review-fix and code-arena run them.
+   * Commands a fresh worktree needs before it can typecheck and run the tests, each as argv.
+   * review-pr, review-fix, code-arena and the build workers of code-implement run them.
    */
   worktreeSetup: string[][]
   /**
@@ -102,6 +107,7 @@ export const DEFAULTS: Config = {
     middle: { files: 20, lines: 1000 },
     criticalPaths: [],
   },
+  implement: { maxWorkers: 3 },
   worktreeSetup: [["npm", "install"]],
   mutation: {
     enabled: true,
@@ -136,6 +142,7 @@ export function mergeConfig(overrides: Overrides): Config {
     commits: { ...DEFAULTS.commits, ...overrides.commits },
     pullRequests: { ...DEFAULTS.pullRequests, ...overrides.pullRequests },
     review: { ...DEFAULTS.review, ...overrides.review },
+    implement: { ...DEFAULTS.implement, ...overrides.implement },
     worktreeSetup: overrides.worktreeSetup ?? DEFAULTS.worktreeSetup,
     mutation: { ...DEFAULTS.mutation, ...overrides.mutation },
   }

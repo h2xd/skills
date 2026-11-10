@@ -78,9 +78,10 @@ It asks about:
 - the commit types and scopes, and how long a message may be
 - whether a new decision record needs an issue
 - the hooks and CI workflows that enforce the rules
-- the commands a fresh worktree runs before it can typecheck
+- the commands a fresh worktree runs before it can typecheck and run the tests
 - mutation testing, and which runner plants the bugs
 - the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
+- how many build workers may build one ticket at the same time
 - a hook that stops the agent from running destructive git commands
 - the triage labels
 - module boundaries, for TypeScript repos
@@ -230,7 +231,7 @@ looks, and the loops that turn a ticket into a passing change.
 |---|---|---|---|
 | `code-rules` | How an agent works: asking, context, scripts, order of work, failed fixes | Any task bigger than a one-line edit | auto |
 | `code-quality` | The quality and architecture bar, and the smells reviewers check | You write or review code that more than one function calls | auto |
-| `code-implement` | Works one ticket from branch to a reviewed PR, with no stops between | You pick a ticket to build | auto |
+| `code-implement` | Works one ticket from branch to a reviewed PR with parallel build workers, asking only for test entry points and unsure files | You pick a ticket to build | auto |
 | `code-tdd` | Test-first when the change is clear, ending with a mutation check | You want test-first work or a regression test | auto |
 | `code-debug` | Builds a command that goes red on the bug, then fixes the root cause | Something is broken and the cause is unknown | auto |
 | `code-architecture` | Finds shallow modules and other weak spots, ranked | You want refactoring targets | you |
@@ -345,7 +346,7 @@ The end of one session is the start of the next.
 skills/           one folder per skill
 agents/           comment-reaper, skill-polisher, committee-*
 templates/        what setup copies into a repo
-  scripts/        docs lint, find and resolve, commit and PR lint, review helpers, mutation runner
+  scripts/        docs lint, find and resolve, commit and PR lint, review and implement helpers, mutation runner
   githooks/       pre-commit, commit-msg
   hooks/          the agent hook git-guardrails installs
   workflows/      docs.yml, pr.yml

@@ -103,9 +103,9 @@ opens with. Recommended: `Closes`. GitHub and GitLab also close an issue on
 
 ## H. Worktree setup
 
-The commands a fresh worktree needs before it can typecheck, as argv lists, in
-`worktreeSetup`. `h2xd:review-pr`, `h2xd:review-fix` and `h2xd:code-arena`
-run them. Recommended: the install the lockfile implies, for example
+The commands a fresh worktree needs before it can typecheck and run the tests,
+as argv lists, in `worktreeSetup`. `h2xd:review-pr`, `h2xd:review-fix`,
+`h2xd:code-arena` and the build workers of `h2xd:code-implement` run them. Recommended: the install the lockfile implies, for example
 `[["npm", "install"]]`, plus any build step the typecheck needs.
 
 ## I. Mutation testing
@@ -197,3 +197,16 @@ before a large review. The limits live in `review`.
 Then `review.criticalPaths`: path prefixes where any change gets all five
 reviewers. Propose the repo's migrations, auth and payment folders, such as
 `migrations/` or `src/auth/`. Recommended: those that exist, or none.
+
+## O. Build workers
+
+`h2xd:code-implement` splits a ticket with three or more acceptance criteria
+into criteria groups that share no file. Each group gets its own build worker
+and worktree. `implement.maxWorkers` is the most build workers that run at
+once.
+
+- **3**, recommended: the default.
+- **1**: no split. One build worker builds every criterion in order. Choose
+  it when the tests use a fixed port, a shared database or another resource
+  outside the worktree.
+- **Another number**, such as 2 for a machine that runs slow test suites.
