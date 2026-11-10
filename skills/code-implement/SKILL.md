@@ -130,8 +130,9 @@ with a reason.
 ### 7. Report
 
 Give the user the report in chat, in the layout of [`report.md`](report.md).
+Its first line says if the PR can merge. 🔴 blocks the merge and 🟡 does not.
 
-Done when every acceptance criterion has its line.
+Done when every acceptance criterion has its line and the counts match.
 
 ## Do
 
