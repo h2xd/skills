@@ -6,11 +6,12 @@ argument-hint: "[ticket number]"
 
 # Code implement
 
-This skill turns a ticket into a branch, tested commits and a reviewed PR. It
-makes no new decisions. You orchestrate. Build workers on a fast model write
-the code, and reviewers on the strongest model check it. Hand-offs go through
-files in your scratchpad, called `$WORK` below. A ticket that is not clear
-enough to build stops the skill, with the reason.
+A ticket that says "undo restores the last move" should end as a failing test,
+a passing test and a commit that names `#42`. This skill turns the ticket into
+a branch, tested commits and a reviewed PR. It makes no new decisions. You
+orchestrate. Build workers on a fast model write the code, and reviewers on the
+strongest model check it. Hand-offs go through files in your scratchpad, called
+`$WORK` below. When the ticket is not clear enough to build, stop and say why.
 
 A **build worker** builds one **criteria group**, the criteria that share files
 or need each other. Groups run at the same time, each in its own worktree.
@@ -127,10 +128,9 @@ with a reason.
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
-The first line says if the PR can merge. Read the merge state with the
-**PR status** operation after the last push. Write `no PR` when the tracker has
-no PRs or the PR did not open. 🔴 blocks the merge and 🟡 does not. `<x>` counts
-the 🔴 lines and `<y>` the 🟡 lines.
+The first line says if the PR can merge. Read `<merge state>` with the
+**PR status** operation after the last push, or write `no PR` when there is
+none. 🔴 blocks the merge and 🟡 does not. `<x>` and `<y>` count those lines.
 
 Done when every acceptance criterion has its line and the counts match.
 
