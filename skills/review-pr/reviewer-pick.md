@@ -12,8 +12,9 @@ Read the PR body's `## Merge danger` line. Pass `--one-way-door` when it says
 node scripts/review.ts fleet --base <base> --worktree $WORKTREE --out $WORK/pick.md
 ```
 
-It counts the changed files and lines, without lock files and generated files,
-and writes the size, the reviewers, the effort for Reviewer A and the reasons.
+It counts the changed files and lines, without lock files and generated files.
+Files with the same content count once, and the reasons name the copies it
+left out. It writes the size, the reviewers, the effort for Reviewer A and the reasons.
 The limits come from `review` in `agents.config.json`.
 
 | Size | When | Reviewers |
