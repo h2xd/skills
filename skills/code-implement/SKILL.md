@@ -33,7 +33,12 @@ lists a **Block** operation, also check the blockers it records.
   stop. Offer `h2xd:plan-grill` to settle them, or `/h2xd:plan-triage` to write
   a brief.
 
-Done when you can list the acceptance criteria and every blocker is closed.
+When both checks pass and the tracker page lists an **Assign** operation, run
+it to assign the ticket to the user. When the page has no **Assign** operation,
+skip this.
+
+Done when you can list the acceptance criteria, every blocker is closed, and
+the ticket is assigned to the user or the page has no **Assign** operation.
 
 ### 2. Make the branch
 
@@ -123,14 +128,7 @@ with a reason.
 
 ### 7. Report
 
-```
-🔴 <criterion>: <not built, and why>
-🟡 <item>: <a check left open, a follow-up ticket to file>
-🟡 <n> threads still open: <why each one is open>
-🟡 <worktree path>: kept, because its commits did not land
-🟢 split: <n> build workers, criteria <numbers per worker>
-🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
-```
+Post the report in the layout of [`report.md`](report.md).
 
 Done when every acceptance criterion has its line.
 
