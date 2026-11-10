@@ -7,6 +7,11 @@ Every reviewer gets this file's path in its prompt and follows it.
 You only analyze. Posting to GitHub is someone else's job. When the skill you
 were told to use cannot start subagents from here, do its work yourself.
 
+Your last message is your report: the verdict line of your output file, and
+nothing else. Do not end your turn while a background run of yours is still
+going. Wait for it with a blocking wait, or run it in the foreground. Report
+one time only, after your output file is complete.
+
 Read `context.md` first. Work in the directory it names as the worktree.
 
 ## Finding shape
