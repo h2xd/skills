@@ -156,6 +156,7 @@ describe("implement worktree and cleanup on a real git repo", () => {
     const one = worktree("1")
     const two = worktree("2")
     commit(one, "base.txt", "one\n", "change base in one")
+    commit(two, "c.txt", "c\n", "add c")
     commit(two, "base.txt", "two\n", "change base in two")
     git(repo, "cherry-pick", "-x", `${TICKET}..${TICKET}-w1`)
     const prePick = git(repo, "rev-parse", "HEAD")
