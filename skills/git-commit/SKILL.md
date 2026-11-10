@@ -126,9 +126,9 @@ branch.
 
 ### 8. Stage and commit
 
-Stage by path with `git add <paths>`, so unrelated work stays out. Commit with
-`git commit -F "$MESSAGE_FILE"`. Leave the hooks on. When the hook rejects the
-message, edit the file, run step 6 again, and commit again.
+Stage by path and commit in one shell call, so a failed `git add` stops the
+commit: `git add -- <paths> && git commit -F "$MESSAGE_FILE"`. When `git add`
+fails, correct `<paths>` and run the whole line again.
 
 Done when `git log -1` shows the message and `git status --short` shows no
 file of this change left unstaged.
@@ -143,8 +143,8 @@ file of this change left unstaged.
 
 ## Don't
 
-- Don't use `git commit -a`. It misses untracked files. Stage by path.
+- Don't use `git commit -a`. It misses untracked files and takes in unrelated edits. Stage by path.
 - Don't pass the message with `-m`. Each `-m` starts a new paragraph, and the shell expands backticks and `$`. Use `-F`.
 - Don't write that a check passed. Step 7 gates the commit. Give the number a decision rests on instead.
 - Don't widen a closed type or scope set in a commit. Stop and use `h2xd:docs-adr`.
-- Don't skip the hook with `--no-verify`. Fix the message.
+- Don't skip a hook with `--no-verify`. When commit-msg rejects the message, edit the message file, run step 6 again, and commit again. When pre-commit fails, fix what it names and run the whole step 8 line again.
