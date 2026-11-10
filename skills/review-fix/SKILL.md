@@ -15,8 +15,8 @@ and summarize. You ask only about an **ask** item, a failing check, a dirty
 tree or a diverged head. A subagent makes the code changes. Every hand-off goes
 through a file in your scratchpad, called `$WORK` below.
 
-The `node scripts/review.ts` subcommands from `h2xd:setup` do the mechanical
-work. Run one command per shell call, never chained with `&&` or `;`.
+`node scripts/review.ts` from `h2xd:setup` does the mechanical work. Run one
+command per shell call. Chain only stage and commit, as `h2xd:git-commit` does.
 
 ## Steps
 
