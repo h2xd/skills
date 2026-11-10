@@ -22,6 +22,7 @@ calls pull requests merge requests and comments notes.
 | List by label | `glab issue list --all --label "<label>" -O json` |
 | Comment | `glab issue note <n> --message "$(cat <file>)"` |
 | Label | `glab issue update <n> --label "<label>"`, `--unlabel "<label>"` |
+| Assign | `glab issue update <n> --assignee @me` |
 | Close | `glab issue close <n>`. Post the reason with **Comment** first |
 | Block | `glab api projects/:id/issues/<blocker>/links -X POST -f target_project_id={{PROJECT_PATH_ENCODED}} -f target_issue_iid=<n> -f link_type=blocks`. The `blocks` type needs GitLab Premium. On Free, leave this row out, and tickets keep a `## Blocked by` section. `{{PROJECT_PATH_ENCODED}}` is the project path with `/` written as `%2F`, such as `group%2Fapp` |
 | Link a MR | The MR description opens with `Closes #<n>`, one line per issue |

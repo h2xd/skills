@@ -31,6 +31,7 @@ Labels: adr
 | List by label | `grep -l "^Labels:.*<label>" .scratch/issues/*.md` |
 | Comment | Append under a `## Comments` heading, newest last, with the date |
 | Label | Edit the `Labels:` line |
+| Assign | Set an `Assignee: <name>` line under `Labels:` |
 | Close | Set `Status: closed`. Post the reason with **Comment** first |
 | Link a PR | Name the issue file in the commit footer as `Refs: .scratch/issues/<file>` |
 | Open a PR | None. A local tracker has no PRs. Push the branch and open the PR by hand, if there is a remote |
