@@ -3,9 +3,14 @@
 A Claude Code plugin. `skills/` and `agents/` ship to users. `skills/setup`
 copies `templates/` into their repos.
 
-`.claude/skills` and `.claude/agents` are symlinks to `skills/` and `agents/`,
-so a session in this repo can use the skills it edits. Here they load without
-the `h2xd:` prefix, such as `/add-skill`.
+`.claude/agents` is a symlink to `agents/`. `.claude/skills` holds one
+symlink per skill in `skills/`, so a session in this repo can use the skills it
+edits. Here they load without the `h2xd:` prefix, such as `/add-skill`. A new
+skill needs its link: `ln -s ../../skills/<name> .claude/skills/<name>`.
+
+A real folder in `.claude/skills` is an internal skill, such as `release`. The
+plugin does not ship it. `node scripts/lint-skills.ts` checks the links and
+the internal skills.
 
 ## Writing skills
 
@@ -85,6 +90,17 @@ carries what the conversation produced: `Refs:` or `Closes:` for the issue,
 the record touched, the option rejected. End with
 `Co-Authored-By: <model> <noreply@anthropic.com>`. `/h2xd:git-commit` writes the
 message. `.githooks/commit-msg` rejects a malformed one.
+
+## Releases
+
+Every merged PR is a release, and GitHub releases are the changelog. The
+repo keeps no `CHANGELOG.md`.
+
+- A commit in the PR, `chore: ship <version>`, bumps `version` in
+  `.claude-plugin/plugin.json`: minor when the PR holds a `feat`, patch
+  otherwise.
+- After the merge, run the internal `release` skill without asking. It tags
+  the merge commit and creates a draft release. The user publishes it.
 
 ## Pull requests
 

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Checks every skill in skills/ against the rules of skills/add-skill that a
- * script can check. Prints one line per problem and exits 1 when any exist.
+ * Checks every skill in skills/ and every internal skill in .claude/skills/
+ * against the rules of skills/add-skill that a script can check. Prints one line per problem and exits 1 when any exist.
  *
  *   node scripts/lint-skills.ts
  */
 
-import { readdirSync, readFileSync } from "node:fs"
+import { lstatSync, readdirSync, readFileSync, readlinkSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { parseYaml } from "../templates/scripts/yaml.ts"
 import { fileURLToPath } from "node:url"
@@ -103,6 +103,29 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
+type Entry = { name: string; target: string | null }
+
+/**
+ * Every shipped skill has a link in `.claude/skills`, and every link points to
+ * one. An entry with no target is a real folder, an internal skill.
+ */
+export function lintLinks(shipped: string[], entries: Entry[]): string[] {
+  const problems: string[] = []
+  for (const name of shipped) {
+    const entry = entries.find((e) => e.name === name)
+    const want = `../../skills/${name}`
+    if (!entry) problems.push(`.claude/skills/${name}: missing, run ln -s ${want} .claude/skills/${name}`)
+    else if (entry.target === null) problems.push(`.claude/skills/${name}: a folder, needs a link to ${want}`)
+    else if (entry.target !== want) problems.push(`.claude/skills/${name}: links to ${entry.target}, needs ${want}`)
+  }
+  for (const { name, target } of entries) {
+    if (target !== null && !shipped.includes(name)) {
+      problems.push(`.claude/skills/${name}: links to ${target}, which is not a skill in skills/`)
+    }
+  }
+  return problems
+}
+
 type Step = { heading: string; body: string }
 
 /** `### 1. Name` sections, each running to the next heading of the same or higher level. */
@@ -148,6 +171,21 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.error(`skills/${folder}/SKILL.md: ${problem}`)
       failed = true
     }
+  }
+  const local = resolve(import.meta.dirname, "..", ".claude", "skills")
+  const entries = readdirSync(local).sort().map((name) => {
+    const path = join(local, name)
+    return { name, target: lstatSync(path).isSymbolicLink() ? readlinkSync(path) : null }
+  })
+  for (const { name } of entries.filter((e) => e.target === null)) {
+    for (const problem of lintSkill(name, readFileSync(join(local, name, "SKILL.md"), "utf8"))) {
+      console.error(`.claude/skills/${name}/SKILL.md: ${problem}`)
+      failed = true
+    }
+  }
+  for (const problem of lintLinks(readdirSync(root).sort(), entries)) {
+    console.error(problem)
+    failed = true
   }
   const catalog = readFileSync(join(root, "next", "catalog.md"), "utf8")
   for (const problem of lintCatalog(readdirSync(root).sort(), catalog)) {

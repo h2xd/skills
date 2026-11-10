@@ -2,7 +2,7 @@ import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { EXEMPT, MAX_LINES, lintCatalog, lintSkill } from "./lint-skills.ts"
+import { EXEMPT, MAX_LINES, lintCatalog, lintLinks, lintSkill } from "./lint-skills.ts"
 
 const GOOD = `---
 name: demo
@@ -113,4 +113,40 @@ describe("the skills in this repo", () => {
       expect(lintSkill(folder, text)).toEqual([])
     })
   }
+})
+
+describe("lintLinks", () => {
+  const shipped = ["demo", "other"]
+  const linked = [
+    { name: "demo", target: "../../skills/demo" },
+    { name: "other", target: "../../skills/other" },
+  ]
+
+  test("passes a link per shipped skill and a real folder for an internal one", () => {
+    expect(lintLinks(shipped, [...linked, { name: "release", target: null }])).toEqual([])
+  })
+
+  test("names a shipped skill without a link", () => {
+    expect(lintLinks(shipped, linked.slice(0, 1))).toEqual([
+      ".claude/skills/other: missing, run ln -s ../../skills/other .claude/skills/other",
+    ])
+  })
+
+  test("names a link to the wrong place", () => {
+    expect(lintLinks(["demo"], [{ name: "demo", target: "../skills/demo" }])).toEqual([
+      ".claude/skills/demo: links to ../skills/demo, needs ../../skills/demo",
+    ])
+  })
+
+  test("names a link without a shipped skill", () => {
+    expect(lintLinks([], [{ name: "gone", target: "../../skills/gone" }])).toEqual([
+      ".claude/skills/gone: links to ../../skills/gone, which is not a skill in skills/",
+    ])
+  })
+
+  test("names an internal skill that shadows a shipped one", () => {
+    expect(lintLinks(["demo"], [{ name: "demo", target: null }])).toEqual([
+      ".claude/skills/demo: a folder, needs a link to ../../skills/demo",
+    ])
+  })
 })
