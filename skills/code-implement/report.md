@@ -7,6 +7,7 @@ first:
 <merge state>: <x> blocking, <y> non-blocking
 🔴 <criterion>: <not built, and why>
 🔴 <n> blocking threads still open: <why each one is open>
+🔴 <check>: failed, so the chain stopped: <the error>
 🟡 <item>: <a check left open, a follow-up ticket to file>
 🟡 #<n>: not assigned to the user, because <why the Assign operation failed>
 🟡 <n> non-blocking threads still open: <why each one is open>
@@ -47,8 +48,8 @@ tell them apart. A failing check is `cannot merge`.
 
 🔴 blocks the merge and 🟡 does not. `<x>` is the number of 🔴 lines in the
 report, and `<y>` is the number of 🟡 lines. Count after you add the lines
-above. A 🔴 line makes the state `cannot merge`, also when the tracker says
-that the PR can merge.
+above. When the PR is open and not a draft, a 🔴 line makes the state
+`cannot merge`, also when the tracker says that the PR can merge.
 
 A report starts like this:
 
