@@ -15,7 +15,7 @@ notes have no heading of their own.
 |---|---|---|---|
 | `<skill or area>` | <change> | #<pr> | #<issue> |
 
-<joke>
+🤹 <joke>
 ```
 
 ## Parts
@@ -28,7 +28,7 @@ notes have no heading of their own.
 | `<skill or area>` | The skill name in code font, such as `git-commit`. For a change outside a skill, the area, such as `scripts` or `install`. |
 | `<change>` | One sentence on what a user sees now. |
 | `#<pr>` and `#<issue>` | The PR that made the change and the issue it closed. Write `-` when none exists. |
-| `<joke>` | One line in italics, in the voice of a court jester, about this release. |
+| `<joke>` | One line in italics after the 🤹 emoji, in the voice of a court jester, about this release. |
 
 ## Rules
 
@@ -36,5 +36,5 @@ notes have no heading of their own.
 - One row per change a user sees. Order the rows by skill name.
 - A row with several issues lists them all, such as `#4, #5`.
 - The joke is kind, fits one line, and makes fun of the change, never of a
-  person. It has no emoji.
+  person. The 🤹 in front is its only emoji.
 - No headings, no other sections and no closing summary.
