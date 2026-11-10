@@ -92,7 +92,7 @@ apply.
   survive. `h2xd:review-code-comments` runs that agent.
 - **Encode lessons in structure.** A correction you would write down twice
   becomes a type, a lint rule, a test or a script. Its error message names the
-  fix. `h2xd:session-retro` routes a lesson to the strongest fix.
+  fix. `h2xd:session-reflect` routes a lesson to the strongest fix.
 
 ## Tests
 

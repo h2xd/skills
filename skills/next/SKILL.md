@@ -13,7 +13,7 @@ the only step that fits.
 The main flow:
 
 ```
-plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → session-retro
+plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → session-reflect
 ```
 
 - [`catalog.md`](catalog.md) holds every skill, the side roads and the close
@@ -69,7 +69,7 @@ Take the first row that matches:
 | A PR with `mergeStateStatus` `UNSTABLE`, or `BLOCKED` while approved | `h2xd:code-debug` for the failing checks |
 | A PR with `mergeStateStatus` `BLOCKED` and `reviewDecision` `REVIEW_REQUIRED` | Ask a person with write access for a review |
 | A PR with `mergeStateStatus` `DIRTY` or `BEHIND` | Rebase on the base, then `h2xd:next` again |
-| A reviewed PR with `reviewDecision` `APPROVED` or empty, and `mergeStateStatus` `CLEAN` or `HAS_HOOKS` | Merge it, then `h2xd:session-retro` |
+| A reviewed PR with `reviewDecision` `APPROVED` or empty, and `mergeStateStatus` `CLEAN` or `HAS_HOOKS` | Merge it, then `h2xd:session-reflect` |
 
 A name that starts with `/` is user-only. The user types it, and you do not
 run it. Read `../<name>/SKILL.md` before you describe a skill. When the skill

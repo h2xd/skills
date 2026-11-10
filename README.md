@@ -112,12 +112,12 @@ flowchart TD
   subgraph ship [Review and learn]
     review[review-pr] -->|open threads| fix[review-fix]
     fix -.->|one more review| review
-    fix -->|merged| retro[session-retro]
+    fix -->|merged| reflect[session-reflect]
   end
   idea -->|questions until nothing is open| grill
   tickets -->|one ticket| impl
   body -->|up to five reviewers| review
-  retro -->|lessons become checks| idea
+  reflect -->|lessons become checks| idea
 ```
 
 Not sure where you are in it? `/h2xd:next` knows.
@@ -313,12 +313,12 @@ Design. Agents build variants, and `ask-committee` judges them.
 The end of one session is the start of the next.
 
 <details>
-<summary><b>Session</b>: handoff and retro</summary>
+<summary><b>Session</b>: handoff and reflect</summary>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
 | `session-handoff` | Writes a handoff document the next agent picks up | Context runs low, or someone else takes over | auto |
-| `session-retro` | Turns each lesson into a check, a type, a lint, a test or, last, words | After a session, or when a mistake repeats | auto |
+| `session-reflect` | Turns each lesson into a check, a type, a lint, a test or, last, words | After a session, or when a mistake repeats | auto |
 
 </details>
 

@@ -12,7 +12,7 @@ table below as `h2xd:<name>`. A new skill gets a row in the same change.
 Most work runs along this path. Each arrow is the usual next step, not a rule.
 
 ```
-plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → session-retro
+plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → session-reflect
 ```
 
 1. `h2xd:plan-grill` turns an idea into settled decisions. It records terms with
@@ -32,7 +32,7 @@ plan-grill → to-spec → to-tickets → code-implement → review-pr → revie
    `h2xd:review-code-comments` cleans comments before review.
 6. `h2xd:git-pr-body` writes the PR body. `h2xd:review-pr` reviews the PR, and
    `h2xd:review-fix` acts on the review threads.
-7. `h2xd:session-retro` turns what went wrong into lints, types, tests or
+7. `h2xd:session-reflect` turns what went wrong into lints, types, tests or
    skill edits.
 
 Keep steps 1 to 3 in one context window, so the spec and tickets build on the
@@ -47,7 +47,7 @@ Starting points that create work, then join the main flow.
   agent-ready issues. Tickets from `h2xd:to-tickets` are already agent-ready,
   so they skip triage.
 - Something broken, failing, flaky or slow: `h2xd:code-debug` builds a red
-  command first and ends with a regression test. Then `h2xd:session-retro`
+  command first and ends with a regression test. Then `h2xd:session-reflect`
   asks what would have prevented it.
 - Code that is hard to change or test: `h2xd:code-architecture` finds the
   candidates. The one the user picks goes to `h2xd:plan-grill`.
@@ -127,7 +127,7 @@ design-variants → ask-committee
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
   user's next prompt before it is sent.
 - `h2xd:session-handoff` writes the session down for another session or agent.
-  `h2xd:session-retro` changes the repo so the next session does better.
+  `h2xd:session-reflect` changes the repo so the next session does better.
 
 ## Catalog
 
@@ -184,7 +184,7 @@ design-variants → ask-committee
 | Get three UI variants, reviewed and judged | `h2xd:design-variants` |
 | Get a verdict from a design and an engineering committee | `h2xd:ask-committee` |
 | Pass the work to a fresh session or agent | `h2xd:session-handoff` |
-| Turn a session's mistakes into lasting fixes | `h2xd:session-retro` |
+| Turn a session's mistakes into lasting fixes | `h2xd:session-reflect` |
 | Walk a person through steps only they can do | `h2xd:setup-wizard` |
 | Write or rewrite a skill or agent prompt | `h2xd:add-skill` |
 | Cut AI tells from prose | `h2xd:add-soul` |
