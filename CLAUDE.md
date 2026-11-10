@@ -86,6 +86,24 @@ the record touched, the option rejected. End with
 `Co-Authored-By: <model> <noreply@anthropic.com>`. `/h2xd:git-commit` writes the
 message. `.githooks/commit-msg` rejects a malformed one.
 
+## Releases
+
+Every merged PR is a release. GitHub releases are the changelog, so the
+repo keeps no `CHANGELOG.md`.
+
+1. In the PR's last commit, `chore: ship <version>`, bump `version` in
+   `.claude-plugin/plugin.json`: minor when the PR holds a `feat`, patch
+   otherwise.
+2. After the merge, tag the merge commit `v<version>` with an annotated tag.
+   Its subject is `h2xd <version>, <what is new>`. Push the tag.
+3. Write the notes from the commits since the last tag: one bullet per change
+   a user sees, with the PR number.
+4. Run `gh release create v<version> --draft --verify-tag --title "<tag
+   subject>" --notes-file <file>`. The user publishes the draft.
+
+Do these steps without asking. Done when `gh release view v<version>` shows
+the draft.
+
 ## Pull requests
 
 Every PR body opens with `Closes #<n>` on its own line, one line per
