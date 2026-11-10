@@ -54,3 +54,11 @@ describe("this repo's copies of the templates", () => {
     })
   }
 })
+
+describe("the comment-reaper agent", () => {
+  test("can write its report file", () => {
+    const text = readFileSync(join(ROOT, "agents/comment-reaper.md"), "utf8")
+    const tools = text.match(/^tools: (.+)$/m)?.[1].split(", ") ?? []
+    expect(tools).toContain("Write")
+  })
+})
