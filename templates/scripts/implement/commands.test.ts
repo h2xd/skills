@@ -34,27 +34,27 @@ function git(cwd: string, ...args: string[]): string {
   return result.stdout
 }
 
-const parents: string[] = []
+const worktreeParents: string[] = []
 
 afterEach(() => {
-  for (const parent of parents.splice(0)) {
+  for (const parent of worktreeParents.splice(0)) {
     rmSync(parent, { recursive: true, force: true })
   }
 })
 
-/**
- * A temp git repo on the ticket branch. The scripts are copied next to it, so
- * the repo root that config.ts finds holds the agents.config.json of the test.
- * Worktrees land in the same parent folder, which the test removes.
- */
+function copyScriptsWithoutWorktreeSetup(parent: string): string {
+  const configRoot = join(parent, "tool")
+  mkdirSync(configRoot)
+  cpSync(SCRIPTS, join(configRoot, "scripts"), { recursive: true })
+  writeFileSync(join(configRoot, "package.json"), '{"type":"module"}\n')
+  writeFileSync(join(configRoot, "agents.config.json"), '{"worktreeSetup":[]}\n')
+  return join(configRoot, "scripts", "implement.ts")
+}
+
 function setup() {
   const parent = realpathSync(mkdtempSync(join(tmpdir(), "implement-")))
-  parents.push(parent)
-  const tool = join(parent, "tool")
-  mkdirSync(tool)
-  cpSync(SCRIPTS, join(tool, "scripts"), { recursive: true })
-  writeFileSync(join(tool, "package.json"), '{"type":"module"}\n')
-  writeFileSync(join(tool, "agents.config.json"), '{"worktreeSetup":[]}\n')
+  worktreeParents.push(parent)
+  const cli = copyScriptsWithoutWorktreeSetup(parent)
   const repo = join(parent, "repo")
   mkdirSync(repo)
   git(repo, "init", "-b", "main")
@@ -67,7 +67,7 @@ function setup() {
   git(repo, "checkout", "-b", TICKET)
 
   const implement = (...args: string[]) =>
-    exec("node", [join(tool, "scripts", "implement.ts"), ...args], repo)
+    exec("node", [cli, ...args], repo)
   const worktree = (id: string): string => {
     const result = implement("worktree", id)
     expect(result.status).toBe(0)
