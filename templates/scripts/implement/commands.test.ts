@@ -225,6 +225,28 @@ describe("implement.ts worktree and cleanup", () => {
     expect(repo.mustGit("status", "--short")).toBe("")
   })
 
+  test("the undo reverts a pick that the fix worker finished with --continue", () => {
+    const repo = sandbox()
+    const first = repo.mustImplement("worktree", "1")
+    const second = repo.mustImplement("worktree", "2")
+    repo.commitFile(first, "a.txt", "from one\n")
+    repo.commitFile(second, "c.txt", "from two\n")
+    repo.commitFile(second, "a.txt", "from two\n")
+    repo.mustGit("cherry-pick", "-x", `${TICKET}..${TICKET}-w1`)
+    const preSha = repo.mustGit("rev-parse", "HEAD")
+
+    expect(repo.git("cherry-pick", "-x", `${TICKET}..${TICKET}-w2`).status).toBe(1)
+    repo.write("a.txt", "from one and two\n")
+    repo.mustGit("add", "a.txt")
+    repo.mustGit("-c", "core.editor=true", "cherry-pick", "--continue")
+    expect(repo.mustGit("rev-list", "--count", `${preSha}..HEAD`)).toBe("2")
+    expect(pickInProgress(repo)).toBe(false)
+    undoPickSince(repo, preSha)
+
+    expect(repo.mustGit("diff", preSha, "HEAD")).toBe("")
+    expect(repo.mustGit("status", "--short")).toBe("")
+  })
+
   test("the undo aborts a pick the fix worker left open and reverts its hand commits", () => {
     const repo = sandbox()
     const path = repo.mustImplement("worktree", "1")
