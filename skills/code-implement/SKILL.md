@@ -35,10 +35,11 @@ lists a **Block** operation, also check the blockers it records.
 
 When both checks pass and the tracker page lists an **Assign** operation, run
 it to assign the ticket to the user. When the page has no **Assign** operation,
-skip this.
+skip this. When **Assign** fails, go on and add a 🟡 line to the report.
 
 Done when you can list the acceptance criteria, every blocker is closed, and
-the ticket is assigned to the user or the page has no **Assign** operation.
+the ticket is assigned to the user, the page has no **Assign** operation, or
+the failure is noted for the report.
 
 ### 2. Make the branch
 
@@ -128,7 +129,7 @@ with a reason.
 
 ### 7. Report
 
-Post the report in the layout of [`report.md`](report.md).
+Give the user the report in chat, in the layout of [`report.md`](report.md).
 
 Done when every acceptance criterion has its line.
 

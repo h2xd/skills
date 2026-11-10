@@ -12,13 +12,14 @@ Issues live as files in `.scratch/issues/`, one per issue, named
 `NNNN-slug.md` with the next free number. The number is the issue's id: `#12`
 means `.scratch/issues/0012-*.md`.
 
-Each file opens with three lines, then the body:
+Each file opens with three lines, and an optional `Assignee: <git config user.name>` line, then the body:
 
 ```markdown
 # <title>
 
 Status: open
 Labels: adr
+Assignee: Ada Lovelace
 ```
 
 ## Operations
@@ -31,7 +32,7 @@ Labels: adr
 | List by label | `grep -l "^Labels:.*<label>" .scratch/issues/*.md` |
 | Comment | Append under a `## Comments` heading, newest last, with the date |
 | Label | Edit the `Labels:` line |
-| Assign | Set an `Assignee: <name>` line under `Labels:` |
+| Assign | Set an `Assignee: <git config user.name>` line under `Labels:` |
 | Close | Set `Status: closed`. Post the reason with **Comment** first |
 | Link a PR | Name the issue file in the commit footer as `Refs: .scratch/issues/<file>` |
 | Open a PR | None. A local tracker has no PRs. Push the branch and open the PR by hand, if there is a remote |
