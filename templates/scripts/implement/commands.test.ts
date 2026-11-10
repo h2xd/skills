@@ -7,8 +7,17 @@ import { expect } from "../../../scripts/expect.ts"
 
 const SCRIPTS = join(import.meta.dirname, "..")
 const TICKET = "feat/1-x"
+const GIT_LOCATION_VARIABLES = [
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_INDEX_FILE",
+  "GIT_COMMON_DIR",
+  "GIT_OBJECT_DIRECTORY",
+]
 const GIT_ENV = {
-  ...process.env,
+  ...Object.fromEntries(
+    Object.entries(process.env).filter(([name]) => !GIT_LOCATION_VARIABLES.includes(name)),
+  ),
   GIT_CONFIG_GLOBAL: "/dev/null",
   GIT_CONFIG_NOSYSTEM: "1",
   GIT_EDITOR: "true",
@@ -67,7 +76,7 @@ function setup() {
   git(repo, "checkout", "-b", TICKET)
 
   const implement = (...args: string[]) =>
-    exec("node", [cli, ...args], repo)
+    exec(process.execPath, [cli, ...args], repo)
   const worktree = (id: string): string => {
     const result = implement("worktree", id)
     expect(result.status).toBe(0)
@@ -123,7 +132,7 @@ describe("implement worktree and cleanup on a real git repo", () => {
     expect(branches()).toEqual([TICKET, "main"])
   })
 
-  test("the undo after a fix worker gives up leaves no diff from the pre-pick sha", () => {
+  test("the undo after an aborted pick leaves HEAD on the pre-pick sha", () => {
     const { repo, worktree, commit } = setup()
     const one = worktree("1")
     const two = worktree("2")
@@ -135,12 +144,29 @@ describe("implement worktree and cleanup on a real git repo", () => {
 
     const pick = exec("git", ["cherry-pick", "-x", `${TICKET}..${TICKET}-w2`], repo)
     expect(pick.status).toBe(1)
-    if (existsSync(join(repo, ".git", "CHERRY_PICK_HEAD"))) {
-      git(repo, "cherry-pick", "--abort")
-    }
-    if (git(repo, "rev-parse", "HEAD") !== prePick) {
-      git(repo, "revert", "--no-edit", `${prePick}..HEAD`)
-    }
+    git(repo, "cherry-pick", "--abort")
+
+    expect(git(repo, "rev-parse", "HEAD")).toBe(prePick)
+    expect(git(repo, "diff", prePick, "HEAD")).toBe("")
+    expect(git(repo, "status", "--short")).toBe("")
+  })
+
+  test("the undo after a finished pick reverts the range back to the pre-pick sha", () => {
+    const { repo, worktree, commit } = setup()
+    const one = worktree("1")
+    const two = worktree("2")
+    commit(one, "base.txt", "one\n", "change base in one")
+    commit(two, "base.txt", "two\n", "change base in two")
+    git(repo, "cherry-pick", "-x", `${TICKET}..${TICKET}-w1`)
+    const prePick = git(repo, "rev-parse", "HEAD")
+
+    const pick = exec("git", ["cherry-pick", "-x", `${TICKET}..${TICKET}-w2`], repo)
+    expect(pick.status).toBe(1)
+    writeFileSync(join(repo, "base.txt"), "one and two\n")
+    git(repo, "add", "base.txt")
+    git(repo, "cherry-pick", "--continue")
+    expect(git(repo, "rev-parse", "HEAD") === prePick).toBe(false)
+    git(repo, "revert", "--no-edit", `${prePick}..HEAD`)
 
     expect(git(repo, "diff", prePick, "HEAD")).toBe("")
     expect(git(repo, "status", "--short")).toBe("")
