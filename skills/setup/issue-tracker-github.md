@@ -23,6 +23,7 @@ Skills name these operations. Each one is a single command.
 | List by label | `gh issue list --state all --label "<label>" --json number,title,state,url --limit 100` |
 | Comment | `gh issue comment <n> --body-file <file>` |
 | Label | `gh issue edit <n> --add-label "<label>"`, `--remove-label "<label>"` |
+| Assign | `gh issue edit <n> --add-assignee @me` |
 | Close | `gh issue close <n>`. Post the reason with **Comment** first |
 | Block | `gh api repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by -X POST -F issue_id=$(gh api repos/{owner}/{repo}/issues/<blocker> --jq .id)` makes `<blocker>` block `<n>`. List with `gh api repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by` |
 | Sub-issue | `gh api repos/{owner}/{repo}/issues/<parent>/sub_issues -X POST -F sub_issue_id=$(gh api repos/{owner}/{repo}/issues/<n> --jq .id)`. List with `gh api repos/{owner}/{repo}/issues/<parent>/sub_issues` |
