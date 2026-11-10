@@ -147,4 +147,4 @@ file of this change left unstaged.
 - Don't pass the message with `-m`. Each `-m` starts a new paragraph, and the shell expands backticks and `$`. Use `-F`.
 - Don't write that a check passed. Step 7 gates the commit. Give the number a decision rests on instead.
 - Don't widen a closed type or scope set in a commit. Stop and use `h2xd:docs-adr`.
-- Don't skip the hook with `--no-verify`. Edit the message file, run step 6 again, and commit again.
+- Don't skip a hook with `--no-verify`. When commit-msg rejects the message, edit the message file, run step 6 again, and commit again. When pre-commit fails, fix the pages and run the whole step 8 line again.
