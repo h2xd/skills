@@ -1,11 +1,10 @@
 # Release notes layout
 
 Step 4 of [`SKILL.md`](SKILL.md) writes the notes in this layout. The release
-title is the heading text without the `#`.
+title is `<version> · <summary>`. GitHub shows the title as the heading, so the
+notes have no heading of their own.
 
 ```markdown
-# <version> · <summary>
-
 <tldr>
 
 ---
@@ -38,4 +37,4 @@ title is the heading text without the `#`.
 - A row with several issues lists them all, such as `#4, #5`.
 - The joke is kind, fits one line, and makes fun of the change, never of a
   person. It has no emoji.
-- No other headings, no other sections and no closing summary.
+- No headings, no other sections and no closing summary.
