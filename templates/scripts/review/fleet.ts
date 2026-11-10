@@ -4,8 +4,7 @@
  * one starts all five.
  */
 
-/** `hash` is the blob hash of the new content. A file without one never counts as a copy. */
-export type FileChange = { path: string; lines: number; hash?: string }
+export type FileChange = { path: string; lines: number; hash: string | null }
 
 export type FleetSettings = {
   small: { files: number; lines: number }
@@ -35,76 +34,82 @@ const INSTRUCTIONS = /(^|\/)(SKILL\.md|CLAUDE\.md|AGENTS\.md)$|(^|\/)agents\/[^/
 const TESTS = /(\.test\.|\.spec\.|(^|\/)tests?\/|(^|\/)__tests__\/)/
 const CONFIG = /(^|\/)\.(github|githooks|claude)\/|\.(json|ya?ml|toml)$/
 
-/** Reads `git diff --numstat`. A binary file counts as zero lines. */
+/** Reads `git diff --numstat -z`. A binary file counts as zero lines. */
 export function parseNumstat(text: string): FileChange[] {
-  return text
-    .split("\n")
-    .filter((line) => line.trim() !== "")
-    .map((line) => {
-      const [added, deleted, ...rest] = line.split("\t")
-      const count = (value: string) => (value === "-" ? 0 : Number(value))
-      return { path: rest.join("\t"), lines: count(added) + count(deleted) }
-    })
-}
-
-/** Reads `git diff --raw --no-abbrev --no-renames` and adds each new blob hash to the numstat changes. */
-export function parseRaw(text: string, changes: FileChange[]): FileChange[] {
-  const hashes = new Map<string, string>()
-  for (const line of text.split("\n")) {
-    const [meta, ...rest] = line.split("\t")
-    const fields = meta.split(" ")
-    if (!meta.startsWith(":") || fields.length < 5 || rest.length === 0) continue
-    hashes.set(rest.join("\t"), fields[3])
+  const tokens = text.split("\0")
+  const changes: FileChange[] = []
+  for (let i = 0; i < tokens.length; i++) {
+    const [added, deleted, path, ...more] = tokens[i].split("\t")
+    if (deleted === undefined || path === undefined) continue
+    const count = (value: string) => (value === "-" ? 0 : Number(value))
+    const lines = count(added) + count(deleted)
+    const moved = path === ""
+    const name = moved ? tokens[(i += 2)] : [path, ...more].join("\t")
+    changes.push({ path: name, lines, hash: null })
   }
-  return changes.map((change) => {
-    const hash = hashes.get(change.path)
-    return hash === undefined ? change : { ...change, hash }
-  })
+  return changes
 }
 
-const NO_CONTENT = /^0+$/
-const EMPTY_BLOBS = [
+export function parseRaw(text: string, changes: FileChange[]): FileChange[] {
+  const tokens = text.split("\0")
+  const hashes = new Map<string, string>()
+  for (let i = 0; i < tokens.length; i++) {
+    const fields = tokens[i].split(" ")
+    if (!tokens[i].startsWith(":") || fields.length < 5) continue
+    const moved = /^[RC]/.test(fields[4])
+    i += moved ? 2 : 1
+    hashes.set(tokens[i], fields[3])
+  }
+  return changes.map((change) => ({
+    ...change,
+    hash: hashes.get(change.path) ?? null,
+  }))
+}
+
+const DELETED_HASH = /^0+$/
+const EMPTY_BLOB_HASHES = [
   "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
   "473a0f4c3be8a93681a267e3b1e9a7dcda1185436fe141f7749120a303721813",
 ]
 
-/** A deleted file has an all-zero hash and an empty file has the empty blob. Neither is a copy. */
-function copyKey(change: FileChange): string | undefined {
+function isDeletionOrEmpty(hash: string): boolean {
+  return DELETED_HASH.test(hash) || EMPTY_BLOB_HASHES.includes(hash)
+}
+
+function copyKey(change: FileChange): string | null {
   const { hash } = change
-  if (hash === undefined || NO_CONTENT.test(hash)) return undefined
-  return EMPTY_BLOBS.includes(hash) ? undefined : hash
+  return hash === null || isDeletionOrEmpty(hash) ? null : hash
 }
 
 function leaveOutCopies(changes: FileChange[]): {
   kept: FileChange[]
-  copies: { path: string; of: string }[]
+  groups: string[][]
 } {
-  const first = new Map<string, string>()
-  const kept: FileChange[] = []
-  const copies: { path: string; of: string }[] = []
+  const byHash = new Map<string, FileChange[]>()
   for (const change of changes) {
     const key = copyKey(change)
-    const original = key === undefined ? undefined : first.get(key)
-    if (key !== undefined && original !== undefined) {
-      copies.push({ path: change.path, of: original })
-      continue
-    }
-    if (key !== undefined) first.set(key, change.path)
-    kept.push(change)
+    if (key !== null) byHash.set(key, [...(byHash.get(key) ?? []), change])
   }
-  return { kept, copies }
+  const left = new Set<FileChange>()
+  const groups: string[][] = []
+  for (const members of byHash.values()) {
+    if (members.length < 2) continue
+    const original = members.reduce((best, change) =>
+      change.lines > best.lines ? change : best,
+    )
+    for (const change of members) if (change !== original) left.add(change)
+    groups.push(members.map((change) => change.path))
+  }
+  return { kept: changes.filter((change) => !left.has(change)), groups }
 }
 
-function describeCopies(copies: { path: string; of: string }[]): string {
-  const originals = [...new Set(copies.map((copy) => copy.of))]
-  const names = copies.map((copy) => copy.path)
+function describeCopies(groups: string[][]): string {
   const list = (items: string[]) =>
-    items.length > 1
-      ? `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
-      : items[0]
-  const noun = copies.length === 1 ? "copy" : "copies"
-  const verb = copies.length === 1 ? "repeats" : "repeat"
-  return `${copies.length} ${noun} left out: ${list(names)} ${verb} ${list(originals)}`
+    `${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`
+  const count = groups.reduce((sum, paths) => sum + paths.length - 1, 0)
+  const noun = count === 1 ? "copy" : "copies"
+  const clauses = groups.map((paths) => `${list(paths)} have the same content`)
+  return `${count} ${noun} left out: ${clauses.join("; ")}`
 }
 
 function kindOf(path: string): "docs" | "tests" | "config" | "code" {
@@ -123,7 +128,7 @@ export function pickFleet(
   const notIgnored = changes.filter(
     (change) => !IGNORED.some((pattern) => pattern.test(change.path)),
   )
-  const { kept: counted, copies } = leaveOutCopies(notIgnored)
+  const { kept: counted, groups } = leaveOutCopies(notIgnored)
   const files = counted.length
   const lines = counted.reduce((sum, change) => sum + change.lines, 0)
   const kinds = new Set(counted.map((change) => kindOf(change.path)))
@@ -147,7 +152,7 @@ export function pickFleet(
     reviewers: withMutation(reviewers),
     effort: size === "small" ? "medium" : "high",
     ask: size === "large",
-    reasons: copies.length > 0 ? [...reasons, describeCopies(copies)] : reasons,
+    reasons: groups.length > 0 ? [...reasons, describeCopies(groups)] : reasons,
   })
 
   if (oneWayDoor || critical.length > 0) {

@@ -271,7 +271,7 @@ export function fleetCommand(argv: string[]): void {
     worktree,
     "diff",
     "--numstat",
-    "--no-renames",
+    "-z",
     `origin/${base}...HEAD`,
   ])
   const raw = run([
@@ -281,7 +281,7 @@ export function fleetCommand(argv: string[]): void {
     "diff",
     "--raw",
     "--no-abbrev",
-    "--no-renames",
+    "-z",
     `origin/${base}...HEAD`,
   ])
   const fleet = pickFleet(
