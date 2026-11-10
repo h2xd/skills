@@ -5,7 +5,7 @@ import { resolve } from "node:path"
 import { parseArgs } from "node:util"
 import { config } from "../config.ts"
 import { type ContextData, formatContext } from "./context.ts"
-import { formatFleet, parseNumstat, pickFleet } from "./fleet.ts"
+import { formatFleet, parseNumstat, parseRaw, pickFleet } from "./fleet.ts"
 import {
   authenticatedLogin,
   commentOnPullRequest,
@@ -271,10 +271,21 @@ export function fleetCommand(argv: string[]): void {
     worktree,
     "diff",
     "--numstat",
+    "-z",
+    `origin/${base}...HEAD`,
+  ])
+  const raw = run([
+    "git",
+    "-C",
+    worktree,
+    "diff",
+    "--raw",
+    "--no-abbrev",
+    "-z",
     `origin/${base}...HEAD`,
   ])
   const fleet = pickFleet(
-    parseNumstat(numstat),
+    parseRaw(raw, parseNumstat(numstat)),
     { ...config.review, mutationEnabled: config.mutation.enabled },
     values["one-way-door"],
   )
