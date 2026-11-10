@@ -7,14 +7,17 @@ argument-hint: "[ticket number]"
 # Code implement
 
 A ticket that says "undo restores the last move" should end as a failing test,
-a passing test and a commit that names `#42`. This skill turns the ticket into
-a branch, tested commits and a reviewed PR. It makes no new decisions. You
-orchestrate. Build workers on a fast model write the code, and reviewers on the
-strongest model check it. Hand-offs go through files in your scratchpad, called
-`$WORK` below. When the ticket is not clear enough to build, stop and say why.
+a passing test and a commit that names `#42`. A ticket from `/h2xd:to-tickets`
+or `/h2xd:plan-triage` already says what to build and how to check it.
 
-A **build worker** builds one **criteria group**, the criteria that share files
-or need each other. Groups run at the same time, each in its own worktree.
+This skill turns the ticket into a branch, tested commits and a reviewed PR. It
+makes no new decisions. You orchestrate. Build workers on a fast model write
+the code, and reviewers on the strongest model check it. Hand-offs go through
+files in your scratchpad, called `$WORK` below. When the ticket is not clear
+enough to build, it stops and says why.
+
+A **build worker** builds one **criteria group**, the criteria that share
+files or need each other. Groups run at the same time, each in its own worktree.
 
 ## Steps
 
@@ -22,15 +25,21 @@ or need each other. Groups run at the same time, each in its own worktree.
 
 Read the ticket and its comments with the **View** operation in
 `docs/agents/issue-tracker.md`. Read its parent and the decision records it
-names. Check each blocker in its `## Blocked by` section, and, when the page
-lists a **Block** operation, the blockers it records.
+names. Check each blocker in its `## Blocked by` section. When the tracker page
+lists a **Block** operation, also check the blockers it records.
 
 - When a blocker is still open, stop and name it.
 - When the ticket has no acceptance criteria, or a criterion you cannot check,
   stop. Offer `h2xd:plan-grill` to settle them, or `/h2xd:plan-triage` to write
   a brief.
 
-Done when you can list the acceptance criteria and every blocker is closed.
+When both checks pass and the tracker page lists an **Assign** operation, run
+it to assign the ticket to the user. When the page has no **Assign** operation,
+skip this. When **Assign** fails, go on and add a 🟡 line to the report.
+
+Done when you can list the acceptance criteria, every blocker is closed, and
+the ticket is assigned to the user, the page has no **Assign** operation, or
+the failure is noted for the report.
 
 ### 2. Make the branch
 
@@ -54,10 +63,11 @@ Done when `git branch --show-current` prints the new branch.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
 3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
-   `agents.config.json` is 1, plan one build worker with every criterion and
-   go to [step 4, Build](#4-build).
-4. When `scripts/implement.ts` is missing, plan one build worker with every
-   criterion, go to [step 4, Build](#4-build), and add
+   `agents.config.json` is 1, plan one build worker with all of them. Then go
+   to [step 4, Build](#4-build).
+4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
+   since this version. Plan one build worker with every criterion, go to
+   [step 4, Build](#4-build), and add
    `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
 5. Start one scout on the cheapest model, such as Haiku, through the CLI's
    subagent tool, such as Agent. Give it the paths to `ticket.md` and
@@ -85,8 +95,8 @@ Give it the paths to `ticket.md`, `worker-1.md` and
 For more than one, follow [`parallel.md`](parallel.md). It makes the
 worktrees, starts the build workers together and cherry-picks their commits.
 
-Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`.
-A criterion marked `not built` goes to the report.
+Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A
+criterion marked `not built` goes to the report.
 
 Done when every criterion has a passing test and a commit on the ticket
 branch, or a reason in a `built` file.
@@ -97,7 +107,8 @@ branch, or a reason in a `built` file.
 2. Run `h2xd:prove-tests` on the branch diff.
 3. Run `h2xd:review-code-comments` on the branch diff.
 
-Done when every check passes and each surviving mutant has a test or reason.
+Done when every check passes, and each surviving mutant has a test or a
+reason.
 
 ### 6. Open, review and fix
 
@@ -118,19 +129,8 @@ with a reason.
 
 ### 7. Report
 
-```
-<merge state>: <x> blocking, <y> non-blocking
-🔴 <criterion>: <not built, and why>
-🟡 <item>: <a check left open, a follow-up ticket to file>
-🔴 <n> blocking threads still open: <why each one is open>
-🟡 <n> non-blocking threads still open: <why each one is open>
-🟡 <worktree path>: kept, because its commits did not land
-🟢 split: <n> build workers, criteria <numbers per worker>
-🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
-```
-
-The first line says if the PR can merge. Write it per
-[`report.md`](report.md). 🔴 blocks the merge and 🟡 does not.
+Give the user the report in chat, in the layout of [`report.md`](report.md).
+Its first line says if the PR can merge. 🔴 blocks the merge and 🟡 does not.
 
 Done when every acceptance criterion has its line and the counts match.
 

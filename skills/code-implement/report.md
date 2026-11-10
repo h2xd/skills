@@ -1,9 +1,18 @@
-# The first line of the report
+# Report
 
-Step 7 of [`SKILL.md`](SKILL.md) starts the report with this line:
+The first line says if the PR can merge. Then one line per item, most urgent
+first:
 
 ```
 <merge state>: <x> blocking, <y> non-blocking
+🔴 <criterion>: <not built, and why>
+🔴 <n> blocking threads still open: <why each one is open>
+🟡 <item>: <a check left open, a follow-up ticket to file>
+🟡 #<n>: not assigned to the user, because <why the Assign operation failed>
+🟡 <n> non-blocking threads still open: <why each one is open>
+🟡 <worktree path>: kept, because its commits did not land
+🟢 split: <n> build workers, criteria <numbers per worker>
+🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
 ## The merge state
@@ -41,7 +50,7 @@ report, and `<y>` is the number of 🟡 lines. Count after you add the lines
 above. A 🔴 line makes the state `cannot merge`, also when the tracker says
 that the PR can merge.
 
-A report looks like this:
+A report starts like this:
 
 ```
 checks pending: 0 blocking, 1 non-blocking
