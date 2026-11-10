@@ -103,9 +103,9 @@ opens with. Recommended: `Closes`. GitHub and GitLab also close an issue on
 
 ## H. Worktree setup
 
-The commands a fresh worktree needs before it can typecheck, as argv lists, in
-`worktreeSetup`. `h2xd:review-pr`, `h2xd:review-fix` and `h2xd:code-arena`
-run them. Recommended: the install the lockfile implies, for example
+The commands a fresh worktree needs before it can typecheck and run the tests,
+as argv lists, in `worktreeSetup`. `h2xd:review-pr`, `h2xd:review-fix`,
+`h2xd:code-arena` and the build workers of `h2xd:code-implement` run them. Recommended: the install the lockfile implies, for example
 `[["npm", "install"]]`, plus any build step the typecheck needs.
 
 ## I. Mutation testing

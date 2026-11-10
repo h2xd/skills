@@ -11,6 +11,7 @@ import {
 } from "../review/worktree.ts"
 import {
   planCleanup,
+  uncommittedBlocker,
   unlandedCommits,
   workerBranchName,
   worktreeBlocker,
@@ -130,7 +131,14 @@ export function cleanupCommand(argv: string[]): void {
       )
     }
   }
-  if (plan.removeWorktree) run(["git", "worktree", "remove", plan.removeWorktree])
+  if (plan.removeWorktree) {
+    const blocker = uncommittedBlocker(
+      plan.removeWorktree,
+      run(["git", "-C", plan.removeWorktree, "status", "--porcelain"]),
+    )
+    if (blocker) throw new Error(blocker)
+    run(["git", "worktree", "remove", plan.removeWorktree])
+  }
   if (exists) removeWorkerBranch(workerBranch)
   console.log(
     plan.removeWorktree || exists

@@ -2,6 +2,7 @@ import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
 import {
   planCleanup,
+  uncommittedBlocker,
   unlandedCommits,
   workerBranchName,
   worktreeBlocker,
@@ -104,12 +105,28 @@ describe("planCleanup", () => {
     })
   })
 
-  test("removes a registered worktree whose branch is already gone", () => {
+  test("refuses a registered worktree whose branch is already gone", () => {
     expect(
       planCleanup({
         ...facts,
         worktrees: [...facts.worktrees, { path: PATH, branch: BRANCH }],
       }),
-    ).toEqual({ kind: "go", checkLanded: false, removeWorktree: PATH })
+    ).toEqual({
+      kind: "refuse",
+      message: `${PATH} has no branch ${BRANCH}, check it and run git worktree remove --force ${PATH}`,
+    })
+  })
+})
+
+describe("uncommittedBlocker", () => {
+  test("allows a clean worktree", () => {
+    expect(uncommittedBlocker(PATH, "")).toBe(undefined)
+    expect(uncommittedBlocker(PATH, "\n")).toBe(undefined)
+  })
+
+  test("lists the files that are not committed and names the forced removal", () => {
+    expect(uncommittedBlocker(PATH, "?? test-output.log\n M package-lock.json\n")).toBe(
+      `${PATH} has files that are not committed: ?? test-output.log, M package-lock.json. Check them, then run git worktree remove --force ${PATH}`,
+    )
   })
 })

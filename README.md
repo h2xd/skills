@@ -78,7 +78,7 @@ It asks about:
 - the commit types and scopes, and how long a message may be
 - whether a new decision record needs an issue
 - the hooks and CI workflows that enforce the rules
-- the commands a fresh worktree runs before it can typecheck
+- the commands a fresh worktree runs before it can typecheck and run the tests
 - mutation testing, and which runner plants the bugs
 - the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
 - how many build workers may build one ticket at the same time

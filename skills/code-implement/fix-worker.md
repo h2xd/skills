@@ -20,7 +20,8 @@ cannot ask the user.
 - **A conflict.** Read both sides. Keep the behavior of both criteria. Then
   run `git add` on the resolved files. Run `git cherry-pick --continue` only
   when the resolution is complete and the tests pass. Otherwise leave the
-  cherry-pick in progress and write `not fixed`.
+  cherry-pick in progress and write `not fixed`. Never run `git commit`
+  during a cherry-pick. Use `git cherry-pick --continue`.
 - **A failing test.** Find which two commits disagree. Fix the code, not the
   test. Commit with `h2xd:git-commit`, with `Refs: #<n>` in the footer.
 

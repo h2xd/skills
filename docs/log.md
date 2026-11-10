@@ -12,7 +12,7 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 
 * **Update**: Add Fix worker to the [technical glossary](/glossary/technical.md), and rename the Build worker brief to `build-worker.md`.
 
-* **Correction**: [0003](/decisions/0003-act-then-report.md) now lists the asks of code-implement: the test entry points, an unsure criterion, a draft or a failed check.
+* **Correction**: [0003](/decisions/0003-act-then-report.md) now lists the test entry points ask of code-implement, which the skill had when the record was written.
 
 ## 2026-11-08
 

@@ -55,8 +55,8 @@ export type Config = {
     maxWorkers: number
   }
   /**
-   * Commands a fresh worktree needs before it can typecheck, each as argv.
-   * review-pr, review-fix and code-arena run them.
+   * Commands a fresh worktree needs before it can typecheck and run the tests, each as argv.
+   * review-pr, review-fix, code-arena and the build workers of code-implement run them.
    */
   worktreeSetup: string[][]
   /**

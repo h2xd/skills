@@ -88,7 +88,8 @@ node scripts/implement.ts cleanup <id>
 ```
 
 The command checks that every commit landed. It refuses and keeps the worktree
-when one did not. Name that worktree in the report.
+when one did not. It also refuses when the worktree has files that are not
+committed, or has no branch. Name that worktree and the reason in the report.
 
 Don't run `cleanup` for a build worker you reverted. Name its worktree in the
 report.
@@ -116,9 +117,11 @@ When it says `not fixed`, or a step fails again after the fix worker ran:
 - For a conflict, undo the cherry-pick, then name the criteria of that build
   worker as `not built` in the report, with the conflicting files. Go on with
   the next build worker.
-  - When the cherry-pick is still in progress, run `git cherry-pick --abort`.
-  - When the fix worker finished it, run
-    `git revert --no-edit <pre-pick sha>..HEAD`.
+  1. When a cherry-pick is in progress, run `git cherry-pick --abort`.
+  2. When `git rev-parse HEAD` does not print the pre-pick sha, run
+     `git revert --no-edit <pre-pick sha>..HEAD`.
+
+  Done when `git diff <pre-pick sha> HEAD` prints nothing.
 - For a failing test, put the test and its output in the report as 🔴.
 
 ## Do

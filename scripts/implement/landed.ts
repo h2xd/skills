@@ -31,7 +31,6 @@ export type WorktreeFacts = {
   worktrees: WorktreeEntry[]
 }
 
-/** The reason `worktree` must not create the worker worktree, or undefined. */
 export function worktreeBlocker(facts: WorktreeFacts): string | undefined {
   const { id, workerBranch, path } = facts
   const registered = facts.worktrees.some((entry) => entry.path === path)
@@ -59,10 +58,28 @@ export function planCleanup(
       message: `${path} is not on ${workerBranch}, check it by hand`,
     }
   }
+  if (atPath && !facts.branchExists) {
+    return {
+      kind: "refuse",
+      message: `${path} has no branch ${workerBranch}, check it and run git worktree remove --force ${path}`,
+    }
+  }
   const onBranch = facts.worktrees.find((entry) => entry.branch === workerBranch)
   return {
     kind: "go",
     checkLanded: facts.branchExists,
     removeWorktree: (onBranch ?? atPath)?.path,
   }
+}
+
+export function uncommittedBlocker(
+  path: string,
+  statusPorcelain: string,
+): string | undefined {
+  const files = statusPorcelain
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "")
+  if (files.length === 0) return undefined
+  return `${path} has files that are not committed: ${files.join(", ")}. Check them, then run git worktree remove --force ${path}`
 }
