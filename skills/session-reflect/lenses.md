@@ -1,6 +1,6 @@
-# Retro lenses
+# Reflect lenses
 
-What `h2xd:session-retro` scans for, which lessons it keeps, where prose goes,
+What `h2xd:session-reflect` scans for, which lessons it keeps, where prose goes,
 and how it proves a check.
 
 ## Lenses
@@ -47,7 +47,7 @@ lesson applies to.
 
 | The lesson applies to | Home |
 |---|---|
-| Every repo using an h2xd skill, about how that skill works | That skill's `SKILL.md`. Inside the h2xd repo, edit `skills/<name>/SKILL.md`. Elsewhere, file an issue or hand the user a diff |
+| Every repo using an h2xd skill, about how that skill works | That skill's `SKILL.md`. Inside the h2xd repo, edit `skills/<name>/SKILL.md`. Elsewhere, draft a plugin issue with [`plugin-issue.md`](plugin-issue.md) |
 | An h2xd skill that exists but did not trigger | Its `description`, so it names the trigger that was missed |
 | This repo, every session | The agent instructions file, `CLAUDE.md` or `AGENTS.md`. Keep it to the rule plus a pointer |
 | This repo, one kind of task | A `docs/agents/*.md` page, or the page `h2xd:docs-wiki` says owns the topic |
