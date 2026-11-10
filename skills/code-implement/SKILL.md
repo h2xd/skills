@@ -6,18 +6,14 @@ argument-hint: "[ticket number]"
 
 # Code implement
 
-A ticket that says "undo restores the last move" should end as a failing test,
-a passing test and a commit that names `#42`. A ticket from `/h2xd:to-tickets`
-or `/h2xd:plan-triage` already says what to build and how to check it.
-
-This skill turns the ticket into a branch, tested commits and a reviewed PR. It
+This skill turns a ticket into a branch, tested commits and a reviewed PR. It
 makes no new decisions. You orchestrate. Build workers on a fast model write
 the code, and reviewers on the strongest model check it. Hand-offs go through
-files in your scratchpad, called `$WORK` below. When the ticket is not clear
-enough to build, it stops and says why.
+files in your scratchpad, called `$WORK` below. A ticket that is not clear
+enough to build stops the skill, with the reason.
 
-A **build worker** builds one **criteria group**, the criteria that share
-files or need each other. Groups run at the same time, each in its own worktree.
+A **build worker** builds one **criteria group**, the criteria that share files
+or need each other. Groups run at the same time, each in its own worktree.
 
 ## Steps
 
@@ -25,8 +21,8 @@ files or need each other. Groups run at the same time, each in its own worktree.
 
 Read the ticket and its comments with the **View** operation in
 `docs/agents/issue-tracker.md`. Read its parent and the decision records it
-names. Check each blocker in its `## Blocked by` section. When the tracker page
-lists a **Block** operation, also check the blockers it records.
+names. Check each blocker in its `## Blocked by` section, and, when the page
+lists a **Block** operation, the blockers it records.
 
 - When a blocker is still open, stop and name it.
 - When the ticket has no acceptance criteria, or a criterion you cannot check,
@@ -57,11 +53,10 @@ Done when `git branch --show-current` prints the new branch.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
 3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
-   `agents.config.json` is 1, plan one build worker with all of them. Then go
-   to [step 4, Build](#4-build).
-4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
-   since this version. Plan one build worker with every criterion, go to
-   [step 4, Build](#4-build), and add
+   `agents.config.json` is 1, plan one build worker and go to
+   [step 4, Build](#4-build).
+4. When `scripts/implement.ts` is missing, plan one build worker with every
+   criterion, go to [step 4, Build](#4-build), and add
    `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
 5. Start one scout on the cheapest model, such as Haiku, through the CLI's
    subagent tool, such as Agent. Give it the paths to `ticket.md` and
@@ -89,11 +84,11 @@ Give it the paths to `ticket.md`, `worker-1.md` and
 For more than one, follow [`parallel.md`](parallel.md). It makes the
 worktrees, starts the build workers together and cherry-picks their commits.
 
-Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A
-criterion marked `not built` goes to the report.
+Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`.
+A criterion marked `not built` goes to the report.
 
-Done when every criterion has a passing test and a commit on the ticket
-branch, or a reason in a `built` file.
+Done when every criterion has a passing test and a commit, or a reason in a
+`built` file.
 
 ### 5. Check the whole change
 
@@ -101,8 +96,7 @@ branch, or a reason in a `built` file.
 2. Run `h2xd:prove-tests` on the branch diff.
 3. Run `h2xd:review-code-comments` on the branch diff.
 
-Done when every check passes, and each surviving mutant has a test or a
-reason.
+Done when every check passes and each surviving mutant has a test or reason.
 
 ### 6. Open, review and fix
 
@@ -115,8 +109,8 @@ Run each skill in order, without asking between them:
 5. `h2xd:review-fix` once more when the second review left threads. Then stop.
 
 Stop the chain early when a check fails, or when the PR opened as a draft. A
-draft means `h2xd:git-pr-body` rated the change a one-way door, one that is
-hard to undo. Report the draft and let the user decide.
+draft means `h2xd:git-pr-body` rated the change a one-way door. Report it and
+let the user decide.
 
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
@@ -124,6 +118,7 @@ with a reason.
 ### 7. Report
 
 ```
+<merge state>: <x> blocking, <y> non-blocking
 🔴 <criterion>: <not built, and why>
 🟡 <item>: <a check left open, a follow-up ticket to file>
 🟡 <n> threads still open: <why each one is open>
@@ -132,7 +127,12 @@ with a reason.
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
 ```
 
-Done when every acceptance criterion has its line.
+The first line says if the PR can merge. Read the merge state with the
+**PR status** operation after the last push. Write `no PR` when the tracker has
+no PRs or the PR did not open. 🔴 blocks the merge and 🟡 does not. `<x>` counts
+the 🔴 lines and `<y>` the 🟡 lines.
+
+Done when every acceptance criterion has its line and the counts match.
 
 ## Do
 

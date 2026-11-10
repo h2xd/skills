@@ -34,6 +34,7 @@ Labels: adr
 | Close | Set `Status: closed`. Post the reason with **Comment** first |
 | Link a PR | Name the issue file in the commit footer as `Refs: .scratch/issues/<file>` |
 | Open a PR | None. A local tracker has no PRs. Push the branch and open the PR by hand, if there is a remote |
+| PR status | None. A local tracker has no PRs |
 
 ## Triage
 
