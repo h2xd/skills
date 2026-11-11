@@ -27,3 +27,5 @@ Find the decision records for a file with
   `` `<original>` → `<mutant>` ``. Its fix is the missing test. Decline it only
   when the mutant is equivalent, and say why no input makes the two versions
   differ.
+- A thread that asks for a test of a named behavior is a **mutation item**
+  too. Its plan row names the mutant, such as the line to remove.
