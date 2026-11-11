@@ -17,6 +17,12 @@ export function parseThreadIds(threadsMarkdown: string): Map<string, string> {
   return new Map([...matches].map((match) => [match[1], match[2]]))
 }
 
+/** Maps `S1` to the item id from `## S1` / `- Item id: <id>` in threads.md. */
+export function parseItemIds(threadsMarkdown: string): Map<string, string> {
+  const matches = threadsMarkdown.matchAll(/^## (S\d+)\n- Item id: (\S+)/gm)
+  return new Map([...matches].map((match) => [match[1], match[2]]))
+}
+
 export function parseReplySections(repliesMarkdown: string): ReplySection[] {
   const matches = repliesMarkdown.matchAll(
     /^## ([TS]\d+)\n([\s\S]*?)(?=^## [TS]\d+\n|(?![\s\S]))/gm,
@@ -39,6 +45,7 @@ export function planReplies(input: {
     body: sha ? section.body.replaceAll(SHA_PLACEHOLDER, sha) : section.body,
   }))
   const threadIds = parseThreadIds(input.threadsMarkdown)
+  const itemIds = parseItemIds(input.threadsMarkdown)
 
   const problems: string[] = []
   if (sections.length === 0)
@@ -53,6 +60,9 @@ export function planReplies(input: {
     if (section.id.startsWith("T") && !threadIds.has(section.id)) {
       problems.push(`${section.id} has no thread id in the threads file`)
     }
+    if (section.id.startsWith("S") && !itemIds.has(section.id)) {
+      problems.push(`${section.id} has no item id in the threads file`)
+    }
   }
   if (problems.length > 0) throw new Error(problems.join("\n"))
 
@@ -63,7 +73,12 @@ export function planReplies(input: {
         ...section,
         threadId: threadIds.get(section.id) as string,
       })),
-    summaryReplies: sections.filter((section) => section.id.startsWith("S")),
+    summaryReplies: sections
+      .filter((section) => section.id.startsWith("S"))
+      .map((section) => ({
+        ...section,
+        id: itemIds.get(section.id) as string,
+      })),
   }
 }
 

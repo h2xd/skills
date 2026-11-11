@@ -105,14 +105,77 @@ describe("summaryItems", () => {
       {
         author: null,
         state: "COMMENTED",
-        body: "## Outside the diff\n- item",
+        body: "## Outside the diff\n- [out-abc1234-1] item",
         url: "u1",
         submittedAt: null,
       },
     ]
     expect(summaryItems(reviews)).toEqual([
-      { reviewUrl: "u1", author: "ghost", text: "item" },
+      {
+        reviewUrl: "u1",
+        author: "ghost",
+        id: "out-abc1234-1",
+        text: "[out-abc1234-1] item",
+      },
     ])
+  })
+
+  function review(body: string): Review {
+    return {
+      author: { login: "bot" },
+      state: "COMMENTED",
+      body,
+      url: "u",
+      submittedAt: null,
+    }
+  }
+
+  test("reads a bullet only when it carries an item id", () => {
+    const body = [
+      "### Outside the diff",
+      "",
+      "- 🟡 [out-abc1234-1] `a.ts:3`: has an id",
+      "- 🟡 `b.ts:4`: has none",
+    ].join("\n")
+    expect(summaryItems([review(body)]).map((item) => item.id)).toEqual([
+      "out-abc1234-1",
+    ])
+  })
+
+  test("never turns a line of the reviewers list into an item", () => {
+    const body = [
+      "### Outside the diff",
+      "",
+      "None.",
+      "",
+      "### Reviewers",
+      "",
+      "- Ran: A, B",
+      "- Size: small",
+    ].join("\n")
+    expect(summaryItems([review(body)])).toEqual([])
+    expect(summaryItems([review("**Outside the diff**\n- Ran: A, B")])).toEqual(
+      [],
+    )
+  })
+
+  test("skips an item whose id heads a section in a PR comment", () => {
+    const body = [
+      "### Outside the diff",
+      "",
+      "- 🟡 [out-abc1234-1] `a.ts:3`: replied",
+      "- 🟡 [out-abc1234-2] `b.ts:4`: still open",
+    ].join("\n")
+    const comments = ["## out-abc1234-1\n\nFixed in abc."]
+    expect(
+      summaryItems([review(body)], comments).map((item) => item.id),
+    ).toEqual(["out-abc1234-2"])
+  })
+
+  test("does not count an id that is only mentioned in a comment", () => {
+    const body = "### Outside the diff\n\n- [out-abc1234-1] x"
+    const comments = ["see out-abc1234-1 above"]
+    expect(summaryItems([review(body)], comments)).toHaveLength(1)
   })
 })
 
@@ -122,7 +185,14 @@ describe("formatThreadsDocument", () => {
       header: HEADER,
       warningsSection: "## Warnings\n\n- Dirty tree.\n\n",
       threads: [thread({ id: "PRRT_done", isResolved: true }), thread()],
-      items: [{ reviewUrl: "u1", author: "reviewer", text: "outside finding" }],
+      items: [
+        {
+          reviewUrl: "u1",
+          author: "reviewer",
+          id: "out-abc1234-1",
+          text: "outside finding",
+        },
+      ],
     })
     expect(output).toContain("- headRefOid: abc123")
     expect(output).toContain("- Repository: o/r")
@@ -136,7 +206,7 @@ describe("formatThreadsDocument", () => {
     )
     expect(output).toContain("```suggestion\nconst x = 1\n```")
     expect(output).toContain(
-      "## S1\n- Review: u1 (reviewer)\n\noutside finding",
+      "## S1\n- Item id: out-abc1234-1\n- Review: u1 (reviewer)\n\noutside finding",
     )
   })
 

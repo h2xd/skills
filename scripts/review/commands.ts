@@ -183,7 +183,7 @@ export function threadsCommand(argv: string[]): void {
   const worktree = values.worktree ? resolve(values.worktree) : undefined
   const pullRequest = viewPullRequest(positionals[0], worktree)
   const { owner, name } = repositoryName(worktree)
-  const { threads, reviews } = fetchReviewData(
+  const { threads, reviews, comments } = fetchReviewData(
     owner,
     name,
     pullRequest.number,
@@ -210,7 +210,7 @@ export function threadsCommand(argv: string[]): void {
       },
       warningsSection: formatWarnings(warnings),
       threads,
-      items: summaryItems(reviews),
+      items: summaryItems(reviews, comments),
     }),
     values.out,
   )
