@@ -29,3 +29,5 @@ Find the decision records for a file with
   differ.
 - A thread that asks for a test of a named behavior is a **mutation item**
   too. Its plan row names the mutant, such as the line to remove.
+- A mutation item that comes back `not applied` is an **ask** item. Give the
+  surviving mutant and the test the fixer wrote.

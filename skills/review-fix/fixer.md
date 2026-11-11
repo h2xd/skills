@@ -33,9 +33,11 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
      `killed`.
    - When it does not, the test does not pin the behavior yet. Change the test
      and run again, at most two more times.
-   - When `mutation.enabled` is `false`, plant the mutant by hand, run the
-     test, put the red output in `changes.md`, then revert the mutant and
-     run the test again. It must pass.
+   - When `mutation.enabled` is `false`, skip the command. Plant the mutant
+     by hand and run the test. It must fail. Put the red output in
+     `changes.md`, then revert the mutant and run the test again. It must
+     pass. A green run with the mutant counts as a survivor for the bound
+     above.
    - A row whose mutant survives the third run is `not applied`, never
      fixed.
 
