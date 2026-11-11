@@ -394,11 +394,25 @@ export function mergeCommand(argv: string[]): void {
 
   const worktree = values.worktree ? resolve(values.worktree) : undefined
   const pullRequest = viewPullRequest(values.pr, worktree)
+  const { owner, name } = repositoryName(worktree)
+  const { threads } = fetchReviewData(owner, name, pullRequest.number, worktree)
   const { review, stats, dropped } = mergeFindings(
     files,
     pullRequestDiff(pullRequest.number, worktree),
     {
       headSha: pullRequest.headRefOid,
+      threads: threads.flatMap((thread) =>
+        thread.comments.nodes.length === 0
+          ? []
+          : [
+              {
+                path: thread.path,
+                startLine: thread.startLine,
+                line: thread.line,
+                url: thread.comments.nodes[0].url,
+              },
+            ],
+      ),
       reviewerLogin: authenticatedLogin(worktree),
       author: pullRequest.author.login,
       pickReasons: pickReasons(values.pick),
@@ -411,7 +425,9 @@ export function mergeCommand(argv: string[]): void {
     `wrote ${outFile}: ${review.event}, ${stats.inline} inline, ${stats.outside} outside the diff, ${stats.merged} merged, ${dropped.length} dropped`,
   )
   for (const item of dropped) {
-    console.log(`dropped ${item.id}: ${item.subject}`)
+    console.log(
+      `dropped ${item.id}: ${item.subject}${item.url ? ` (${item.url})` : ""}`,
+    )
   }
   if (!values.bullets) {
     console.log(`bullets:\n${findingsBullets(review.body).join("\n")}`)
