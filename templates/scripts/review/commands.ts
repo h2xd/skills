@@ -403,10 +403,10 @@ export function mergeCommand(argv: string[]): void {
     pullRequestDiff(pullRequest.number, worktree),
     {
       headSha: pullRequest.headRefOid,
-      login: authenticatedLogin(worktree),
+      reviewerLogin: authenticatedLogin(worktree),
       author: pullRequest.author.login,
       pickReasons: pickReasons(values.pick),
-      bullets: bulletsFrom(values.bullets),
+      rewordedBullets: bulletsFrom(values.bullets),
     },
   )
   writeFileSync(outFile, `${JSON.stringify(review, null, 2)}\n`)

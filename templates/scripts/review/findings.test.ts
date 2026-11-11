@@ -20,7 +20,7 @@ const DIFF = [
 
 const CONTEXT = {
   headSha: "abc123",
-  login: "reviewer-bot",
+  reviewerLogin: "reviewer-bot",
   author: "someone-else",
   pickReasons: [] as string[],
 }
@@ -360,16 +360,40 @@ describe("mergeFindings", () => {
     expect(review.body).toContain("Ran: B, D")
   })
 
-  test("uses the reworded bullets when given, and refuses a wrong count", () => {
-    const input = [file("B", [finding()])]
+  test("matches each reworded bullet to its finding by icon and location", () => {
+    const input = [
+      file("B", [
+        finding({ severity: "red", label: "issue", lines: [13] }),
+        finding({ id: "B-2" }),
+      ]),
+    ]
     const { review } = mergeFindings(input, DIFF, {
       ...CONTEXT,
-      bullets: ["- 🟡 `src/undo.ts:11-12`: rename it"],
+      rewordedBullets: [
+        "- 🟡 `src/undo.ts:11-12`: rename it",
+        "- 🔴 `src/undo.ts:13`: fix the undo",
+      ],
     })
-    expect(review.body).toContain("rename it")
+    const findings = review.body.split("### Findings\n")[1]
+    expect(findings.indexOf("fix the undo")).toBeLessThan(
+      findings.indexOf("rename it"),
+    )
+  })
+
+  test("refuses a missing bullet and a bullet for no finding", () => {
+    const input = [file("B", [finding()])]
     expect(() =>
-      mergeFindings(input, DIFF, { ...CONTEXT, bullets: [] }),
-    ).toThrow("bullets")
+      mergeFindings(input, DIFF, { ...CONTEXT, rewordedBullets: [] }),
+    ).toThrow("no bullet for - 🟡 `src/undo.ts:11-12`:")
+    expect(() =>
+      mergeFindings(input, DIFF, {
+        ...CONTEXT,
+        rewordedBullets: [
+          "- 🟡 `src/undo.ts:11-12`: rename it",
+          "- 🟡 `src/undo.ts:99`: extra",
+        ],
+      }),
+    ).toThrow("matches no finding: - 🟡 `src/undo.ts:99`: extra")
   })
 
   test("writes the Outside the diff part in the shape review threads reads", () => {

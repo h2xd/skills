@@ -24,7 +24,8 @@ Write one bullet for each, in the same order, in this form:
 - 🟡 `path:line`: <the action to take, in one short sentence>
 ```
 
-- Keep the icon and the `path:line` exactly as they are.
+- Keep the icon and the `path:line` exactly as they are. The merge matches
+  each bullet to its finding by them.
 - Say what the author must do, not what the reviewer saw.
 - Read `../setup-tone/github-text.md` and `../add-soul/SKILL.md` directly, and
   write to their rules.

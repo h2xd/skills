@@ -29,14 +29,10 @@ export type FindingsFile = {
 
 export type MergeContext = {
   headSha: string
-  /** The `gh` login that posts the review. */
-  login: string
-  /** The PR author. */
+  reviewerLogin: string
   author: string
-  /** Why a reviewer did not run, one line each, from `pick.md`. */
   pickReasons: string[]
-  /** Reworded bullets for the "Findings" part, in the order the body lists them. */
-  bullets?: string[]
+  rewordedBullets?: string[]
 }
 
 export type ReviewComment = {
@@ -162,7 +158,6 @@ function findingProblems(raw: unknown, index: number, reviewer: string): string[
   return problems
 }
 
-/** One problem per line, each naming the finding and the field. Empty when the file is valid. */
 export function validateFindings(json: unknown): string[] {
   if (!isRecord(json)) return ["the file must hold one JSON object"]
   const problems: string[] = []
@@ -193,8 +188,7 @@ export function validateFindings(json: unknown): string[] {
 type Range = [number, number]
 type Hunks = Map<string, Range[]>
 
-/** The new-side line ranges of every hunk in a unified diff, by file. */
-function parseHunks(diff: string): Hunks {
+function newSideHunks(diff: string): Hunks {
   const hunks: Hunks = new Map()
   let path: string | undefined
   for (const line of diff.split("\n")) {
@@ -233,7 +227,6 @@ type Tagged = Finding & { reviewer: string }
 
 type Group = { members: Tagged[] }
 
-/** Same file, overlapping lines and different reviewers make one group. */
 function groupFindings(findings: Tagged[]): Group[] {
   const groups: Group[] = []
   for (const finding of findings) {
@@ -375,19 +368,33 @@ function verdictLine(
   const reason =
     reds > 0 ? `${reds} blocking finding${reds === 1 ? "" : "s"}` : "no blocking finding"
   if (event === "COMMENT") {
-    return `Intended verdict: ${intended.toLowerCase()}, with ${reason}. Posted as a comment because ${context.login} wrote this PR.`
+    return `Intended verdict: ${intended.toLowerCase()}, with ${reason}. Posted as a comment because ${context.reviewerLogin} wrote this PR.`
   }
   return `${intended}: ${reason}.`
 }
 
-function defaultBullet(joined: Joined): string {
-  return `- ${ICON[joined.severity]} \`${location(joined)}\`: ${joined.subject}`
+function bulletKey(joined: Joined): string {
+  return `- ${ICON[joined.severity]} \`${location(joined)}\`:`
 }
 
-/**
- * Joins the findings of every reviewer into one review. Pure: `diff` is the
- * text of `gh pr diff`, and `context` holds what only GitHub knows.
- */
+function defaultBullet(joined: Joined): string {
+  return `${bulletKey(joined)} ${joined.subject}`
+}
+
+function bulletsByFinding(listed: Joined[], reworded: string[]): string[] {
+  const unused = [...reworded]
+  const bullets = listed.map((item) => {
+    const key = bulletKey(item)
+    const index = unused.findIndex((bullet) => bullet.startsWith(key))
+    if (index === -1) throw new Error(`no bullet for ${key}`)
+    return unused.splice(index, 1)[0]
+  })
+  if (unused.length > 0) {
+    throw new Error(`a bullet matches no finding: ${unused[0]}`)
+  }
+  return bullets
+}
+
 export function mergeFindings(
   files: FindingsFile[],
   diff: string,
@@ -399,26 +406,23 @@ export function mergeFindings(
   const kept = all.filter((finding) => !KEPT_NOTE.test(finding.subject.trim()))
   const groups = groupFindings(kept)
   const joined = groups.map(join).sort(byWorst)
-  const hunks = parseHunks(diff)
+  const hunks = newSideHunks(diff)
   const inline = joined.filter((item) => inHunk(hunks, item.file, item.range))
   const outside = joined.filter((item) => !inline.includes(item))
 
   const reds = joined.filter((item) => item.severity === "red").length
   const intended = reds > 0 ? "Request changes" : "Approve"
   const event: Review["event"] =
-    context.login === context.author
+    context.reviewerLogin === context.author
       ? "COMMENT"
       : reds > 0
         ? "REQUEST_CHANGES"
         : "APPROVE"
 
   const listed = joined.filter((item) => item.severity !== "green")
-  const bullets = context.bullets ?? listed.map(defaultBullet)
-  if (bullets.length !== listed.length) {
-    throw new Error(
-      `expected ${listed.length} bullets, one per 🔴 and 🟡 finding, found ${bullets.length}`,
-    )
-  }
+  const bullets = context.rewordedBullets
+    ? bulletsByFinding(listed, context.rewordedBullets)
+    : listed.map(defaultBullet)
 
   const count = (severity: Severity) =>
     joined.filter((item) => item.severity === severity).length
@@ -455,13 +459,11 @@ export function mergeFindings(
   }
 }
 
-/** The bullets under the "Findings" heading of a review body, for a person or a subagent to read. */
 export function findingsBullets(body: string): string[] {
   const part = body.split(`${FINDINGS_HEADING}\n`)[1]?.split("\n### ")[0] ?? ""
   return part.split("\n").filter((line) => line.startsWith("- "))
 }
 
-/** The Markdown a person reads before the review goes out: the event, the body, then each comment. */
 export function formatPreview(review: Review): string {
   const comments = review.comments.map((comment) => {
     const start = comment.start_line === undefined ? "" : `${comment.start_line}-`
