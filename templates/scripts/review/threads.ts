@@ -49,6 +49,8 @@ const MARKDOWN_HEADING = /^#{1,6}\s/
 const BOLD_ONLY_LINE = /^\*\*[^*]+\*\*:?$/
 const BULLET = /^\s{0,3}[-*]\s+/
 const NO_FINDINGS = /^none\.?$/i
+const ITEM_ID_HEAD = /^\S*\s*\[(out-\w+-\d+)\]/
+const REPLY_SECTION = /^## (out-\w+-\d+)[ \t]*$/gm
 
 export function loginOf(author: { login: string } | null): string {
   return author?.login ?? DELETED_ACCOUNT_LOGIN
@@ -110,17 +112,41 @@ export function outsideDiffItems(body: string): string[] {
     .filter((item) => !NO_FINDINGS.test(item.trim()))
 }
 
-export type SummaryItem = { reviewUrl: string; author: string; text: string }
+export type SummaryItem = {
+  reviewUrl: string
+  author: string
+  id: string
+  text: string
+}
 
-export function summaryItems(reviews: Review[]): SummaryItem[] {
+/** The item ids that head a `## <item id>` section in a PR comment: those items have a reply. */
+export function repliedItemIds(commentBodies: string[]): Set<string> {
+  return new Set(
+    commentBodies.flatMap((body) =>
+      [...body.matchAll(REPLY_SECTION)].map((match) => match[1]),
+    ),
+  )
+}
+
+/**
+ * The outside-the-diff items of the reviews that carry an item id and have no
+ * reply in `commentBodies`, the bodies of the PR's issue comments.
+ */
+export function summaryItems(
+  reviews: Review[],
+  commentBodies: string[] = [],
+): SummaryItem[] {
+  const replied = repliedItemIds(commentBodies)
   return reviews
     .filter((review) => review.body.trim() !== "")
     .flatMap((review) =>
-      outsideDiffItems(review.body).map((text) => ({
-        reviewUrl: review.url,
-        author: loginOf(review.author),
-        text,
-      })),
+      outsideDiffItems(review.body).flatMap((text) => {
+        const id = ITEM_ID_HEAD.exec(text)?.[1]
+        if (id === undefined || replied.has(id)) return []
+        return [
+          { reviewUrl: review.url, author: loginOf(review.author), id, text },
+        ]
+      }),
     )
 }
 
@@ -158,6 +184,7 @@ function formatThread(thread: ReviewThread, index: number): string {
 function formatSummaryItem(item: SummaryItem, index: number): string {
   return [
     `## S${index + 1}`,
+    `- Item id: ${item.id}`,
     `- Review: ${item.reviewUrl} (${item.author})`,
     "",
     item.text,

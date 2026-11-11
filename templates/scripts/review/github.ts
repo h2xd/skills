@@ -21,6 +21,7 @@ query($owner: String!, $name: String!, $number: Int!) {
         }
       }
       reviews(first: 50) { nodes { author { login } state body url submittedAt } }
+      comments(last: 100) { nodes { body } }
     }
   }
 }`
@@ -81,7 +82,7 @@ export function fetchReviewData(
   name: string,
   number: number,
   cwd?: string,
-): { threads: ReviewThread[]; reviews: Review[] } {
+): { threads: ReviewThread[]; reviews: Review[]; comments: string[] } {
   const json = run(
     [
       "gh",
@@ -104,12 +105,17 @@ export function fetchReviewData(
         pullRequest: {
           reviewThreads: { nodes: ReviewThread[] }
           reviews: { nodes: Review[] }
+          comments: { nodes: { body: string }[] }
         }
       }
     }
   }
-  const { reviewThreads, reviews } = parsed.data.repository.pullRequest
-  return { threads: reviewThreads.nodes, reviews: reviews.nodes }
+  const { reviewThreads, reviews, comments } = parsed.data.repository.pullRequest
+  return {
+    threads: reviewThreads.nodes,
+    reviews: reviews.nodes,
+    comments: comments.nodes.map((comment) => comment.body),
+  }
 }
 
 /** gh reads `-F body=@file` from disk, which keeps quotes and newlines intact. */
