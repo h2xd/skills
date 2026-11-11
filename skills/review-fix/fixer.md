@@ -11,6 +11,10 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
    - Take a `suggestion` block as written. Change it only when it breaks the
      code around it or the row asks for more. Then make the change the row
      names, and say so in `changes.md`.
+   - Before a row changes code that is not a test, list the behaviors of
+     that code which the change can alter. Write a test for each behavior
+     that has none, and run it on the code as it is. Each test must pass
+     before the change. Then make the change.
    - Leave **decline** items untouched.
 2. Follow the agent instructions file and `../code-quality/SKILL.md`.
    - Write no comment that explains the code. Rename or restructure instead.
