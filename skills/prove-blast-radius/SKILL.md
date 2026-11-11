@@ -32,7 +32,7 @@ the app ships, at the pinned version.
 
 - **Report only.** Use it when the caller says so, as Reviewer E of
   `h2xd:review-pr` does. Change nothing in the repo. Write findings to the
-  output file the caller names, in the shape of the caller's reviewer brief.
+  findings file the caller names, in the shape of the caller's reviewer brief.
 - **Chat.** Otherwise, step 6 gives the report in chat.
 
 `$WORK` is a directory in your scratchpad. Proof scripts live there, never in
@@ -107,16 +107,16 @@ unproven with the level it reached.
 ### 6. Report
 
 **Report only.** Write each confirmed risk, each open risk and each unproven
-fact as a finding, numbered `E-1`, `E-2` and on. Fill every field the brief
-asks for: `file`, `line`, `found-by`, `what`, `why` and `fix`.
+fact as a finding, numbered `E-1`, `E-2` and on, in the findings file that
+the reviewer brief describes. Fill every field it asks for.
 
-- `file` and `line` mark the breakage in the PR head version, even outside the diff.
-- Use 🔴 for a breakage shown at level 3 or higher, with concrete inputs.
-- Use 🟡 for a confirmed risk below level 3, an open risk, or an unproven fact.
-- Paste the proof command and its output into `why`. In `fix`, give the change,
-  or the check that settles an open risk.
-- Above the verdict line, add `safety fact: <sentence> (level <n>)` and
-  `cleared: <n>`, each on its own line.
+- `file` and `lines` mark the breakage in the PR head version, even outside the diff.
+- Use `red` for a breakage shown at level 3 or higher, with concrete inputs.
+- Use `yellow` for a confirmed risk below level 3, an open risk, or an unproven fact.
+- Paste the proof command and its output into `body`, with the change or the
+  check that settles an open risk.
+- In `status`, add `safety fact: <sentence> (level <n>)` and `cleared: <n>`,
+  one string each.
 
 **Otherwise**, answer in chat:
 

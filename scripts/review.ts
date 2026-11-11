@@ -9,6 +9,8 @@
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
  *   node scripts/review.ts resolve <thread-id>...
  *   node scripts/review.ts options --validate <review.json>
+ *   node scripts/review.ts findings --validate <findings.json>
+ *   node scripts/review.ts merge <findings.json>... --out review.json [--pr N] [--worktree PATH] [--pick pick.md] [--bullets FILE] [--preview FILE]
  *   node scripts/review.ts fleet --base <branch> [--worktree PATH] [--one-way-door] [--out FILE]
  *
  * Output is markdown on stdout, or in the file given by --out. A failure prints
@@ -17,7 +19,9 @@
 
 import {
   contextCommand,
+  findingsCommand,
   fleetCommand,
+  mergeCommand,
   optionsCommand,
   replyCommand,
   resolveCommand,
@@ -32,6 +36,8 @@ const COMMANDS: Record<string, (argv: string[]) => void> = {
   reply: replyCommand,
   resolve: resolveCommand,
   options: optionsCommand,
+  findings: findingsCommand,
+  merge: mergeCommand,
   fleet: fleetCommand,
 }
 

@@ -10,12 +10,19 @@ import {
   authenticatedLogin,
   commentOnPullRequest,
   fetchReviewData,
+  pullRequestDiff,
   repositoryName,
   replyToThread,
   resolveThread,
   viewIssue,
   viewPullRequest,
 } from "./github.ts"
+import {
+  findingsBullets,
+  formatPreview,
+  mergeFindings,
+  parseFindings,
+} from "./findings.ts"
 import { type DraftComment, validateDraftComments } from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
 import { resolveThreads } from "./resolve.ts"
@@ -313,4 +320,100 @@ export function optionsCommand(argv: string[]): void {
     )
   }
   console.log(`ok: ${review.comments?.length ?? 0} comments checked`)
+}
+
+function readJson(file: string): unknown {
+  if (!existsSync(file)) throw new Error(`${file} does not exist`)
+  try {
+    return JSON.parse(readFileSync(file, "utf8"))
+  } catch (error) {
+    throw new Error(
+      `${file} is not JSON: ${error instanceof Error ? error.message : error}`,
+    )
+  }
+}
+
+export function findingsCommand(argv: string[]): void {
+  const { values } = parseArgs({
+    args: argv,
+    options: { validate: { type: "string" } },
+  })
+  const file = requireArgument(values.validate, "findings --validate <file>")
+  const parsed = parseFindings(readJson(file))
+  if (!parsed.ok) {
+    for (const problem of parsed.problems) console.error(problem)
+    throw new Error(`${parsed.problems.length} problem(s) in ${file}`)
+  }
+  console.log(`ok: ${parsed.file.findings.length} findings checked`)
+}
+
+const PICK_META = /^- (Size|Reviewers|Effort for A|Ask first):/
+
+function pickReasons(pickFile: string | undefined): string[] {
+  if (!pickFile) return []
+  return readFileSync(pickFile, "utf8")
+    .split("\n")
+    .filter((line) => line.startsWith("- ") && !PICK_META.test(line))
+    .map((line) => line.slice(2))
+}
+
+function bulletsFrom(file: string | undefined): string[] | undefined {
+  if (!file) return undefined
+  return readFileSync(file, "utf8")
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+}
+
+export function mergeCommand(argv: string[]): void {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: {
+      out: { type: "string" },
+      pr: { type: "string" },
+      worktree: { type: "string" },
+      pick: { type: "string" },
+      bullets: { type: "string" },
+      preview: { type: "string" },
+    },
+  })
+  const usage =
+    "merge <findings.json>... --out review.json [--pr N] [--worktree PATH] [--pick pick.md] [--bullets FILE] [--preview FILE]"
+  const outFile = requireArgument(values.out, usage)
+  if (positionals.length === 0) throw new Error(`usage: node scripts/review.ts ${usage}`)
+
+  const files = positionals.map((path) => {
+    const parsed = parseFindings(readJson(path))
+    if (!parsed.ok) {
+      throw new Error(
+        `${path} is not valid, run findings --validate:\n${parsed.problems.join("\n")}`,
+      )
+    }
+    return parsed.file
+  })
+
+  const worktree = values.worktree ? resolve(values.worktree) : undefined
+  const pullRequest = viewPullRequest(values.pr, worktree)
+  const { review, stats, dropped } = mergeFindings(
+    files,
+    pullRequestDiff(pullRequest.number, worktree),
+    {
+      headSha: pullRequest.headRefOid,
+      reviewerLogin: authenticatedLogin(worktree),
+      author: pullRequest.author.login,
+      pickReasons: pickReasons(values.pick),
+      rewordedBullets: bulletsFrom(values.bullets),
+    },
+  )
+  writeFileSync(outFile, `${JSON.stringify(review, null, 2)}\n`)
+  if (values.preview) writeFileSync(values.preview, formatPreview(review, dropped))
+  console.log(
+    `wrote ${outFile}: ${review.event}, ${stats.inline} inline, ${stats.outside} outside the diff, ${stats.merged} merged, ${dropped.length} dropped`,
+  )
+  for (const item of dropped) {
+    console.log(`dropped ${item.id}: ${item.subject}`)
+  }
+  if (!values.bullets) {
+    console.log(`bullets:\n${findingsBullets(review.body).join("\n")}`)
+  }
 }

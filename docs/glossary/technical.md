@@ -28,6 +28,12 @@ An entry looks like this:
 - **Code:** [`skills/ask-committee/calls.md`](../../skills/ask-committee/calls.md), written as `calls/<short name>-<n>.md` in the committee folder
 - **Avoid:** Request file, message
 
+### Findings file
+
+- **Meaning:** The JSON file in which one `review-pr` reviewer lists its findings, written as `review-<x>.json`. `review.ts findings --validate` checks it, and `review.ts merge` joins all of them into one review.
+- **Code:** [`templates/scripts/review/findings.ts`](../../templates/scripts/review/findings.ts), [`skills/review-pr/reviewer-brief.md`](../../skills/review-pr/reviewer-brief.md)
+- **Avoid:** Review file, report
+
 ### Task copy
 
 - **Meaning:** The copy of a call file that the callee reads. The chair writes it with every line of the call except the caller's hypothesis.

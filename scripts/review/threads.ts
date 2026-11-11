@@ -72,31 +72,41 @@ export function threadLocation(thread: ReviewThread): string {
   return `${thread.path}:${thread.line}`
 }
 
+function indentOf(line: string): number {
+  return line.length - line.trimStart().length
+}
+
+function dedentContinuation(lines: string[]): string[] {
+  const first = lines.find((line) => line.trim() !== "")
+  const width = first === undefined ? 0 : indentOf(first)
+  return lines.map((line) =>
+    line.trim() === "" ? "" : line.slice(Math.min(width, indentOf(line))),
+  )
+}
+
 /**
  * The bullets under an "Outside the diff" heading in a review summary, which
  * `review-pr` writes for findings that sit outside a diff hunk.
  */
 export function outsideDiffItems(body: string): string[] {
-  const lines = body.split("\n")
+  const lines = body.split(/\r?\n/)
   const start = lines.findIndex((line) => OUTSIDE_DIFF_HEADING.test(line))
   if (start === -1) return []
 
-  const items: string[][] = []
+  const items: { head: string; rest: string[] }[] = []
   for (const line of lines.slice(start + 1)) {
     if (
       MARKDOWN_HEADING.test(line) ||
-      BOLD_ONLY_LINE.test(line.trim()) ||
+      BOLD_ONLY_LINE.test(line.trimEnd()) ||
       /^Co-Authored-By:/i.test(line)
     ) {
       break
     }
-    if (BULLET.test(line)) items.push([line.replace(BULLET, "")])
-    else if (items.length > 0 && line.trim() !== "") {
-      items[items.length - 1].push(line.trim())
-    }
+    if (BULLET.test(line)) items.push({ head: line.replace(BULLET, ""), rest: [] })
+    else if (items.length > 0) items[items.length - 1].rest.push(line)
   }
   return items
-    .map((itemLines) => itemLines.join("\n"))
+    .map(({ head, rest }) => [head, ...dedentContinuation(rest)].join("\n").trimEnd())
     .filter((item) => !NO_FINDINGS.test(item.trim()))
 }
 

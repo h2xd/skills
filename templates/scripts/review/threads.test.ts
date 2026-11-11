@@ -8,6 +8,7 @@ import {
   summaryItems,
   threadLocation,
 } from "./threads.ts"
+import { type Finding, mergeFindings } from "./findings.ts"
 
 function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
   return {
@@ -178,5 +179,71 @@ describe("formatThreadsDocument", () => {
       items: [],
     })
     expect(output).toContain("No unresolved items.")
+  })
+})
+
+describe("outsideDiffItems on a merged review", () => {
+  test("keeps every item when a body holds a bold label line", () => {
+    const outside = (id: string, body: string): Finding => ({
+      id,
+      severity: "yellow",
+      file: "x.ts",
+      lines: [5],
+      label: "issue",
+      subject: `subject ${id}`,
+      body,
+      "found-by": ["Claude Opus 5.5"],
+    })
+    const { review } = mergeFindings(
+      [
+        {
+          reviewer: "E",
+          findings: [
+            outside("E-1", "The defect.\n**Proof:**\nthe output"),
+            { ...outside("E-2", "Second."), lines: [9] },
+          ],
+        },
+      ],
+      "",
+      { headSha: "a", reviewerLogin: "r", author: "o", pickReasons: [] },
+    )
+    const items = outsideDiffItems(review.body)
+    expect(items).toHaveLength(2)
+    expect(items[0]).toContain("the output")
+    expect(items[1]).toContain("subject E-2")
+  })
+
+  test("keeps the indentation of code in an item from a 2-space list", () => {
+    const body = [
+      "### Outside the diff",
+      "",
+      "- `ci.yml:3` the job has no timeout. Use this:",
+      "  ```yaml",
+      "  jobs:",
+      "    test:",
+      "      timeout-minutes: 10",
+      "  ```",
+    ].join("\n")
+    expect(outsideDiffItems(body)).toEqual([
+      "`ci.yml:3` the job has no timeout. Use this:\n```yaml\njobs:\n  test:\n    timeout-minutes: 10\n```",
+    ])
+  })
+
+  test("leaves no carriage return in an item of a CRLF body", () => {
+    const body =
+      "**Outside the diff**\r\n- `a.ts:3` first\r\n    more\r\n    ```\r\n    x\r\n    ```\r\n"
+    expect(outsideDiffItems(body)).toEqual(["`a.ts:3` first\nmore\n```\nx\n```"])
+  })
+
+  test("ends the section at a bold label with a CRLF line end", () => {
+    const body = [
+      "**Outside the diff**",
+      "- `a.ts:3` first",
+      "",
+      "**Nits**",
+      "- `b.ts:9` style only",
+      "",
+    ].join("\r\n")
+    expect(outsideDiffItems(body)).toEqual(["`a.ts:3` first"])
   })
 })

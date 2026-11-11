@@ -69,41 +69,41 @@ Done when `$WORK/pick.md` exists.
 ### 3. Launch the reviewers
 
 Start the picked reviewers in one message, as background subagents, through
-the CLI's subagent tool, such as Agent. Each prompt holds the path to `context.md`,
-`$WORKTREE`, its lens, its output file, and the path to
-[`reviewer-brief.md`](reviewer-brief.md).
+the CLI's subagent tool, such as Agent. Each prompt holds `$WORKTREE`, the
+paths to `context.md` and [`reviewer-brief.md`](reviewer-brief.md), and its
+lens, model and findings file from [`reviewers.md`](reviewers.md). Reviewer B
+also gets the absolute path of [`reviewer-b.md`](reviewer-b.md).
 
-| Reviewer | Model | Lens | Output |
-|---|---|---|---|
-| A, correctness | Strongest, such as Opus | The CLI's own code review of the PR at the effort in `pick.md`, for example the `code-review` skill, with no `--comment` and no `--fix`. Without one, look for bugs, broken contracts, data loss and security holes. | `review-a.md` |
-| B, standards | Strongest, such as Opus | The diff `git diff origin/<base>...HEAD` against the standards, spec and docs below. | `review-b.md` |
-| C, comments | Cheapest, such as Haiku | The `h2xd:comment-reaper` agent, **report only**, on the same diff. A comment it would reap is a 🟡 with a `suggestion` that deletes it. A `MUST KILL` is a 🟡 that names the reshape, or a 🔴 when it removes a suppression that protects correctness. | `review-c.md` |
-| D, tests | Fast, such as Sonnet | `h2xd:prove-tests`, **report only**, on the same diff, with the linked issues as acceptance criteria. | `review-d.md` |
-| E, blast radius | Strongest, such as Opus | `h2xd:prove-blast-radius`, **report only**, on the same diff. It finds what breaks outside the diff and proves it with output. Its `file` may sit outside the diff. | `review-e.md` |
+Done when every launched reviewer's findings file exists. When one fails,
+start it once more. When it fails again, go on without it, and name the
+missing lens in the summary.
 
-Reviewer B checks three things:
+### 4. Merge the findings
 
-- **Standards:** the agent instructions file, every decision record in
-  `context.md`, and `../code-quality/SKILL.md` with `../code-quality/smells.md`.
-  Give absolute paths. A documented repo standard beats the baseline. A smell
-  is a judgment call, never 🔴 alone.
-- **Spec:** the linked issues and the PR body. Report what is missing, what
-  nobody asked for, and what looks done but is wrong. Quote the spec line.
-- **Docs:** every page `context.md` lists for a changed file. A page the diff
-  makes untrue, a new term without a glossary entry, or a contradicted record
-  is 🟡. Breaking an accepted record is 🔴.
+A script builds the review. No subagent writes `review.json`.
 
-Done when every launched reviewer's file exists. When one fails, start it
-once more. When it fails again, go on without it, and name the missing lens in
-the summary.
+```sh
+node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WORK/pick.md --out $WORK/review.json --preview $WORK/preview.md
+```
 
-### 4. Draft the review
+It checks each findings file first. When one fails, run that reviewer once
+more, as in step 3. When it fails again, delete its file, merge without it,
+and name the missing lens in the summary. It joins duplicates, moves a line
+outside the diff to "Outside the diff", writes the Conventional Comments and
+sorts worst first. The event is `REQUEST_CHANGES` with a 🔴, otherwise
+`APPROVE`, and `COMMENT` on your own PR.
 
-Start one subagent on a fast model, such as Sonnet. Give it the paths to
-`context.md`, every `review-*.md`, `reviewer-brief.md` and
-[`drafter.md`](drafter.md), which holds its instructions, and `pick.md`.
+Then start one subagent on the cheapest model, such as Haiku. Give it the
+paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and
+`$WORK/bullets.md`. It words the summary bullets and writes nothing else. Run
+the merge again with `--bullets $WORK/bullets.md` added, and check the result:
 
-Done when the checks at the end of `drafter.md` pass.
+```sh
+node scripts/review.ts options --validate $WORK/review.json
+```
+
+Done when the merge printed `wrote`, and `options --validate` prints a line
+that starts with `ok`.
 
 ### 5. Post
 
@@ -111,15 +111,15 @@ Done when the checks at the end of `drafter.md` pass.
 gh api repos/<owner>/<repo>/pulls/<n>/reviews --method POST --input "$WORK/review.json" --jq .html_url
 ```
 
-A 422 names the comment GitHub rejected, usually a line outside the diff. Move
-that comment to the body under "Outside the diff" and post again.
+A 422 names the comment GitHub rejected. The diff changed since the merge, so
+run step 4 again. When the 422 comes back, stop and report it.
 
 Done when the call returns a review URL.
 
 ### 6. Summarize in chat
 
 Lead with the verdict, the review URL and the reviewers that ran. Then give
-one line per finding, worst first:
+one line per finding, worst first. The merge's `wrote` line has the counts:
 
 ```
 🔴 <path:line>: <action to take>, reviewer <A-E>
@@ -136,7 +136,7 @@ Done when every 🔴 and 🟡 finding has its line.
 
 - Read the PR head from a worktree when the branch differs.
 - Give every subagent file paths, not pasted content.
-- Merge duplicate findings and keep every `found-by` model.
+- Let `review.ts merge` join duplicates and keep every `found-by` model.
 - Quote a Reviewer D mutant exactly, so `h2xd:review-fix` can plant it again.
 
 ## Don't
@@ -146,4 +146,5 @@ Done when every 🔴 and 🟡 finding has its line.
 - Don't mark a smell 🔴 on its own. Name the concrete failure, or make it 🟡.
 - Don't approve your own PR, because GitHub refuses it. Post `COMMENT` with
   the verdict in the first line.
+- Don't write or edit `review.json` by hand, and don't let a subagent do it.
 - Don't paste reviewer output into your context. Read the counts and subjects.
