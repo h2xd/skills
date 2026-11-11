@@ -1,67 +1,40 @@
 # h2xd skills
 
-55 skills and 12 agents for Claude Code. They keep what an agent learns in the
-repo, where the next session finds it. They build on many great skill repos and
-grew out of my own projects.
+55 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
 
-Those projects keep their knowledge in an
+An agent forgets everything when a session ends. A repo does not have to.
+
+[Install](#install) · [The loop](#the-loop) · [Skills](#skills) · [Agents](#agents) · [Releases](https://github.com/h2xd/skills/releases)
+
+<br>
+
+## Why
+
+The skills put knowledge where the next session finds it. They keep docs that
+stay true, decisions with a reason, commits that explain themselves, and
+reviews that hold the bar.
+
+A rule that an agent can forget becomes a check where it can. Lints run on the
+docs, the glossary words, the commit messages, the PR bodies and the skills
+themselves. They run in git hooks and in CI, without an agent.
+
+The docs follow the
 [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)
-bundle that works as an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
-I hope the skills help you too. Take what helps, leave the rest, and
-[open an issue](https://github.com/h2xd/skills/issues) for what is missing.
+and work as an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+The set builds on many good skill repos and grew out of my own projects. Take
+what helps, and [open an issue](https://github.com/h2xd/skills/issues) for what
+is missing.
 
-The idea is simple. An agent forgets everything the moment a session ends, but
-a repo does not have to. The skills keep the knowledge where the next session
-finds it: in docs that stay true, decisions with a paper trail, commits that
-explain themselves, and reviews that hold the bar.
-
-An agent forgets a rule, but a lint does not. That is why this set lints so
-much: the docs, the glossary words, the commit messages, the PR bodies, and the
-language of the skills themselves. Where a rule can be a check, it is one, and
-it runs without an agent, in git hooks and in CI.
-
-## News
-
-**0.6.0 adds a design group and a committee.** See the
-[releases](https://github.com/h2xd/skills/releases) for every change.
-
-- **The design system lives in the repo.**
-  [`design-setup`](skills/design-setup/SKILL.md) builds one inventory of
-  reusable elements and an overview page. It also writes an agent view that
-  agents read with `curl` or from git.
-- **Each small design choice gets a log entry.**
-  [`design-log`](skills/design-log/SKILL.md) writes it, and later answers why
-  an element looks the way it does.
-- **Drift gets found.** [`design-tidy`](skills/design-tidy/SKILL.md) audits
-  the inventory against the code, fixes the safe findings and asks about the
-  rest.
-- **Claude Design gets a mirror.** [`design-mirror`](skills/design-mirror/SKILL.md)
-  exports the design pages, and your own sync skill pushes them. The repo
-  stays the only author.
-- **A committee judges UI variants.**
-  [`design-variants`](skills/design-variants/SKILL.md) lets three agents build
-  one screen, a tester walks each, and the committee picks one.
-- **The committee also judges plans and diffs.**
-  [`ask-committee`](skills/ask-committee/SKILL.md) convenes a design chapter
-  and an engineering chapter. Leads call members and workers through call
-  files, and the chair routes each call. The UX designer and the architect
-  can block. When the chapters disagree, you decide.
-  [`members.md`](skills/ask-committee/members.md) shows the hierarchy, and
-  [ADR 0002](docs/decisions/0002-ask-committee-hierarchy.md) records the
-  committee shape.
+<br>
 
 ## Install
-
-One line in your terminal:
 
 ```sh
 claude plugin marketplace add h2xd/skills && claude plugin install h2xd@h2xd
 ```
 
-Then open a repo and run `/h2xd:setup`. It asks where issues and docs live,
-which commit rules and writing tone you want, and then sets up the repo.
-
-To update later, run `claude plugin update h2xd@h2xd`.
+Then open a repo and run `/h2xd:setup`. To update later, run
+`claude plugin update h2xd@h2xd`, then run `/h2xd:setup` again.
 
 ## What setup does
 
@@ -69,7 +42,10 @@ To update later, run `claude plugin update h2xd@h2xd`.
 questions come in rounds of at most four. Each has a recommended answer that
 you accept with one click.
 
-It asks about:
+<details>
+<summary>The questions</summary>
+
+<br>
 
 - the issue tracker: GitHub, GitLab or local markdown files
 - the docs bundle: where it lives, and whether to adopt or migrate an existing one
@@ -87,7 +63,9 @@ It asks about:
 - module boundaries, for TypeScript repos
 - the writing tone of the agent
 
-Then it shows every draft and writes nothing until you agree. It writes
+</details>
+
+Setup shows every draft and writes nothing until you agree. Then it writes
 `agents.config.json`, copies the scripts, git hooks and CI workflows, and adds
 the `package.json` scripts. It also seeds `docs/`, creates the issue labels and
 adds its blocks to `CLAUDE.md` or `AGENTS.md`.
@@ -95,6 +73,8 @@ adds its blocks to `CLAUDE.md` or `AGENTS.md`.
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
 and 🔴 means something blocks a skill. Run it again to update the scripts or to
 change an answer.
+
+<br>
 
 ## The loop
 
@@ -123,31 +103,37 @@ flowchart TD
 
 Not sure where you are in it? `/h2xd:next` knows.
 
+<br>
+
 ## What keeps it honest
 
-| Promise | Kept by | Checked by |
-|---|---|---|
-| **Docs stay true.** `docs/` is an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) in [Open Knowledge Format](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md), with a project glossary and a technical glossary. | `docs-wiki`, `docs-glossary` | The docs lint, in `pre-commit` and CI |
-| **Decisions do not overlap.** Every decision record starts as an issue, after a search for records on the same question. | `docs-adr` | The docs lint fails a record without its issue. The PR lint fails a body without `Closes #<n>`. |
-| **History explains itself.** Closed types and scopes, a short body, the reasoning in the footer. | `git-commit`, `git-pr-body` | The `commit-msg` hook and CI |
-| **Reviews hold the bar.** Up to five reviewers per PR review, picked from the diff: correctness, standards, comments, mutation testing and blast radius. | `review-pr`, `review-fix` | The `review` script runs every mechanical step |
+- Docs stay true. `docs-wiki` and `docs-glossary` keep the pages and the two
+  glossaries. The docs lint checks them in `pre-commit` and CI.
+- Decisions do not overlap. `docs-adr` searches the records on the same
+  question first. The docs lint fails a record without its issue, and the PR
+  lint fails a body without `Closes #<n>`.
+- History explains itself. `git-commit` and `git-pr-body` use closed types and
+  scopes, a short body and the reason in the footer. The `commit-msg` hook and
+  CI check them.
+- Reviews hold the bar. `review-pr` picks up to five reviewers from the diff:
+  correctness, standards, comments, mutation testing and blast radius. The
+  `review` script runs every mechanical step.
+
+<br>
 
 ## Skills
 
-Skills are sorted into groups, and most names start with their group. Click a
-group to open it. The **Starts** column says who can start a skill:
+Most names start with their group. Open a group to see its skills. The
+**Starts** column says who can start a skill:
 
 - *auto*: the model picks it when it fits, and you can call it too.
 - *you*: only you start it, because it posts in public, costs a lot, or is a
   deliberate step.
 
-### Core
-
-Set up once, then let `next` show the way. The two `add-` skills keep every
-skill and every sentence clean.
-
 <details>
-<summary><b>Core</b>: setup, next, writing skills and prose</summary>
+<summary><b>Core</b> · Set up once, then let <code>next</code> show the way. The two <code>add-</code> skills keep every skill and every sentence clean.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -160,13 +146,10 @@ skill and every sentence clean.
 
 </details>
 
-### Docs
-
-The memory of the repo. Pages that change with the code, one word per thing,
-and every decision with its reason.
-
 <details>
-<summary><b>Docs</b>: wiki, glossary, decisions, research, fact check, proofread, quiz</summary>
+<summary><b>Docs</b> · The memory of the repo. Pages that change with the code, one word per thing, and every decision with its reason.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -180,13 +163,10 @@ and every decision with its reason.
 
 </details>
 
-### Plan
-
-Before a line of code. Turn a fuzzy idea into decisions, a spec and tickets
-that another agent can pick up next week.
-
 <details>
-<summary><b>Plan</b>: grill, sharpen, prototype, triage, and turn talk into artifacts</summary>
+<summary><b>Plan</b> · Before a line of code. Turn a fuzzy idea into decisions, a spec and tickets that another agent can pick up next week.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -201,13 +181,10 @@ that another agent can pick up next week.
 
 </details>
 
-### Ask
-
-Three question words, a teacher and a committee. Ask them as often as you
-like.
-
 <details>
-<summary><b>Ask</b>: what, how, why, teach, committee</summary>
+<summary><b>Ask</b> · Three question words, a teacher and a committee. Ask them as often as you like.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -219,13 +196,10 @@ like.
 
 </details>
 
-### Code
-
-Where the work happens. The rules for how an agent works, the bar for how code
-looks, and the loops that turn a ticket into a passing change.
-
 <details>
-<summary><b>Code</b>: rules, quality, implement, TDD, debug, architecture, arena, swarm, TypeScript</summary>
+<summary><b>Code</b> · Where the work happens. The rules for how an agent works, the bar for how code looks, and the loops that turn a ticket into a passing change.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -242,13 +216,10 @@ looks, and the loops that turn a ticket into a passing change.
 
 </details>
 
-### Prove
-
-Tests pass. But would they catch a real bug? This group checks tests, risky
-changes, numbers and the running app against the real thing.
-
 <details>
-<summary><b>Prove</b>: mutation tests, blast radius, measurements, end-to-end checks</summary>
+<summary><b>Prove</b> · Tests pass. But would they catch a real bug? This group checks tests, risky changes, numbers and the running app against the real thing.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -260,12 +231,10 @@ changes, numbers and the running app against the real thing.
 
 </details>
 
-### Git
-
-History is the one record every future session reads. Make it worth reading.
-
 <details>
-<summary><b>Git</b>: commits, PR bodies, guardrails</summary>
+<summary><b>Git</b> · History is the one record every future session reads. Make it worth reading.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -275,12 +244,10 @@ History is the one record every future session reads. Make it worth reading.
 
 </details>
 
-### Review
-
-Five reviewers and one grim reaper.
-
 <details>
-<summary><b>Review</b>: review a PR, fix the threads, clean comments, check the skills</summary>
+<summary><b>Review</b> · Five reviewers and one grim reaper.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -291,13 +258,10 @@ Five reviewers and one grim reaper.
 
 </details>
 
-### Design
-
-One inventory of every reusable element, kept tidy and mirrored to Claude
-Design. Agents build variants, and `ask-committee` judges them.
-
 <details>
-<summary><b>Design</b>: setup, log, tidy, mirror, variants</summary>
+<summary><b>Design</b> · One inventory of every reusable element, kept tidy and mirrored to Claude Design. Agents build variants, and <code>ask-committee</code> judges them.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -309,12 +273,10 @@ Design. Agents build variants, and `ask-committee` judges them.
 
 </details>
 
-### Session
-
-The end of one session is the start of the next.
-
 <details>
-<summary><b>Session</b>: handoff and reflect</summary>
+<summary><b>Session</b> · The end of one session is the start of the next.</summary>
+
+<br>
 
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
@@ -323,23 +285,27 @@ The end of one session is the start of the next.
 
 </details>
 
+<br>
+
 ## Agents
 
-- **`comment-reaper`** hates comments. It deletes every one its keep list does
-  not protect, and marks the code that needed one. Its first words on every
-  run: "Every comment's hour comes."
-- **`skill-polisher`** reads one skill in a new context, on a fast model. It
-  fixes errors and walls of text, and suggests better names. `add-skill` sends
-  one per skill.
-- **The committee** is ten `committee-*` agents in a design chapter and an
-  engineering chapter. `ask-committee` runs them, and `design-variants`
-  starts the UI prototyper and the usability tester.
-  [`skills/ask-committee/members.md`](skills/ask-committee/members.md) is the
-  one place for their tiers and calls. The two directors use the `fable`
-  model alias. When the CLI does not know it, `ask-committee` starts them
-  again with a model override.
+- `comment-reaper` hates comments. It deletes every one its keep list does not
+  protect, and marks the code that needed one. Its first words on every run:
+  "Every comment's hour comes."
+- `skill-polisher` reads one skill in a new context, on a fast model. It fixes
+  errors and walls of text, and suggests better names. `add-skill` sends one per
+  skill.
+- The committee is ten `committee-*` agents in a design chapter and an
+  engineering chapter. `ask-committee` runs them, and `design-variants` starts
+  the UI prototyper and the usability tester.
+  [`members.md`](skills/ask-committee/members.md) holds their tiers and calls.
+  The two directors use the `fable` model alias. When the CLI does not know it,
+  `ask-committee` starts them again with a model override.
 
-## Layout
+<br>
+
+<details>
+<summary><b>Layout</b></summary>
 
 ```
 .claude-plugin/   plugin and marketplace manifests
@@ -357,6 +323,8 @@ scripts/          the skills lint and this repo's tests
 .claude/          this repo's tone, ASD-STE100, and links to skills/ and agents/
 .github/          this repo's CI
 ```
+
+</details>
 
 <details>
 <summary><b>Developing</b></summary>
@@ -396,6 +364,8 @@ and gets a row in [`skills/next/catalog.md`](skills/next/catalog.md). Bump
 updates installed plugins by version.
 
 </details>
+
+<br>
 
 ## License
 
