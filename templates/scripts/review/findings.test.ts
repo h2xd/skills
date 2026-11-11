@@ -87,6 +87,13 @@ describe("validateFindings", () => {
     expect(problems.some((p) => p.startsWith("B-1: id"))).toBe(true)
   })
 
+  test("accepts one line and three options", () => {
+    const valid = file("B", [
+      finding({ lines: [12], options: ["one", "two", "three"] }),
+    ])
+    expect(validateFindings(valid)).toEqual([])
+  })
+
   test("rejects a file that is not an object", () => {
     expect(validateFindings("nope")).toHaveLength(1)
   })
@@ -171,6 +178,50 @@ describe("mergeFindings", () => {
     const section = review.body.split("### Outside the diff\n")[1]
     expect(section).toContain("- 🟡 `src/undo.ts:40`: caller breaks")
     expect(section).toContain("proof output")
+  })
+
+  test("joins findings that share only one line", () => {
+    const { review } = mergeFindings(
+      [
+        file("A", [finding({ id: "A-1", lines: [12, 13] })]),
+        file("B", [finding({ lines: [11, 12] })]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+  })
+
+  test("keeps the last line of a hunk inline and moves the next line out", () => {
+    const { review, stats } = mergeFindings(
+      [
+        file("B", [
+          finding({ lines: [15] }),
+          finding({ id: "B-2", lines: [16], subject: "past the hunk" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments.map((comment) => comment.line)).toEqual([15])
+    expect(stats.outside).toBe(1)
+  })
+
+  test("reads a hunk header without a count as one line", () => {
+    const oneLine = [
+      "--- a/src/undo.ts",
+      "+++ b/src/undo.ts",
+      "@@ -3 +3 @@",
+      "-a",
+      "+b",
+      "",
+    ].join("\n")
+    const { review } = mergeFindings(
+      [file("B", [finding({ lines: [3] })])],
+      oneLine,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
   })
 
   test("moves a range that crosses out of the hunk", () => {
