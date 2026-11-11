@@ -5,7 +5,7 @@ import {
   outsideDiffItems,
   type Review,
   type ReviewThread,
-  summaryItems,
+  unrepliedSummaryItems,
   threadLocation,
 } from "./threads.ts"
 import { type Finding, mergeFindings } from "./findings.ts"
@@ -92,7 +92,7 @@ describe("outsideDiffItems", () => {
   })
 })
 
-describe("summaryItems", () => {
+describe("unrepliedSummaryItems", () => {
   test("skips empty review bodies and attributes items to their review", () => {
     const reviews: Review[] = [
       {
@@ -110,7 +110,7 @@ describe("summaryItems", () => {
         submittedAt: null,
       },
     ]
-    expect(summaryItems(reviews)).toEqual([
+    expect(unrepliedSummaryItems(reviews)).toEqual([
       {
         reviewUrl: "u1",
         author: "ghost",
@@ -137,7 +137,7 @@ describe("summaryItems", () => {
       "- 🟡 [out-abc1234-1] `a.ts:3`: has an id",
       "- 🟡 `b.ts:4`: has none",
     ].join("\n")
-    expect(summaryItems([review(body)]).map((item) => item.id)).toEqual([
+    expect(unrepliedSummaryItems([review(body)]).map((item) => item.id)).toEqual([
       "out-abc1234-1",
     ])
   })
@@ -153,8 +153,8 @@ describe("summaryItems", () => {
       "- Ran: A, B",
       "- Size: small",
     ].join("\n")
-    expect(summaryItems([review(body)])).toEqual([])
-    expect(summaryItems([review("**Outside the diff**\n- Ran: A, B")])).toEqual(
+    expect(unrepliedSummaryItems([review(body)])).toEqual([])
+    expect(unrepliedSummaryItems([review("**Outside the diff**\n- Ran: A, B")])).toEqual(
       [],
     )
   })
@@ -168,14 +168,14 @@ describe("summaryItems", () => {
     ].join("\n")
     const comments = ["## out-abc1234-1\n\nFixed in abc."]
     expect(
-      summaryItems([review(body)], comments).map((item) => item.id),
+      unrepliedSummaryItems([review(body)], comments).map((item) => item.id),
     ).toEqual(["out-abc1234-2"])
   })
 
   test("does not count an id that is only mentioned in a comment", () => {
     const body = "### Outside the diff\n\n- [out-abc1234-1] x"
     const comments = ["see out-abc1234-1 above"]
-    expect(summaryItems([review(body)], comments)).toHaveLength(1)
+    expect(unrepliedSummaryItems([review(body)], comments)).toHaveLength(1)
   })
 })
 

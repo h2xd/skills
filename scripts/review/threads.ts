@@ -119,7 +119,6 @@ export type SummaryItem = {
   text: string
 }
 
-/** The item ids that head a `## <item id>` section in a PR comment: those items have a reply. */
 export function repliedItemIds(commentBodies: string[]): Set<string> {
   return new Set(
     commentBodies.flatMap((body) =>
@@ -128,11 +127,7 @@ export function repliedItemIds(commentBodies: string[]): Set<string> {
   )
 }
 
-/**
- * The outside-the-diff items of the reviews that carry an item id and have no
- * reply in `commentBodies`, the bodies of the PR's issue comments.
- */
-export function summaryItems(
+export function unrepliedSummaryItems(
   reviews: Review[],
   commentBodies: string[] = [],
 ): SummaryItem[] {

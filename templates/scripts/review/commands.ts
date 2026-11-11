@@ -25,9 +25,9 @@ import {
 } from "./findings.ts"
 import { type DraftComment, validateDraftComments } from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
-import { resolveThreads, threadIdsFor } from "./resolve.ts"
+import { resolveThreads, nodeIdsOrLabels } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
-import { formatThreadsDocument, summaryItems } from "./threads.ts"
+import { formatThreadsDocument, unrepliedSummaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
 import {
   findWorktreeForBranch,
@@ -210,7 +210,7 @@ export function threadsCommand(argv: string[]): void {
       },
       warningsSection: formatWarnings(warnings),
       threads,
-      items: summaryItems(reviews, comments),
+      items: unrepliedSummaryItems(reviews, comments),
     }),
     values.out,
   )
@@ -259,7 +259,7 @@ export function resolveCommand(argv: string[]): void {
     )
   }
   const threadIds = values.threads
-    ? threadIdsFor(positionals, readFileSync(values.threads, "utf8"))
+    ? nodeIdsOrLabels(positionals, readFileSync(values.threads, "utf8"))
     : positionals
   const outcome = resolveThreads(threadIds, resolveThread)
   for (const line of outcome.lines) console.log(line)
