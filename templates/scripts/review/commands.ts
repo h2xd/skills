@@ -20,12 +20,13 @@ import {
 import {
   findingsBullets,
   formatPreview,
+  headSideThreads,
   mergeFindings,
   parseFindings,
 } from "./findings.ts"
 import { type DraftComment, validateDraftComments } from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
-import { resolveThreads, nodeIdsOrLabels } from "./resolve.ts"
+import { resolveThreads, threadNodeIds } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
 import { formatThreadsDocument, unrepliedSummaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
@@ -89,6 +90,12 @@ function createWorktree(mainWorktree: string, branch: string): string {
   )
   for (const command of config.worktreeSetup) run(command, path)
   return path
+}
+
+export function setupCommand(argv: string[]): void {
+  const { positionals } = parseArgs({ args: argv, allowPositionals: true })
+  const path = resolve(requireArgument(positionals[0], "setup <path>"))
+  for (const command of config.worktreeSetup) run(command, path)
 }
 
 export function worktreeCommand(argv: string[]): void {
@@ -259,7 +266,7 @@ export function resolveCommand(argv: string[]): void {
     )
   }
   const threadIds = values.threads
-    ? nodeIdsOrLabels(positionals, readFileSync(values.threads, "utf8"))
+    ? threadNodeIds(positionals, readFileSync(values.threads, "utf8"))
     : positionals
   const outcome = resolveThreads(threadIds, resolveThread)
   for (const line of outcome.lines) console.log(line)
@@ -410,7 +417,7 @@ export function mergeCommand(argv: string[]): void {
     pullRequestDiff(pullRequest.number, worktree),
     {
       headSha: pullRequest.headRefOid,
-      threads: threads.flatMap((thread) =>
+      threads: headSideThreads(threads).flatMap((thread) =>
         thread.comments.nodes.length === 0
           ? []
           : [

@@ -17,7 +17,11 @@ Before you start anyone, create its worktree:
 
 ```sh
 git -C $WORKTREE worktree add --detach $WORK/worktree-d <head sha>
+node scripts/review.ts setup $WORK/worktree-d
 ```
+
+The second command runs the `worktreeSetup` commands in the new worktree, so
+the tests find their packages.
 
 Reviewer D's prompt gets `$WORK/worktree-d` in place of `$WORKTREE`. After
 every reviewer has finished, remove it:

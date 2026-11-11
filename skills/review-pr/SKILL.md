@@ -69,10 +69,9 @@ Start the picked reviewers in one message, as background subagents, through
 the CLI's subagent tool, such as Agent. Each prompt holds the paths to
 `context.md` and [`reviewer-brief.md`](reviewer-brief.md), and its worktree,
 lens, model and findings file from [`reviewers.md`](reviewers.md). Reviewer D
-runs in its own `git worktree add` of the head SHA, removed after the run.
-Reviewer B also gets the path of [`reviewer-b.md`](reviewer-b.md). A later
-review needs no exclusion list in the prompts, because `merge` drops a finding
-that a thread holds.
+runs in its own worktree of the head SHA. Reviewer B also gets the path of
+[`reviewer-b.md`](reviewer-b.md). A later review needs no exclusion list in the
+prompts, because `merge` drops a finding that a thread holds.
 
 Before step 4, `ls` each started reviewer's findings file and name a missing
 one. Retry it as [`reviewers.md`](reviewers.md) says.
@@ -89,10 +88,11 @@ node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WO
 ```
 
 It checks each findings file first. When one fails, retry that reviewer as
-in step 3, then delete its file and merge without it. It joins duplicates, moves a line
-outside the diff to "Outside the diff", writes the Conventional Comments and
-sorts worst first. It drops a finding that overlaps an existing thread and
-prints it with the thread URL. The event is `REQUEST_CHANGES` with a 🔴,
+in step 3. When it fails again, delete its file, merge without it, and name
+the missing lens in the summary. It joins duplicates, moves a line outside
+the diff to "Outside the diff", writes the Conventional Comments and sorts
+worst first. It drops a finding that overlaps an existing thread and prints it
+with the thread URL. The event is `REQUEST_CHANGES` with a 🔴,
 otherwise `APPROVE`, and `COMMENT` on your own PR.
 
 Then start one subagent on the cheapest model, such as Haiku. Give it the

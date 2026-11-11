@@ -1,5 +1,6 @@
 /** The findings file that each `review-pr` reviewer writes: its check, and the merge of all of them into one review. */
 
+import { createHash } from "node:crypto"
 import { expectedNote } from "./options.ts"
 
 export type Severity = "red" | "yellow" | "green"
@@ -85,7 +86,8 @@ const REQUIRED_FIELDS = [
 const KNOWN_FIELDS = [...REQUIRED_FIELDS, "suggestion", "options"]
 const MIN_OPTIONS = 2
 const MAX_OPTIONS = 3
-const ITEM_ID_SHA_LENGTH = 7
+const ITEM_ID_HASH_LENGTH = 8
+const HEAD_SIDE = "RIGHT"
 const KEPT_NOTE = /^kept\b/i
 const OUTSIDE_HEADING = "### Outside the diff"
 const FINDINGS_HEADING = "### Findings"
@@ -285,6 +287,12 @@ function overlap(a: Range, b: Range): boolean {
   return a[0] <= b[1] && b[0] <= a[1]
 }
 
+export function headSideThreads<T extends { diffSide: string }>(
+  threads: T[],
+): T[] {
+  return threads.filter((thread) => thread.diffSide === HEAD_SIDE)
+}
+
 function threadHolding(
   finding: Finding,
   threads: ExistingThread[],
@@ -433,7 +441,15 @@ function toComment(joined: Joined): ReviewComment {
     : { ...comment, start_line: start, start_side: "RIGHT" }
 }
 
-function outsideItem(joined: Joined, id: string): string {
+function outsideItemId(joined: Joined): string {
+  const digest = createHash("sha1")
+    .update(`${location(joined)}\n${joined.subject}`)
+    .digest("hex")
+  return `out-${digest.slice(0, ITEM_ID_HASH_LENGTH)}`
+}
+
+function outsideItem(joined: Joined): string {
+  const id = outsideItemId(joined)
   const lines = [
     `- ${ICON[joined.severity]} [${id}] \`${location(joined)}\`: ${joined.subject}`,
     ...joined.body.split("\n").map((line) => `    ${line}`),
@@ -547,7 +563,7 @@ export function mergeFindings(
     verdictLine(event, intended, reds, context),
     `🔴 ${count("red")} · 🟡 ${count("yellow")} · 🟢 ${count("green")}`,
     `${FINDINGS_HEADING}\n\n${bullets.length > 0 ? bullets.join("\n") : "None."}`,
-    `${OUTSIDE_HEADING}\n\n${outside.length > 0 ? outside.map((item, index) => outsideItem(item, `out-${context.headSha.slice(0, ITEM_ID_SHA_LENGTH)}-${index + 1}`)).join("\n") : "None."}`,
+    `${OUTSIDE_HEADING}\n\n${outside.length > 0 ? outside.map(outsideItem).join("\n") : "None."}`,
     `${REVIEWERS_HEADING}\n\n${[
       `- Ran: ${files.map((file) => file.reviewer).join(", ")}`,
       ...context.pickReasons.map((reason) => `- ${reason}`),

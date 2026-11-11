@@ -26,7 +26,7 @@ body
 - Location: b.ts:2
 
 ## S1
-- Item id: out-abc1234-1
+- Item id: out-1a2b3c4d
 - Review: u (reviewer)
 
 outside
@@ -55,7 +55,7 @@ describe("parseThreadIds", () => {
 
 describe("parseItemIds", () => {
   test("maps S labels to item ids", () => {
-    expect([...parseItemIds(THREADS)]).toEqual([["S1", "out-abc1234-1"]])
+    expect([...parseItemIds(THREADS)]).toEqual([["S1", "out-1a2b3c4d"]])
   })
 })
 
@@ -83,7 +83,7 @@ describe("planReplies", () => {
     ])
     expect(plan.threadReplies[0].body).toContain("Fixed in abc1234:")
     expect(plan.summaryReplies).toEqual([
-      { id: "out-abc1234-1", body: "Fixed in abc1234: moved." },
+      { id: "out-1a2b3c4d", body: "Fixed in abc1234: moved." },
     ])
   })
 
@@ -164,7 +164,7 @@ describe("postReplies", () => {
     expect(lines).toEqual([
       "T1 https://example.test/PRRT_a",
       "T2 https://example.test/PRRT_b",
-      "out-abc1234-1 https://example.test/comment",
+      "out-1a2b3c4d https://example.test/comment",
     ])
   })
 
@@ -173,7 +173,7 @@ describe("postReplies", () => {
     const lines = postReplies(plan, gateway, true)
     expect(calls).toEqual([])
     expect(lines[0]).toContain("T1 would reply to PRRT_a")
-    expect(lines[2]).toContain("out-abc1234-1 would comment on the PR")
+    expect(lines[2]).toContain("out-1a2b3c4d would comment on the PR")
   })
 })
 
@@ -181,9 +181,9 @@ describe("formatSummaryComment", () => {
   test("writes one section per item", () => {
     expect(
       formatSummaryComment([
-        { id: "out-abc1234-1", body: "a" },
-        { id: "out-abc1234-2", body: "b" },
+        { id: "out-1a2b3c4d", body: "a" },
+        { id: "out-5e6f7a8b", body: "b" },
       ]),
-    ).toBe("## out-abc1234-1\n\na\n\n## out-abc1234-2\n\nb")
+    ).toBe("## out-1a2b3c4d\n\na\n\n## out-5e6f7a8b\n\nb")
   })
 })
