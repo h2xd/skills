@@ -82,7 +82,7 @@ export function formatChoiceLine(choice: Choice): string {
   return `${choice.letter} (default, no reply)`
 }
 
-function expectedNote(count: number): string {
+export function expectedNote(count: number): string {
   const letters = ALLOWED_LETTERS.slice(0, count)
   const list =
     count === MINIMUM_OPTIONS

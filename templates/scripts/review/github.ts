@@ -52,6 +52,10 @@ export function viewPullRequest(
   return JSON.parse(json) as PullRequest
 }
 
+export function pullRequestDiff(number: number, cwd?: string): string {
+  return run(["gh", "pr", "diff", String(number)], cwd)
+}
+
 export function repositoryName(cwd?: string): { owner: string; name: string } {
   const json = run(["gh", "repo", "view", "--json", "owner,name"], cwd)
   const parsed = JSON.parse(json) as { owner: { login: string }; name: string }
