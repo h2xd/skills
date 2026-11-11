@@ -33,6 +33,10 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
      `killed`.
    - When it does not, the test does not pin the behavior yet. Change the test
      and run again.
+   - When `mutation.enabled` is `false`, plant the mutant by hand, run the
+     test, and put the red output in `changes.md`.
+   - A row whose mutant still survives at the end is `not applied`, never
+     fixed.
 
    ```sh
    sh scripts/prove-tests.sh --mutants $WORK/mutants --only <item id> --test "<testCommand>" --check "<checkCommand>" --setup "<setupCommand>" --timeout-factor <timeoutFactor>
