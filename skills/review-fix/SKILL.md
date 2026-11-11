@@ -70,8 +70,8 @@ tool, such as Agent. Give it the paths to `threads.md`, `plan.md` and
 [`fixer.md`](fixer.md), which holds its instructions, and `$WORKTREE`.
 
 Then read `changes.md` and `git diff`. Check each fix row against the diff, not
-only against the reviewer's suggestion. A fix marked `not applied` goes back to
-triage.
+only the suggestion. A `not applied` fix goes back to triage. A row on code
+that is not a test, with no line naming its pinning tests, goes to the fixer.
 
 Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`. It
 removes narration such as "per review".

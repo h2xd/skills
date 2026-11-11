@@ -48,6 +48,8 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
 5. Leave the changes uncommitted.
 6. Write `$WORK/changes.md`:
    - Per item id, the files touched and one sentence on what changed.
+   - For a row on code that is not a test, the names of the pinning tests,
+     and that they passed before and after the change.
    - For a mutation item, the test's name and the `prove-tests.sh` result line.
    - `not applied: <reason>` when a fix turned out wrong or impossible.
    - The checks, with their exit codes.
