@@ -4,8 +4,7 @@ export type ResolveOutcome = { lines: string[]; failed: boolean }
 
 const THREAD_LABEL = /^T\d+$/
 
-/** Maps `T1` labels to node ids through threads.md. Anything else is taken as a node id. */
-export function threadIdsFor(
+export function nodeIdsOrLabels(
   arguments_: string[],
   threadsMarkdown: string,
 ): string[] {

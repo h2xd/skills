@@ -17,7 +17,6 @@ export function parseThreadIds(threadsMarkdown: string): Map<string, string> {
   return new Map([...matches].map((match) => [match[1], match[2]]))
 }
 
-/** Maps `S1` to the item id from `## S1` / `- Item id: <id>` in threads.md. */
 export function parseItemIds(threadsMarkdown: string): Map<string, string> {
   const matches = threadsMarkdown.matchAll(/^## (S\d+)\n- Item id: (\S+)/gm)
   return new Map([...matches].map((match) => [match[1], match[2]]))
