@@ -1,7 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type Finding, type FindingsFile, formatPreview, headSideThreads, mergeFindings, parseFindings } from "./findings.ts"
-import { unrepliedSummaryItems } from "./threads.ts"
+import { type Finding, type FindingsFile, existingThreads, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
+import { type ReviewThread, unrepliedSummaryItems } from "./threads.ts"
 import { validateDraftComments } from "./options.ts"
 import { outsideDiffItems } from "./threads.ts"
 
@@ -647,16 +647,18 @@ describe("mergeFindings", () => {
     expect(review.body).not.toContain("held by")
   })
 
-  test("an outdated thread without a line does not block a finding", () => {
-    const { dropped } = mergeFindings(
-      [file("B", [finding({ lines: [11, 12] })])],
+  test("a red finding is kept and requests changes when a thread holds its lines", () => {
+    const { review, dropped } = mergeFindings(
+      [file("A", [finding({ id: "A-1", severity: "red", label: "issue", lines: [11] })])],
       DIFF,
       {
         ...CONTEXT,
-        threads: [{ path: "src/undo.ts", startLine: null, line: null, url: "u" }],
+        threads: [{ path: "src/undo.ts", startLine: null, line: 11, url: "u" }],
       },
     )
     expect(dropped).toEqual([])
+    expect(review.event).toBe("REQUEST_CHANGES")
+    expect(review.comments).toHaveLength(1)
   })
 
   test("a kept-note drop carries no thread url", () => {
@@ -715,10 +717,39 @@ describe("mergeFindings", () => {
     expect(unrepliedSummaryItems(reviews(body(round1[0])), replied)).toHaveLength(0)
   })
 
-  test("headSideThreads keeps only threads on the new side of the diff", () => {
-    const right = { diffSide: "RIGHT", line: 11 }
-    const left = { diffSide: "LEFT", line: 11 }
-    expect(headSideThreads([left, right, left])).toEqual([right])
+  function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
+    return {
+      id: "T",
+      isResolved: false,
+      isOutdated: false,
+      path: "src/undo.ts",
+      diffSide: "RIGHT",
+      line: 11,
+      startLine: null,
+      originalLine: 11,
+      comments: {
+        nodes: [{ url: "https://x/first" }, { url: "https://x/second" }] as never,
+      },
+      ...overrides,
+    }
+  }
+
+  test("existingThreads maps a head-side thread to its first comment url", () => {
+    expect(existingThreads([thread({ startLine: 10 })])).toEqual([
+      { path: "src/undo.ts", startLine: 10, line: 11, url: "https://x/first" },
+    ])
+  })
+
+  test("existingThreads leaves out a LEFT thread", () => {
+    expect(existingThreads([thread({ diffSide: "LEFT" })])).toEqual([])
+  })
+
+  test("existingThreads leaves out an outdated thread without a line", () => {
+    expect(existingThreads([thread({ line: null })])).toEqual([])
+  })
+
+  test("existingThreads leaves out a thread without comments", () => {
+    expect(existingThreads([thread({ comments: { nodes: [] } })])).toEqual([])
   })
 
   test("lists a dropped finding with its thread url in the preview", () => {

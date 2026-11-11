@@ -71,13 +71,12 @@ the CLI's subagent tool, such as Agent. Each prompt holds the paths to
 lens, model and findings file from [`reviewers.md`](reviewers.md). Reviewer D
 runs in its own worktree of the head SHA. Reviewer B also gets the path of
 [`reviewer-b.md`](reviewer-b.md). A later review needs no exclusion list in the
-prompts, because `merge` drops a finding that a thread holds.
+prompts. See [`reviewers.md`](reviewers.md), "A later review".
 
 Before step 4, `ls` each started reviewer's findings file and name a missing
 one. Retry it as [`reviewers.md`](reviewers.md) says.
 
-Done when every findings file exists or is named missing, and the extra
-worktree is gone.
+Done when every findings file exists or is named missing.
 
 ### 4. Merge the findings
 
@@ -88,12 +87,13 @@ node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WO
 ```
 
 It checks each findings file first. When one fails, retry that reviewer as
-in step 3. When it fails again, delete its file, merge without it, and name
-the missing lens in the summary. It joins duplicates, moves a line outside
-the diff to "Outside the diff", writes the Conventional Comments and sorts
-worst first. It drops a finding that overlaps an existing thread and prints it
-with the thread URL. The event is `REQUEST_CHANGES` with a 🔴,
-otherwise `APPROVE`, and `COMMENT` on your own PR.
+[`reviewers.md`](reviewers.md) says. When it fails again, delete its file,
+merge without it, and name the missing lens in the summary. It joins
+duplicates, moves a line outside the diff to "Outside the diff", writes the
+Conventional Comments and sorts worst first. It drops a 🟡 or 🟢 finding that
+overlaps an existing thread and prints it with the thread URL. It never drops
+a 🔴. The event is `REQUEST_CHANGES` with a 🔴, otherwise `APPROVE`, and
+`COMMENT` on your own PR.
 
 Then start one subagent on the cheapest model, such as Haiku. Give it the
 paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and
@@ -104,8 +104,8 @@ the merge again with `--bullets $WORK/bullets.md` added, and check the result:
 node scripts/review.ts options --validate $WORK/review.json
 ```
 
-Done when the merge printed `wrote`, and `options --validate` prints a line
-that starts with `ok`.
+Done when the merge printed `wrote`, `options --validate` prints `ok`, and
+you removed the extra worktree as [`reviewers.md`](reviewers.md) says.
 
 ### 5. Post
 
@@ -124,7 +124,7 @@ Lead with the verdict, the review URL and the reviewers that ran. Then give
 one line per finding, worst first. The `wrote` line has the counts:
 
 ```
-🔴 or 🟡 <path:line>: <action to take>, reviewer <A-E>
+<🔴 or 🟡> <path:line>: <action to take>, reviewer <A-E>
 🟢 <n> optional comments, <n> merged, <n> dropped, <n> moved out of the diff
 ```
 
