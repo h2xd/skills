@@ -328,11 +328,12 @@ function join(group: Group): Joined {
       member.severity === primary.severity &&
       (member.suggestion !== undefined || member.options !== undefined),
   )
+  const peers = ranked.filter((member) => member.severity === primary.severity)
   const range: Range = fix?.suggestion !== undefined
     ? span(fix)
     : [
-        Math.min(...ranked.map((member) => span(member)[0])),
-        Math.max(...ranked.map((member) => span(member)[1])),
+        Math.min(...peers.map((member) => span(member)[0])),
+        Math.max(...peers.map((member) => span(member)[1])),
       ]
   return {
     severity: primary.severity,
@@ -365,8 +366,14 @@ function formatOptions(options: string[]): string {
   return `${optionLines(options).join("\n")}\n\n${expectedNote(options.length)}`
 }
 
+function fenceFor(code: string): string {
+  const longestRun = Math.max(0, ...[...code.matchAll(/`+/g)].map((run) => run[0].length))
+  return "`".repeat(Math.max(3, longestRun + 1))
+}
+
 function suggestionBlock(code: string): string {
-  return code === "" ? "```suggestion\n```" : `\`\`\`suggestion\n${code}\n\`\`\``
+  const fence = fenceFor(code)
+  return code === "" ? `${fence}suggestion\n${fence}` : `${fence}suggestion\n${code}\n${fence}`
 }
 
 function commentBody(joined: Joined): string {
@@ -410,7 +417,13 @@ function outsideItem(joined: Joined): string {
     ...joined.body.split("\n").map((line) => `    ${line}`),
   ]
   if (joined.suggestion !== undefined) {
-    lines.push("    Suggested change:", "    ```", ...joined.suggestion.split("\n").map((line) => `    ${line}`), "    ```")
+    const fence = fenceFor(joined.suggestion)
+    lines.push(
+      "    Suggested change:",
+      `    ${fence}`,
+      ...joined.suggestion.split("\n").map((line) => `    ${line}`),
+      `    ${fence}`,
+    )
   }
   if (joined.options !== undefined) {
     lines.push(...optionLines(joined.options).map((line) => `    ${line}`))

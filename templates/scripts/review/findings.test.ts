@@ -531,6 +531,54 @@ describe("mergeFindings", () => {
     expect(items[0]).toContain(`\`\`\`\n${suggestion}\n\`\`\``)
   })
 
+  test("keeps a blocking finding inline when a lower finding spans wider lines", () => {
+    const { review, stats } = mergeFindings(
+      [
+        file("A", [
+          finding({ id: "A-1", severity: "red", label: "issue", lines: [11] }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "green",
+            label: "nitpick",
+            lines: [8, 11],
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(stats.outside).toBe(0)
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].line).toBe(11)
+    expect(review.comments[0].start_line).toBeUndefined()
+  })
+
+  test("fences a suggestion that holds a code fence with a longer fence", () => {
+    const suggestion = "text\n```sh\nnpm test\n```\nmore"
+    const { review } = mergeFindings(
+      [file("B", [finding({ lines: [11], suggestion })])],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments[0].body).toContain(
+      `\`\`\`\`suggestion\n${suggestion}\n\`\`\`\``,
+    )
+  })
+
+  test("fences a suggestion outside the diff that holds a code fence with a longer fence", () => {
+    const suggestion = "text\n```sh\nnpm test\n```\nmore"
+    const { review } = mergeFindings(
+      [file("B", [finding({ file: "c.md", lines: [3], suggestion })])],
+      DIFF,
+      CONTEXT,
+    )
+    const items = outsideDiffItems(review.body)
+    expect(items).toHaveLength(1)
+    expect(items[0]).toContain(`\`\`\`\`\n${suggestion}\n\`\`\`\``)
+  })
+
   test("takes the suggestion and the options from one reviewer", () => {
     const { review } = mergeFindings(
       [

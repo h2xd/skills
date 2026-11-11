@@ -213,6 +213,28 @@ describe("outsideDiffItems on a merged review", () => {
     expect(items[1]).toContain("subject E-2")
   })
 
+  test("keeps the indentation of code in an item from a 2-space list", () => {
+    const body = [
+      "### Outside the diff",
+      "",
+      "- `ci.yml:3` the job has no timeout. Use this:",
+      "  ```yaml",
+      "  jobs:",
+      "    test:",
+      "      timeout-minutes: 10",
+      "  ```",
+    ].join("\n")
+    expect(outsideDiffItems(body)).toEqual([
+      "`ci.yml:3` the job has no timeout. Use this:\n```yaml\njobs:\n  test:\n    timeout-minutes: 10\n```",
+    ])
+  })
+
+  test("leaves no carriage return in an item of a CRLF body", () => {
+    const body =
+      "**Outside the diff**\r\n- `a.ts:3` first\r\n    more\r\n    ```\r\n    x\r\n    ```\r\n"
+    expect(outsideDiffItems(body)).toEqual(["`a.ts:3` first\nmore\n```\nx\n```"])
+  })
+
   test("ends the section at a bold label with a CRLF line end", () => {
     const body = [
       "**Outside the diff**",
