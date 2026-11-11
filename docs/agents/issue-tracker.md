@@ -18,7 +18,7 @@ Skills name these operations. Each one is a single command.
 | Operation | Command |
 |---|---|
 | Create | `gh issue create --title "<title>" --label "<label>" --body-file <file>` prints the issue URL |
-| View | `gh issue view <n> --comments` |
+| View | `gh issue view <n> --json number,title,state,labels,assignees,body,comments` prints the body and every comment. `--comments` alone hides the body |
 | Search | `gh issue list --state all --search "<words>" --json number,title,state,labels,url --limit 30` |
 | List by label | `gh issue list --state all --label "<label>" --json number,title,state,url --limit 100` |
 | Comment | `gh issue comment <n> --body-file <file>` |
@@ -66,7 +66,7 @@ An external PR is one whose author is not an owner, member or collaborator.
 
 | Operation | Command |
 |---|---|
-| View a PR | `gh pr view <n> --comments`, then `gh pr diff <n>` |
+| View a PR | `gh pr view <n> --json number,title,state,body,comments,reviews`, then `gh pr diff <n>` |
 | List external PRs | `gh api --paginate 'repos/{owner}/{repo}/pulls?state=open' --jq '.[] \| select(.author_association \| IN("OWNER","MEMBER","COLLABORATOR") \| not) \| {number, title, author: .user.login, labels: [.labels[].name]}'` |
 | Comment, label, close a PR | `gh pr comment <n> --body-file <file>`, `gh pr edit <n> --add-label`, `--remove-label`, `gh pr close <n>` |
 
@@ -76,4 +76,4 @@ Create a GitHub issue.
 
 ## When a skill says "fetch the relevant ticket"
 
-Run `gh issue view <n> --comments`.
+Run the **View** operation.
