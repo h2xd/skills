@@ -91,7 +91,7 @@ Done when `replies.md` has one reply per item.
 
 ### 5. Commit, push, reply
 
-1. Commit with `h2xd:git-commit`. Put the PR URL in the footer as `Refs:`.
+1. Commit with `h2xd:git-commit`. Add `Refs: #<issue>` and `Refs: <PR URL>`.
 2. Run `git push`. When the remote moved ahead, stop and ask.
 3. Re-read the PR body with `gh pr view <pr> --json body -q .body`. A fix
    that changes a number, a word or a file the body names makes that
