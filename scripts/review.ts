@@ -7,7 +7,7 @@
  *   node scripts/review.ts context [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts threads [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
- *   node scripts/review.ts resolve <thread-id>...
+ *   node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...
  *   node scripts/review.ts options --validate <review.json>
  *   node scripts/review.ts findings --validate <findings.json>
  *   node scripts/review.ts merge <findings.json>... --out review.json [--pr N] [--worktree PATH] [--pick pick.md] [--bullets FILE] [--preview FILE]
