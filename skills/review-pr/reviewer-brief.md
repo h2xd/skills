@@ -13,7 +13,8 @@ background run of yours is still going. Wait for it with a blocking wait, or
 run it in the foreground. Report one time only, after your findings file is
 complete.
 
-Read `context.md` first. Work in the directory it names as the worktree.
+Read `context.md` first. Work in the directory it names as the worktree, or
+in the one your prompt gives in its place.
 
 ## Findings file
 
