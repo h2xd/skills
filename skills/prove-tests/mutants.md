@@ -34,7 +34,9 @@ to `--only`, and set `--test` to a command that runs only that test file.
 ## Finding
 
 Use the shape the caller gives. As Reviewer D of `h2xd:review-pr`, that is its
-reviewer brief, and this shape matches it. Without a shape, use this one:
+reviewer brief, a JSON file. The finding below has the same content as that
+JSON finding, with `what` and `why` joined in `body`. Without a shape, use this
+one:
 
 ```
 ### D-<n> <🔴|🟡> <title>
@@ -46,7 +48,8 @@ reviewer brief, and this shape matches it. Without a shape, use this one:
 - fix: A test that <calls what, with which input> and expects <observable result>.
 ```
 
-The `what` line carries the mutant. With it, `h2xd:review-fix` or a person can
+The `what` line carries the mutant. In the JSON, `body` starts with that
+line. With it, `h2xd:review-fix` or a person can
 plant the mutant again without this run's files.
 
 ## Severity
