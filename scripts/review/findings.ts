@@ -1,8 +1,4 @@
-/**
- * The findings files that each `review-pr` reviewer writes, the check behind
- * `node scripts/review.ts findings --validate`, and the merge behind
- * `node scripts/review.ts merge`, which turns them into one `review.json`.
- */
+/** The findings file that each `review-pr` reviewer writes: its check, and the merge of all of them into one review. */
 
 import { expectedNote } from "./options.ts"
 
@@ -12,7 +8,7 @@ export type Finding = {
   id: string
   severity: Severity
   file: string
-  lines: number[]
+  lines: [number] | [number, number]
   label: string
   subject: string
   body: string
@@ -51,9 +47,10 @@ export type Review = {
   comments: ReviewComment[]
 }
 
+export type DroppedFinding = { id: string; subject: string }
+
 export type MergeStats = {
   merged: number
-  dropped: number
   outside: number
   inline: number
 }
@@ -93,13 +90,31 @@ function isText(value: unknown): value is string {
 }
 
 function isLine(value: unknown): value is number {
-  return Number.isInteger(value) && (value as number) >= 1
+  return typeof value === "number" && Number.isInteger(value) && value >= 1
 }
 
-function findingProblems(raw: unknown, index: number, reviewer: string): string[] {
-  if (!isRecord(raw)) return [`findings[${index}]: must be an object`]
+function isOneLine(value: unknown): value is string {
+  return isText(value) && !value.includes("\n")
+}
+
+function parseLines(value: unknown): Finding["lines"] | undefined {
+  if (!Array.isArray(value) || !value.every(isLine)) return undefined
+  if (value.length === 1) return [value[0]]
+  if (value.length === 2 && value[0] <= value[1]) return [value[0], value[1]]
+  return undefined
+}
+
+function parseFinding(
+  raw: unknown,
+  index: number,
+  reviewer: string,
+  problems: string[],
+): Finding | undefined {
+  if (!isRecord(raw)) {
+    problems.push(`findings[${index}]: must be an object`)
+    return undefined
+  }
   const name = isText(raw.id) ? raw.id : `findings[${index}]`
-  const problems: string[] = []
   const bad = (field: string, message: string) =>
     problems.push(`${name}: ${field} ${message}`)
 
@@ -110,79 +125,114 @@ function findingProblems(raw: unknown, index: number, reviewer: string): string[
     if (!KNOWN_FIELDS.includes(field)) bad(field, "is not a known field")
   }
 
-  if ("id" in raw && (!isText(raw.id) || !raw.id.startsWith(`${reviewer}-`))) {
-    bad("id", `must read ${reviewer}-<n>`)
-  }
+  const id =
+    isText(raw.id) && raw.id.startsWith(`${reviewer}-`) ? raw.id : undefined
+  if ("id" in raw && !id) bad("id", `must read ${reviewer}-<n>`)
+
   const severity = SEVERITIES.find((value) => value === raw.severity)
   if ("severity" in raw && !severity) {
     bad("severity", `must be one of ${SEVERITIES.join(", ")}`)
   }
-  if ("file" in raw && !isText(raw.file)) bad("file", "must be a repo-relative path")
-  if ("lines" in raw) {
-    const lines = raw.lines
-    const valid =
-      Array.isArray(lines) &&
-      (lines.length === 1 || lines.length === 2) &&
-      lines.every(isLine) &&
-      lines[0] <= lines[lines.length - 1]
-    if (!valid) bad("lines", "must be [line] or [start, end], with start <= end")
+
+  const file = isText(raw.file) ? raw.file : undefined
+  if ("file" in raw && !file) bad("file", "must be a repo-relative path")
+
+  const lines = parseLines(raw.lines)
+  if ("lines" in raw && !lines) {
+    bad("lines", "must be [line] or [start, end], with start <= end")
   }
-  if ("label" in raw) {
-    const allowed = severity ? LABELS[severity] : Object.values(LABELS).flat()
-    if (typeof raw.label !== "string" || !allowed.includes(raw.label)) {
-      bad("label", `must be one of ${allowed.join(", ")}`)
-    }
-  }
-  if ("subject" in raw && (!isText(raw.subject) || raw.subject.includes("\n"))) {
-    bad("subject", "must be one non-empty line")
-  }
-  if ("body" in raw && !isText(raw.body)) bad("body", "must be non-empty text")
-  if ("suggestion" in raw && typeof raw.suggestion !== "string") {
+
+  const allowed = severity ? LABELS[severity] : Object.values(LABELS).flat()
+  const label =
+    typeof raw.label === "string" && allowed.includes(raw.label)
+      ? raw.label
+      : undefined
+  if ("label" in raw && !label) bad("label", `must be one of ${allowed.join(", ")}`)
+
+  const subject = isOneLine(raw.subject) ? raw.subject : undefined
+  if ("subject" in raw && !subject) bad("subject", "must be one non-empty line")
+
+  const body = isText(raw.body) ? raw.body : undefined
+  if ("body" in raw && !body) bad("body", "must be non-empty text")
+
+  const suggestion = typeof raw.suggestion === "string" ? raw.suggestion : undefined
+  if ("suggestion" in raw && suggestion === undefined) {
     bad("suggestion", "must be text")
   }
-  if ("options" in raw) {
-    const options = raw.options
-    const valid =
-      Array.isArray(options) &&
-      options.length >= MIN_OPTIONS &&
-      options.length <= MAX_OPTIONS &&
-      options.every((option) => isText(option) && !option.includes("\n"))
-    if (!valid) bad("options", "must hold 2 or 3 one-line fixes")
+
+  const options =
+    Array.isArray(raw.options) &&
+    raw.options.length >= MIN_OPTIONS &&
+    raw.options.length <= MAX_OPTIONS &&
+    raw.options.every(isOneLine)
+      ? raw.options
+      : undefined
+  if ("options" in raw && !options) bad("options", "must hold 2 or 3 one-line fixes")
+
+  const foundBy =
+    Array.isArray(raw["found-by"]) &&
+    raw["found-by"].length > 0 &&
+    raw["found-by"].every(isText)
+      ? raw["found-by"]
+      : undefined
+  if ("found-by" in raw && !foundBy) {
+    bad("found-by", "must list at least one model name")
   }
-  if ("found-by" in raw) {
-    const foundBy = raw["found-by"]
-    if (!Array.isArray(foundBy) || foundBy.length === 0 || !foundBy.every(isText)) {
-      bad("found-by", "must list at least one model name")
-    }
+
+  if (!(id && severity && file && lines && label && subject && body && foundBy)) {
+    return undefined
   }
-  return problems
+  return {
+    id,
+    severity,
+    file,
+    lines,
+    label,
+    subject,
+    body,
+    ...(suggestion === undefined ? {} : { suggestion }),
+    ...(options === undefined ? {} : { options }),
+    "found-by": foundBy,
+  }
 }
 
-export function validateFindings(json: unknown): string[] {
-  if (!isRecord(json)) return ["the file must hold one JSON object"]
+export type ParseResult =
+  | { ok: true; file: FindingsFile }
+  | { ok: false; problems: string[] }
+
+export function parseFindings(json: unknown): ParseResult {
+  if (!isRecord(json)) {
+    return { ok: false, problems: ["the file must hold one JSON object"] }
+  }
   const problems: string[] = []
   if (!isText(json.reviewer)) problems.push("reviewer must be a non-empty string")
   if (!Array.isArray(json.findings)) {
     problems.push("findings must be an array")
-    return problems
+    return { ok: false, problems }
   }
-  if (
-    "status" in json &&
-    !(Array.isArray(json.status) && json.status.every((line) => typeof line === "string"))
-  ) {
-    problems.push("status must be an array of strings")
-  }
+  const status =
+    Array.isArray(json.status) && json.status.every((line) => typeof line === "string")
+      ? json.status
+      : undefined
+  if ("status" in json && !status) problems.push("status must be an array of strings")
+
   const reviewer = isText(json.reviewer) ? json.reviewer : "?"
   const seen = new Set<string>()
+  const findings: Finding[] = []
   json.findings.forEach((raw, index) => {
-    problems.push(...findingProblems(raw, index, reviewer))
+    const finding = parseFinding(raw, index, reviewer, problems)
+    if (finding) findings.push(finding)
     const id = isRecord(raw) ? raw.id : undefined
     if (typeof id === "string") {
       if (seen.has(id)) problems.push(`${id}: id is used twice`)
       seen.add(id)
     }
   })
-  return problems
+  if (problems.length > 0 || !isText(json.reviewer)) return { ok: false, problems }
+  return {
+    ok: true,
+    file: { reviewer: json.reviewer, findings, ...(status ? { status } : {}) },
+  }
 }
 
 type Range = [number, number]
@@ -191,8 +241,11 @@ type Hunks = Map<string, Range[]>
 function newSideHunks(diff: string): Hunks {
   const hunks: Hunks = new Map()
   let path: string | undefined
+  let previous = ""
   for (const line of diff.split("\n")) {
-    if (line.startsWith("+++ ")) {
+    const isFileHeader = line.startsWith("+++ ") && previous.startsWith("--- ")
+    previous = line
+    if (isFileHeader) {
       const target = line.slice(4).trim().replace(/^"|"$/g, "")
       path = target.startsWith("b/") ? target.slice(2) : undefined
       continue
@@ -265,10 +318,11 @@ function join(group: Group): Joined {
     (a, b) => SEVERITIES.indexOf(a.severity) - SEVERITIES.indexOf(b.severity),
   )
   const primary = ranked[0]
-  const withSuggestion = ranked.find((member) => member.suggestion !== undefined)
-  const withOptions = ranked.find((member) => member.options !== undefined)
-  const range: Range = withSuggestion
-    ? span(withSuggestion)
+  const fix = ranked.find(
+    (member) => member.suggestion !== undefined || member.options !== undefined,
+  )
+  const range: Range = fix?.suggestion !== undefined
+    ? span(fix)
     : [
         Math.min(...ranked.map((member) => span(member)[0])),
         Math.max(...ranked.map((member) => span(member)[1])),
@@ -280,8 +334,8 @@ function join(group: Group): Joined {
     label: primary.label,
     subject: primary.subject,
     body: ranked.map((member) => member.body.trim()).join("\n\n"),
-    suggestion: withSuggestion?.suggestion,
-    options: withOptions?.options,
+    suggestion: fix?.suggestion,
+    options: fix?.options,
     models: unique(ranked.flatMap((member) => member["found-by"])),
   }
 }
@@ -292,13 +346,16 @@ function coAuthors(models: string[]): string {
     .join("\n")
 }
 
-function formatOptions(options: string[]): string {
+function optionLines(options: string[]): string[] {
   const letters = ["A", "B", "C"]
-  const lines = options.map(
+  return options.map(
     (fix, index) =>
       `- Suggestion ${letters[index]}${index === 0 ? " (recommended)" : ""}: ${fix}`,
   )
-  return `${lines.join("\n")}\n\n${expectedNote(options.length)}`
+}
+
+function formatOptions(options: string[]): string {
+  return `${optionLines(options).join("\n")}\n\n${expectedNote(options.length)}`
 }
 
 function suggestionBlock(code: string): string {
@@ -347,6 +404,9 @@ function outsideItem(joined: Joined): string {
   ]
   if (joined.suggestion !== undefined) {
     lines.push("    Suggested change:", "    ```", ...joined.suggestion.split("\n").map((line) => `    ${line}`), "    ```")
+  }
+  if (joined.options !== undefined) {
+    lines.push(...optionLines(joined.options).map((line) => `    ${line}`))
   }
   return lines.join("\n")
 }
@@ -399,11 +459,15 @@ export function mergeFindings(
   files: FindingsFile[],
   diff: string,
   context: MergeContext,
-): { review: Review; stats: MergeStats } {
+): { review: Review; stats: MergeStats; dropped: DroppedFinding[] } {
   const all: Tagged[] = files.flatMap((file) =>
     file.findings.map((finding) => ({ ...finding, reviewer: file.reviewer })),
   )
-  const kept = all.filter((finding) => !KEPT_NOTE.test(finding.subject.trim()))
+  const isKeptNote = (finding: Finding) => KEPT_NOTE.test(finding.subject.trim())
+  const kept = all.filter((finding) => !isKeptNote(finding))
+  const dropped = all
+    .filter(isKeptNote)
+    .map(({ id, subject }) => ({ id, subject }))
   const groups = groupFindings(kept)
   const joined = groups.map(join).sort(byWorst)
   const hunks = newSideHunks(diff)
@@ -452,10 +516,10 @@ export function mergeFindings(
     },
     stats: {
       merged: kept.length - groups.length,
-      dropped: all.length - kept.length,
       outside: outside.length,
       inline: inline.length,
     },
+    dropped,
   }
 }
 
@@ -464,7 +528,10 @@ export function findingsBullets(body: string): string[] {
   return part.split("\n").filter((line) => line.startsWith("- "))
 }
 
-export function formatPreview(review: Review): string {
+export function formatPreview(
+  review: Review,
+  dropped: DroppedFinding[],
+): string {
   const comments = review.comments.map((comment) => {
     const start = comment.start_line === undefined ? "" : `${comment.start_line}-`
     return `### ${comment.path}:${start}${comment.line}\n\n${comment.body}`
@@ -473,5 +540,10 @@ export function formatPreview(review: Review): string {
     `# Review preview\n\nEvent: ${review.event}`,
     `## Body\n\n${review.body}`,
     ...(comments.length > 0 ? [`## Comments\n\n${comments.join("\n\n")}`] : []),
+    ...(dropped.length > 0
+      ? [
+          `## Dropped\n\n${dropped.map((item) => `- ${item.id}: ${item.subject}`).join("\n")}`,
+        ]
+      : []),
   ].join("\n\n") + "\n"
 }

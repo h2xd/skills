@@ -10,14 +10,14 @@ were told to use cannot start subagents from here, do its work yourself.
 Your last message is your report: the validate line, such as
 `ok: 3 findings checked`, and nothing else. Do not end your turn while a
 background run of yours is still going. Wait for it with a blocking wait, or
-run it in the foreground. Report one time only, after your output file is
+run it in the foreground. Report one time only, after your findings file is
 complete.
 
 Read `context.md` first. Work in the directory it names as the worktree.
 
-## Output file
+## Findings file
 
-Write one JSON file, `review-<x>.json`, where `<x>` is your letter in lower
+Write one findings file, `review-<x>.json`, where `<x>` is your letter in lower
 case. This is the shape:
 
 ```json

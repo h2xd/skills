@@ -18,11 +18,10 @@ import {
   viewPullRequest,
 } from "./github.ts"
 import {
-  type FindingsFile,
   findingsBullets,
   formatPreview,
   mergeFindings,
-  validateFindings,
+  parseFindings,
 } from "./findings.ts"
 import { type DraftComment, validateDraftComments } from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
@@ -340,14 +339,12 @@ export function findingsCommand(argv: string[]): void {
     options: { validate: { type: "string" } },
   })
   const file = requireArgument(values.validate, "findings --validate <file>")
-  const json = readJson(file)
-  const problems = validateFindings(json)
-  if (problems.length > 0) {
-    for (const problem of problems) console.error(problem)
-    throw new Error(`${problems.length} problem(s) in ${file}`)
+  const parsed = parseFindings(readJson(file))
+  if (!parsed.ok) {
+    for (const problem of parsed.problems) console.error(problem)
+    throw new Error(`${parsed.problems.length} problem(s) in ${file}`)
   }
-  const count = (json as FindingsFile).findings.length
-  console.log(`ok: ${count} findings checked`)
+  console.log(`ok: ${parsed.file.findings.length} findings checked`)
 }
 
 const PICK_META = /^- (Size|Reviewers|Effort for A|Ask first):/
@@ -386,19 +383,18 @@ export function mergeCommand(argv: string[]): void {
   if (positionals.length === 0) throw new Error(`usage: node scripts/review.ts ${usage}`)
 
   const files = positionals.map((path) => {
-    const json = readJson(path)
-    const problems = validateFindings(json)
-    if (problems.length > 0) {
+    const parsed = parseFindings(readJson(path))
+    if (!parsed.ok) {
       throw new Error(
-        `${path} is not valid, run findings --validate:\n${problems.join("\n")}`,
+        `${path} is not valid, run findings --validate:\n${parsed.problems.join("\n")}`,
       )
     }
-    return json as FindingsFile
+    return parsed.file
   })
 
   const worktree = values.worktree ? resolve(values.worktree) : undefined
   const pullRequest = viewPullRequest(values.pr, worktree)
-  const { review, stats } = mergeFindings(
+  const { review, stats, dropped } = mergeFindings(
     files,
     pullRequestDiff(pullRequest.number, worktree),
     {
@@ -410,10 +406,13 @@ export function mergeCommand(argv: string[]): void {
     },
   )
   writeFileSync(outFile, `${JSON.stringify(review, null, 2)}\n`)
-  if (values.preview) writeFileSync(values.preview, formatPreview(review))
+  if (values.preview) writeFileSync(values.preview, formatPreview(review, dropped))
   console.log(
-    `wrote ${outFile}: ${review.event}, ${stats.inline} inline, ${stats.outside} outside the diff, ${stats.merged} merged, ${stats.dropped} dropped`,
+    `wrote ${outFile}: ${review.event}, ${stats.inline} inline, ${stats.outside} outside the diff, ${stats.merged} merged, ${dropped.length} dropped`,
   )
+  for (const item of dropped) {
+    console.log(`dropped ${item.id}: ${item.subject}`)
+  }
   if (!values.bullets) {
     console.log(`bullets:\n${findingsBullets(review.body).join("\n")}`)
   }

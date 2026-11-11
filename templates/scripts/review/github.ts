@@ -52,8 +52,10 @@ export function viewPullRequest(
   return JSON.parse(json) as PullRequest
 }
 
+const DIFF_MAX_BUFFER = 256 * 1024 * 1024
+
 export function pullRequestDiff(number: number, cwd?: string): string {
-  return run(["gh", "pr", "diff", String(number)], cwd)
+  return run(["gh", "pr", "diff", String(number)], cwd, DIFF_MAX_BUFFER)
 }
 
 export function repositoryName(cwd?: string): { owner: string; name: string } {

@@ -8,6 +8,7 @@ import {
   summaryItems,
   threadLocation,
 } from "./threads.ts"
+import { type FindingsFile, mergeFindings } from "./findings.ts"
 
 function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
   return {
@@ -178,5 +179,37 @@ describe("formatThreadsDocument", () => {
       items: [],
     })
     expect(output).toContain("No unresolved items.")
+  })
+})
+
+describe("outsideDiffItems on a merged review", () => {
+  test("keeps every item when a body holds a bold label line", () => {
+    const outside = (id: string, body: string) => ({
+      id,
+      severity: "yellow",
+      file: "x.ts",
+      lines: [5],
+      label: "issue",
+      subject: `subject ${id}`,
+      body,
+      "found-by": ["Claude Opus 5.5"],
+    })
+    const { review } = mergeFindings(
+      [
+        {
+          reviewer: "E",
+          findings: [
+            outside("E-1", "The defect.\n**Proof:**\nthe output"),
+            { ...outside("E-2", "Second."), lines: [9] },
+          ],
+        } as FindingsFile,
+      ],
+      "",
+      { headSha: "a", reviewerLogin: "r", author: "o", pickReasons: [] },
+    )
+    const items = outsideDiffItems(review.body)
+    expect(items).toHaveLength(2)
+    expect(items[0]).toContain("the output")
+    expect(items[1]).toContain("subject E-2")
   })
 })

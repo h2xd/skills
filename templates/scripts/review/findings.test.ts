@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type FindingsFile, mergeFindings, validateFindings } from "./findings.ts"
+import { type FindingsFile, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
 import { validateDraftComments } from "./options.ts"
 import { outsideDiffItems } from "./threads.ts"
 
@@ -43,19 +43,33 @@ function file(reviewer: string, findings: unknown[], status: string[] = []) {
   return { reviewer, findings, status } as FindingsFile
 }
 
-describe("validateFindings", () => {
+function problemsOf(json: unknown): string[] {
+  const result = parseFindings(json)
+  return result.ok ? [] : result.problems
+}
+
+describe("parseFindings", () => {
+  test("returns the typed file for a valid one", () => {
+    const result = parseFindings(file("B", [finding({ lines: [12] })]))
+    expect(result.ok).toBe(true)
+    if (result.ok) {
+      expect(result.file.reviewer).toBe("B")
+      expect(result.file.findings[0].lines).toEqual([12])
+    }
+  })
+
   test("gives no problems for a valid file", () => {
     const valid = file("B", [
       finding({ suggestion: "const x = 1", options: ["one", "two"] }),
     ])
-    expect(validateFindings(valid)).toEqual([])
+    expect(problemsOf(valid)).toEqual([])
   })
 
   test("names the finding and the field of a bad value", () => {
     const bad = file("B", [
       finding({ severity: "orange", lines: [14, 12], subject: "" }),
     ])
-    const problems = validateFindings(bad)
+    const problems = problemsOf(bad)
     expect(problems).toHaveLength(3)
     expect(problems.some((p) => p.startsWith("B-1: severity"))).toBe(true)
     expect(problems.some((p) => p.startsWith("B-1: lines"))).toBe(true)
@@ -64,7 +78,7 @@ describe("validateFindings", () => {
 
   test("names a missing field and an unknown field", () => {
     const { body: _body, ...withoutBody } = finding()
-    const problems = validateFindings(
+    const problems = problemsOf(
       file("B", [{ ...withoutBody, colour: "red" }]),
     )
     expect(problems.some((p) => p.startsWith("B-1: body"))).toBe(true)
@@ -72,7 +86,7 @@ describe("validateFindings", () => {
   })
 
   test("rejects a label that does not fit the severity, and one option", () => {
-    const problems = validateFindings(
+    const problems = problemsOf(
       file("B", [finding({ label: "praise", options: ["only"] })]),
     )
     expect(problems.some((p) => p.startsWith("B-1: label"))).toBe(true)
@@ -80,7 +94,7 @@ describe("validateFindings", () => {
   })
 
   test("rejects an id of another reviewer and a repeated id", () => {
-    const problems = validateFindings(
+    const problems = problemsOf(
       file("B", [finding({ id: "C-1" }), finding(), finding()]),
     )
     expect(problems.some((p) => p.startsWith("C-1: id"))).toBe(true)
@@ -91,11 +105,11 @@ describe("validateFindings", () => {
     const valid = file("B", [
       finding({ lines: [12], options: ["one", "two", "three"] }),
     ])
-    expect(validateFindings(valid)).toEqual([])
+    expect(problemsOf(valid)).toEqual([])
   })
 
   test("rejects a file that is not an object", () => {
-    expect(validateFindings("nope")).toHaveLength(1)
+    expect(problemsOf("nope")).toHaveLength(1)
   })
 })
 
@@ -234,7 +248,7 @@ describe("mergeFindings", () => {
   })
 
   test("drops a kept note", () => {
-    const { review, stats } = mergeFindings(
+    const { review, dropped } = mergeFindings(
       [
         file("C", [
           finding({
@@ -249,7 +263,7 @@ describe("mergeFindings", () => {
       CONTEXT,
     )
     expect(review.comments).toHaveLength(0)
-    expect(stats.dropped).toBe(1)
+    expect(dropped).toEqual([{ id: "C-1", subject: "kept, protects a lock order" }])
   })
 
   test("sorts the comments worst first", () => {
@@ -411,5 +425,79 @@ describe("mergeFindings", () => {
     expect(items).toHaveLength(2)
     expect(items[1]).toContain("caller breaks")
     expect(items[1]).toContain("- not a bullet")
+  })
+
+  test("keeps a finding inline after an added line that starts with ++", () => {
+    const diff = [
+      "diff --git a/f.md b/f.md",
+      "--- a/f.md",
+      "+++ b/f.md",
+      "@@ -1,2 +1,3 @@",
+      " a",
+      "+++ note",
+      " b",
+      "@@ -10,1 +11,2 @@",
+      " c",
+      "+d",
+      "",
+    ].join("\n")
+    const { review, stats } = mergeFindings(
+      [file("B", [finding({ file: "f.md", lines: [12] })])],
+      diff,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(stats.outside).toBe(0)
+  })
+
+  test("takes the suggestion and the options from one reviewer", () => {
+    const { review } = mergeFindings(
+      [
+        file("A", [
+          finding({
+            id: "A-1",
+            severity: "red",
+            label: "issue",
+            lines: [11],
+            options: ["fix one", "fix two"],
+          }),
+        ]),
+        file("B", [finding({ lines: [11, 12], suggestion: "other" })]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    const body = review.comments[0].body
+    expect(body).toContain("- Suggestion A (recommended): fix one")
+    expect(body).not.toContain("```suggestion")
+  })
+
+  test("writes the options of a finding outside the diff", () => {
+    const { review } = mergeFindings(
+      [
+        file("E", [
+          finding({ id: "E-1", lines: [40], options: ["fix one", "fix two"] }),
+          finding({ id: "E-2", file: "src/b.ts", lines: [3], subject: "second" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    const items = outsideDiffItems(review.body)
+    expect(items).toHaveLength(2)
+    const item = items.find((text) => text.includes("name it"))
+    expect(item).toContain("Suggestion A (recommended): fix one")
+    expect(item).toContain("Suggestion B: fix two")
+  })
+
+  test("lists a dropped finding in the preview", () => {
+    const { review, dropped } = mergeFindings(
+      [file("C", [finding({ id: "C-1", subject: "Kept threads are lost" })])],
+      DIFF,
+      CONTEXT,
+    )
+    expect(formatPreview(review, dropped)).toContain(
+      "## Dropped\n\n- C-1: Kept threads are lost",
+    )
   })
 })

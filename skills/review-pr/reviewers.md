@@ -2,7 +2,7 @@
 
 Step 3 of [`SKILL.md`](SKILL.md) starts the picked reviewers from this table.
 
-| Reviewer | Model | Lens | Output |
+| Reviewer | Model | Lens | Findings file |
 |---|---|---|---|
 | A, correctness | Strongest, such as Opus | The CLI's own code review of the PR at the effort in `pick.md`, for example the `code-review` skill, with no `--comment` and no `--fix`. Without one, look for bugs, broken contracts, data loss and security holes. | `review-a.json` |
 | B, standards | Strongest, such as Opus | The diff `git diff origin/<base>...HEAD` against the standards, spec and docs below. | `review-b.json` |

@@ -69,15 +69,14 @@ Done when `$WORK/pick.md` exists.
 ### 3. Launch the reviewers
 
 Start the picked reviewers in one message, as background subagents, through
-the CLI's subagent tool, such as Agent. Each prompt holds the path to
-`context.md`, `$WORKTREE`, its lens, its output file, and the path to
-[`reviewer-brief.md`](reviewer-brief.md). [`reviewers.md`](reviewers.md) holds
-each reviewer's model, lens and output file. Reviewer B also gets the absolute
-path of [`reviewer-b.md`](reviewer-b.md).
+the CLI's subagent tool, such as Agent. Each prompt holds `$WORKTREE`, the
+paths to `context.md` and [`reviewer-brief.md`](reviewer-brief.md), and its
+lens, model and findings file from [`reviewers.md`](reviewers.md). Reviewer B
+also gets the absolute path of [`reviewer-b.md`](reviewer-b.md).
 
-Done when every launched reviewer's file exists. When one fails, start it
-once more. When it fails again, go on without it, and name the missing lens in
-the summary.
+Done when every launched reviewer's findings file exists. When one fails,
+start it once more. When it fails again, go on without it, and name the
+missing lens in the summary.
 
 ### 4. Merge the findings
 
@@ -87,11 +86,12 @@ A script builds the review. No subagent writes `review.json`.
 node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WORK/pick.md --out $WORK/review.json --preview $WORK/preview.md
 ```
 
-It checks each file first. When one fails, run that reviewer once more, as in
-step 3. It joins findings of different reviewers on the same lines, moves a
-line outside the diff to "Outside the diff", writes the Conventional Comments
-and sorts worst first. It sets the event: `REQUEST_CHANGES` with a 🔴,
-otherwise `APPROVE`, and `COMMENT` on your own PR.
+It checks each findings file first. When one fails, run that reviewer once
+more, as in step 3. When it fails again, delete its file, merge without it,
+and name the missing lens in the summary. It joins duplicates, moves a line
+outside the diff to "Outside the diff", writes the Conventional Comments and
+sorts worst first. The event is `REQUEST_CHANGES` with a 🔴, otherwise
+`APPROVE`, and `COMMENT` on your own PR.
 
 Then start one subagent on the cheapest model, such as Haiku. Give it the
 paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and

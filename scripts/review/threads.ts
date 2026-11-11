@@ -85,7 +85,7 @@ export function outsideDiffItems(body: string): string[] {
   for (const line of lines.slice(start + 1)) {
     if (
       MARKDOWN_HEADING.test(line) ||
-      BOLD_ONLY_LINE.test(line.trim()) ||
+      BOLD_ONLY_LINE.test(line) ||
       /^Co-Authored-By:/i.test(line)
     ) {
       break

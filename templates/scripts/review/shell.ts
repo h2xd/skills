@@ -11,9 +11,14 @@ export type CommandResult = {
 export function runAllowingFailure(
   command: string[],
   cwd?: string,
+  maxBuffer?: number,
 ): CommandResult {
   const [file, ...args] = command
-  const result = spawnSync(file, args, { cwd, encoding: "utf8" })
+  const result = spawnSync(file, args, {
+    cwd,
+    encoding: "utf8",
+    ...(maxBuffer === undefined ? {} : { maxBuffer }),
+  })
   if (result.error) throw result.error
   return {
     exitCode: result.status ?? 1,
@@ -23,8 +28,12 @@ export function runAllowingFailure(
 }
 
 /** Returns stdout without its trailing newline. Throws on a non-zero exit. */
-export function run(command: string[], cwd?: string): string {
-  const result = runAllowingFailure(command, cwd)
+export function run(
+  command: string[],
+  cwd?: string,
+  maxBuffer?: number,
+): string {
+  const result = runAllowingFailure(command, cwd, maxBuffer)
   if (result.exitCode !== 0) {
     const detail = result.stderr.trim() || result.stdout.trim()
     throw new Error(

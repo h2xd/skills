@@ -44,6 +44,6 @@ Done when that file has exactly as many lines as the "Findings" part.
 
 ## Don't
 
-- Don't open or write `review.json`. The merge reads your file.
+- Don't write or edit `review.json`. Read it only. The merge reads your file.
 - Don't add a bullet, drop one or merge two.
 - Don't change an icon or a `path:line`.
