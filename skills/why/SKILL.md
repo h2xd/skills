@@ -73,7 +73,7 @@ git show <hash>
   it.
 - Take PR numbers from merge subjects such as `(#1234)`, and ticket ids from
   bodies. Read each substantive PR with its review comments, for example
-  `gh pr view <n> --comments`. View the tickets as in step 2.
+  `gh pr view <n> --json body,comments,reviews`. View the tickets as in step 2.
 - Read comments, `TODO` and `FIXME` notes, edge-case tests and `CHANGELOG`
   entries near the code.
 - A revert, a re-apply or a "fix for incident" commit marks a regression.

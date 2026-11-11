@@ -21,6 +21,8 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
    - When a fix changes what a page says about the file, update the page in the
      same change. Find the pages with
      `node scripts/find-docs.ts --links-to <path>`.
+   - When a skill file is at its length limit, move a section to a sibling
+     file and link it. Never delete a rule to make room.
 3. For a **mutation item**, write the missing test through the public
    interface, per the Tests section of `../code-quality/SKILL.md`.
    - Change no production code to kill a mutant. The one exception is deleting
