@@ -1,6 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type Finding, type FindingsFile, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
+import { type Finding, type FindingsFile, formatPreview, headSideThreads, mergeFindings, parseFindings } from "./findings.ts"
+import { unrepliedSummaryItems } from "./threads.ts"
 import { validateDraftComments } from "./options.ts"
 import { outsideDiffItems } from "./threads.ts"
 
@@ -198,7 +199,7 @@ describe("mergeFindings", () => {
     expect(review.comments).toHaveLength(0)
     expect(stats.outside).toBe(1)
     const section = review.body.split("### Outside the diff\n")[1]
-    expect(section).toContain("- 🟡 [out-abc123-1] `src/undo.ts:40`: caller breaks")
+    expect(/- 🟡 \[out-[0-9a-f]{8}\] `src\/undo.ts:40`: caller breaks/.test(section)).toBe(true)
     expect(section).toContain("proof output")
   })
 
@@ -667,7 +668,7 @@ describe("mergeFindings", () => {
     expect(dropped).toEqual([{ id: "C-1", subject: "Kept as is" }])
   })
 
-  test("gives each item outside the diff a stable id in the bullet head", () => {
+  test("gives each item outside the diff an id from its place and subject", () => {
     const { review } = mergeFindings(
       [
         file("E", [
@@ -679,8 +680,45 @@ describe("mergeFindings", () => {
       { ...CONTEXT, headSha: "abc1234def" },
     )
     const section = review.body.split("### Outside the diff\n")[1]
-    expect(section).toContain("- 🟡 [out-abc1234-2] `src/undo.ts:40`: first")
-    expect(section).toContain("- 🟡 [out-abc1234-1] `src/b.ts:3`: second")
+    const ids = [...section.matchAll(/\[(out-[0-9a-f]{8})\]/g)].map((m) => m[1])
+    expect(ids).toHaveLength(2)
+    expect(ids[0] === ids[1]).toBe(false)
+    expect(/\[out-[0-9a-f]{8}\] `src\/undo.ts:40`: first/.test(section)).toBe(true)
+    expect(/\[out-[0-9a-f]{8}\] `src\/b.ts:3`: second/.test(section)).toBe(true)
+  })
+
+  function outsideIds(subject: string, line: number, headSha: string): string[] {
+    const { review } = mergeFindings(
+      [file("E", [finding({ id: "E-1", lines: [line], subject })])],
+      DIFF,
+      { ...CONTEXT, headSha },
+    )
+    return [...review.body.matchAll(/\[(out-[0-9a-f]{8})\]/g)].map((m) => m[1])
+  }
+
+  test("an outside item keeps its id across reviews of the same finding", () => {
+    expect(outsideIds("first", 40, "abc1234")).toEqual(
+      outsideIds("first", 40, "def5678"),
+    )
+  })
+
+  test("two reviews of one head give different findings different ids", () => {
+    const round1 = outsideIds("old defect", 40, "abc1234")
+    const round2 = outsideIds("new defect", 40, "abc1234")
+    expect(round1[0] === round2[0]).toBe(false)
+    const reviews = (body: string) => [
+      { author: { login: "bot" }, state: "COMMENTED", body, url: "u", submittedAt: null },
+    ]
+    const body = (id: string) => `### Outside the diff\n\n- 🟡 [${id}] \`a.ts:1\`: x`
+    const replied = [`## ${round1[0]}\n\nDeclined.`]
+    expect(unrepliedSummaryItems(reviews(body(round2[0])), replied)).toHaveLength(1)
+    expect(unrepliedSummaryItems(reviews(body(round1[0])), replied)).toHaveLength(0)
+  })
+
+  test("headSideThreads keeps only threads on the new side of the diff", () => {
+    const right = { diffSide: "RIGHT", line: 11 }
+    const left = { diffSide: "LEFT", line: 11 }
+    expect(headSideThreads([left, right, left])).toEqual([right])
   })
 
   test("lists a dropped finding with its thread url in the preview", () => {

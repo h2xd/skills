@@ -4,12 +4,12 @@ export type ResolveOutcome = { lines: string[]; failed: boolean }
 
 const THREAD_LABEL = /^T\d+$/
 
-export function nodeIdsOrLabels(
-  arguments_: string[],
+export function threadNodeIds(
+  idsOrLabels: string[],
   threadsMarkdown: string,
 ): string[] {
   const labels = parseThreadIds(threadsMarkdown)
-  return arguments_.map((argument) => {
+  return idsOrLabels.map((argument) => {
     if (!THREAD_LABEL.test(argument)) return argument
     const id = labels.get(argument)
     if (id === undefined) {

@@ -15,6 +15,7 @@ function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
     id: "PRRT_1",
     isResolved: false,
     isOutdated: false,
+    diffSide: "RIGHT",
     path: "src/a.ts",
     line: 12,
     startLine: null,
@@ -105,7 +106,7 @@ describe("unrepliedSummaryItems", () => {
       {
         author: null,
         state: "COMMENTED",
-        body: "## Outside the diff\n- [out-abc1234-1] item",
+        body: "## Outside the diff\n- [out-1a2b3c4d] item",
         url: "u1",
         submittedAt: null,
       },
@@ -114,8 +115,8 @@ describe("unrepliedSummaryItems", () => {
       {
         reviewUrl: "u1",
         author: "ghost",
-        id: "out-abc1234-1",
-        text: "[out-abc1234-1] item",
+        id: "out-1a2b3c4d",
+        text: "[out-1a2b3c4d] item",
       },
     ])
   })
@@ -134,11 +135,11 @@ describe("unrepliedSummaryItems", () => {
     const body = [
       "### Outside the diff",
       "",
-      "- 🟡 [out-abc1234-1] `a.ts:3`: has an id",
+      "- 🟡 [out-1a2b3c4d] `a.ts:3`: has an id",
       "- 🟡 `b.ts:4`: has none",
     ].join("\n")
     expect(unrepliedSummaryItems([review(body)]).map((item) => item.id)).toEqual([
-      "out-abc1234-1",
+      "out-1a2b3c4d",
     ])
   })
 
@@ -163,18 +164,18 @@ describe("unrepliedSummaryItems", () => {
     const body = [
       "### Outside the diff",
       "",
-      "- 🟡 [out-abc1234-1] `a.ts:3`: replied",
-      "- 🟡 [out-abc1234-2] `b.ts:4`: still open",
+      "- 🟡 [out-1a2b3c4d] `a.ts:3`: replied",
+      "- 🟡 [out-5e6f7a8b] `b.ts:4`: still open",
     ].join("\n")
-    const comments = ["## out-abc1234-1\n\nFixed in abc."]
+    const comments = ["## out-1a2b3c4d\n\nFixed in abc."]
     expect(
       unrepliedSummaryItems([review(body)], comments).map((item) => item.id),
-    ).toEqual(["out-abc1234-2"])
+    ).toEqual(["out-5e6f7a8b"])
   })
 
   test("does not count an id that is only mentioned in a comment", () => {
-    const body = "### Outside the diff\n\n- [out-abc1234-1] x"
-    const comments = ["see out-abc1234-1 above"]
+    const body = "### Outside the diff\n\n- [out-1a2b3c4d] x"
+    const comments = ["see out-1a2b3c4d above"]
     expect(unrepliedSummaryItems([review(body)], comments)).toHaveLength(1)
   })
 })
@@ -189,7 +190,7 @@ describe("formatThreadsDocument", () => {
         {
           reviewUrl: "u1",
           author: "reviewer",
-          id: "out-abc1234-1",
+          id: "out-1a2b3c4d",
           text: "outside finding",
         },
       ],
@@ -206,7 +207,7 @@ describe("formatThreadsDocument", () => {
     )
     expect(output).toContain("```suggestion\nconst x = 1\n```")
     expect(output).toContain(
-      "## S1\n- Item id: out-abc1234-1\n- Review: u1 (reviewer)\n\noutside finding",
+      "## S1\n- Item id: out-1a2b3c4d\n- Review: u1 (reviewer)\n\noutside finding",
     )
   })
 

@@ -19,6 +19,7 @@ export type ReviewThread = {
   isResolved: boolean
   isOutdated: boolean
   path: string
+  diffSide: string
   line: number | null
   startLine: number | null
   originalLine: number | null
@@ -49,8 +50,8 @@ const MARKDOWN_HEADING = /^#{1,6}\s/
 const BOLD_ONLY_LINE = /^\*\*[^*]+\*\*:?$/
 const BULLET = /^\s{0,3}[-*]\s+/
 const NO_FINDINGS = /^none\.?$/i
-const ITEM_ID_HEAD = /^\S*\s*\[(out-\w+-\d+)\]/
-const REPLY_SECTION = /^## (out-\w+-\d+)[ \t]*$/gm
+const ITEM_ID_HEAD = /^\S*\s*\[(out-[0-9a-f]{8})\]/
+const REPLY_SECTION = /^## (out-[0-9a-f]{8})[ \t]*$/gm
 
 export function loginOf(author: { login: string } | null): string {
   return author?.login ?? DELETED_ACCOUNT_LOGIN

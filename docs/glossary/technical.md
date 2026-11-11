@@ -34,6 +34,24 @@ An entry looks like this:
 - **Code:** [`templates/scripts/review/findings.ts`](../../templates/scripts/review/findings.ts), [`skills/review-pr/reviewer-brief.md`](../../skills/review-pr/reviewer-brief.md)
 - **Avoid:** Review file, report
 
+### Item id
+
+- **Meaning:** The `out-<8 hex>` tag on one finding outside the diff in a `review-pr` summary. It is a hash of the finding's file, lines and subject, so the same finding keeps its id in every review and two different findings do not share one. A reply comment answers an item with a `## <item id>` heading.
+- **Code:** [`templates/scripts/review/findings.ts`](../../templates/scripts/review/findings.ts), [`templates/scripts/review/threads.ts`](../../templates/scripts/review/threads.ts)
+- **Avoid:** Finding id, S id
+
+### T label
+
+- **Meaning:** The `T1`, `T2` name that `review.ts threads` gives to one review thread in `threads.md`. Replies and `review.ts resolve` take it in place of the thread's node id.
+- **Code:** [`templates/scripts/review/resolve.ts`](../../templates/scripts/review/resolve.ts), [`templates/scripts/review/reply.ts`](../../templates/scripts/review/reply.ts)
+- **Avoid:** Thread number
+
+### S label
+
+- **Meaning:** The `S1`, `S2` name that `review.ts threads` gives to one unanswered outside-the-diff item in `threads.md`. Each S label carries an item id, and a reply to it posts as a section of one PR comment.
+- **Code:** [`templates/scripts/review/reply.ts`](../../templates/scripts/review/reply.ts), [`templates/scripts/review/threads.ts`](../../templates/scripts/review/threads.ts)
+- **Avoid:** Summary number
+
 ### Task copy
 
 - **Meaning:** The copy of a call file that the callee reads. The chair writes it with every line of the call except the caller's hypothesis.

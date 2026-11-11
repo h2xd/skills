@@ -16,7 +16,7 @@ query($owner: String!, $name: String!, $number: Int!) {
     pullRequest(number: $number) {
       reviewThreads(first: 100) {
         nodes {
-          id isResolved isOutdated path line startLine originalLine
+          id isResolved isOutdated diffSide path line startLine originalLine
           comments(first: 50) { nodes { author { login } body url createdAt } }
         }
       }

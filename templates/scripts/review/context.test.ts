@@ -32,6 +32,7 @@ const DATA: ContextData = {
       id: "PRRT_1",
       isResolved: true,
       isOutdated: false,
+      diffSide: "RIGHT",
       path: "a.ts",
       line: 4,
       startLine: null,

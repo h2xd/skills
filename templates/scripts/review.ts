@@ -4,6 +4,7 @@
  * command.
  *
  *   node scripts/review.ts worktree <branch>
+ *   node scripts/review.ts setup <path>
  *   node scripts/review.ts context [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts threads [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
@@ -25,12 +26,14 @@ import {
   optionsCommand,
   replyCommand,
   resolveCommand,
+  setupCommand,
   threadsCommand,
   worktreeCommand,
 } from "./review/commands.ts"
 
 const COMMANDS: Record<string, (argv: string[]) => void> = {
   worktree: worktreeCommand,
+  setup: setupCommand,
   context: contextCommand,
   threads: threadsCommand,
   reply: replyCommand,

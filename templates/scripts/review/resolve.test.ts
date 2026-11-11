@@ -1,12 +1,12 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { resolveThreads, nodeIdsOrLabels } from "./resolve.ts"
+import { resolveThreads, threadNodeIds } from "./resolve.ts"
 
 const THREADS = "## T1\n- Thread id: PRRT_a\n\n## T2\n- Thread id: PRRT_b\n\n## T3\n- Thread id: PRRT_c\n"
 
-describe("nodeIdsOrLabels", () => {
+describe("threadNodeIds", () => {
   test("maps T labels to node ids and passes node ids through", () => {
-    expect(nodeIdsOrLabels(["T1", "PRRT_x", "T3"], THREADS)).toEqual([
+    expect(threadNodeIds(["T1", "PRRT_x", "T3"], THREADS)).toEqual([
       "PRRT_a",
       "PRRT_x",
       "PRRT_c",
@@ -14,7 +14,7 @@ describe("nodeIdsOrLabels", () => {
   })
 
   test("refuses a T label that threads.md does not hold", () => {
-    expect(() => nodeIdsOrLabels(["T9"], THREADS)).toThrow("T9")
+    expect(() => threadNodeIds(["T9"], THREADS)).toThrow("T9")
   })
 })
 
@@ -22,7 +22,7 @@ describe("resolveThreads", () => {
   test("one call resolves T labels through threads.md", () => {
     const resolved: string[] = []
     const outcome = resolveThreads(
-      nodeIdsOrLabels(["T1", "T3"], THREADS),
+      threadNodeIds(["T1", "T3"], THREADS),
       (id) => resolved.push(id),
     )
     expect(resolved).toEqual(["PRRT_a", "PRRT_c"])
