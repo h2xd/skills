@@ -47,8 +47,8 @@ node scripts/review.ts threads <pr> --worktree $WORKTREE --out $WORK/threads.md
   When only the local branch is ahead, run `git push`. When only the remote is
   ahead, run `git pull --ff-only`. When both moved, stop and ask.
 
-Done when `threads.md` lists every unresolved item with an id. Threads are `T1`,
-`T2`. Findings under "Outside the diff" in review summaries are `S1`, `S2`.
+Done when `threads.md` lists every open item with an id. Threads are `T1`,
+`T2`. Outside-the-diff findings are `S1`, `S2`, each with a stable `Item id`.
 
 ### 2. Triage
 
@@ -105,19 +105,19 @@ Done when `replies.md` has one reply per item.
    ```
 
    It fills `<sha>`, replies on each thread, and posts the `S…` items as one PR
-   comment. It posts nothing and exits 1 when a `<sha>` would remain or a
-   thread id is missing.
+   comment, one section per item id. It posts nothing and exits 1 when a
+   `<sha>` would remain or an id is missing.
 
 Done when the PR body is true to the pushed head and every item has a reply
 URL.
 
 ### 6. Resolve fulfilled threads
 
-Start one subagent on the cheapest model, such as Haiku. Give it the paths to
-`threads.md`, `plan.md` and [`resolver.md`](resolver.md), the commit SHA, and
-`$WORKTREE`.
+When every fix row is applied and the checks pass, resolve the fix threads
+yourself in one `review.ts resolve` call. Start a subagent only for a thread
+whose fix is in doubt, per [`resolving.md`](resolving.md).
 
-Done when `resolved.md` accounts for every fix thread.
+Done when every fix thread printed `resolved` or is in `resolved.md`.
 
 ### 7. Summarize in chat
 
