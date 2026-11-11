@@ -24,7 +24,7 @@ The second command runs the `worktreeSetup` commands in the new worktree, so
 the tests find their packages.
 
 Reviewer D's prompt gets `$WORK/worktree-d` in place of `$WORKTREE`. After
-every reviewer has finished, remove it:
+step 4 has merged the findings, remove it:
 
 ```sh
 git -C $WORKTREE worktree remove --force $WORK/worktree-d
@@ -33,5 +33,13 @@ git -C $WORKTREE worktree remove --force $WORK/worktree-d
 ## A missing findings file
 
 Before step 4, run `ls $WORK/review-<x>.json` for each started reviewer and
-name each missing file. Start that reviewer once more. When it fails again, go
-on without it, and name the missing lens in the summary.
+name each missing file. Start that reviewer once more. Reviewer D keeps
+`$WORK/worktree-d` for the retry. When it fails again, go on without it, and
+name the missing lens in the summary.
+
+## A later review
+
+The prompts need no exclusion list. `merge` drops a 🟡 or 🟢 finding on lines
+that a thread holds, and never a 🔴. It does not drop an item outside the
+diff, which has no thread. When a reviewer words an answered item again with
+other lines or another subject, the item gets a new id and comes back as open.

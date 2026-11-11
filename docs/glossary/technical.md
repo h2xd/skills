@@ -36,7 +36,7 @@ An entry looks like this:
 
 ### Item id
 
-- **Meaning:** The `out-<8 hex>` tag on one finding outside the diff in a `review-pr` summary. It is a hash of the finding's file, lines and subject, so the same finding keeps its id in every review and two different findings do not share one. A reply comment answers an item with a `## <item id>` heading.
+- **Meaning:** The `out-<8 hex>` tag on one finding outside the diff in a `review-pr` summary. It is a hash of the finding's file, lines and subject, so the same file, lines and subject keep the id in every review, and two different findings do not share one. A finding that a reviewer words again with other lines or another subject gets a new id. A reply comment answers an item with a `## <item id>` heading.
 - **Code:** [`templates/scripts/review/findings.ts`](../../templates/scripts/review/findings.ts), [`templates/scripts/review/threads.ts`](../../templates/scripts/review/threads.ts)
 - **Avoid:** Finding id, S id
 

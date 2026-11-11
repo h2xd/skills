@@ -2,6 +2,7 @@
 
 import { createHash } from "node:crypto"
 import { expectedNote } from "./options.ts"
+import type { ReviewThread } from "./threads.ts"
 
 export type Severity = "red" | "yellow" | "green"
 
@@ -24,11 +25,10 @@ export type FindingsFile = {
   status?: string[]
 }
 
-/** A review thread already on the PR. A thread with no `line` is outdated. */
 export type ExistingThread = {
   path: string
   startLine: number | null
-  line: number | null
+  line: number
   url: string
 }
 
@@ -287,10 +287,21 @@ function overlap(a: Range, b: Range): boolean {
   return a[0] <= b[1] && b[0] <= a[1]
 }
 
-export function headSideThreads<T extends { diffSide: string }>(
-  threads: T[],
-): T[] {
-  return threads.filter((thread) => thread.diffSide === HEAD_SIDE)
+export function existingThreads(threads: ReviewThread[]): ExistingThread[] {
+  return threads.flatMap((thread) =>
+    thread.diffSide === HEAD_SIDE &&
+    thread.line !== null &&
+    thread.comments.nodes.length > 0
+      ? [
+          {
+            path: thread.path,
+            startLine: thread.startLine,
+            line: thread.line,
+            url: thread.comments.nodes[0].url,
+          },
+        ]
+      : [],
+  )
 }
 
 function threadHolding(
@@ -299,7 +310,6 @@ function threadHolding(
 ): ExistingThread | undefined {
   return threads.find(
     (thread) =>
-      thread.line !== null &&
       thread.path === finding.file &&
       overlap(span(finding), [thread.startLine ?? thread.line, thread.line]),
   )
@@ -528,7 +538,8 @@ export function mergeFindings(
     .map(({ id, subject }) => ({ id, subject }))
   const kept: Tagged[] = []
   for (const finding of all.filter((item) => !isKeptNote(item))) {
-    const thread = threadHolding(finding, threads)
+    const thread =
+      finding.severity === "red" ? undefined : threadHolding(finding, threads)
     if (thread) {
       dropped.push({ id: finding.id, subject: finding.subject, url: thread.url })
     } else {

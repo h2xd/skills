@@ -18,9 +18,9 @@ import {
   viewPullRequest,
 } from "./github.ts"
 import {
+  existingThreads,
   findingsBullets,
   formatPreview,
-  headSideThreads,
   mergeFindings,
   parseFindings,
 } from "./findings.ts"
@@ -417,18 +417,7 @@ export function mergeCommand(argv: string[]): void {
     pullRequestDiff(pullRequest.number, worktree),
     {
       headSha: pullRequest.headRefOid,
-      threads: headSideThreads(threads).flatMap((thread) =>
-        thread.comments.nodes.length === 0
-          ? []
-          : [
-              {
-                path: thread.path,
-                startLine: thread.startLine,
-                line: thread.line,
-                url: thread.comments.nodes[0].url,
-              },
-            ],
-      ),
+      threads: existingThreads(threads),
       reviewerLogin: authenticatedLogin(worktree),
       author: pullRequest.author.login,
       pickReasons: pickReasons(values.pick),
