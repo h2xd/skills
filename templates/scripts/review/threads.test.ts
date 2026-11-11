@@ -8,7 +8,7 @@ import {
   summaryItems,
   threadLocation,
 } from "./threads.ts"
-import { type FindingsFile, mergeFindings } from "./findings.ts"
+import { type Finding, mergeFindings } from "./findings.ts"
 
 function thread(overrides: Partial<ReviewThread> = {}): ReviewThread {
   return {
@@ -184,7 +184,7 @@ describe("formatThreadsDocument", () => {
 
 describe("outsideDiffItems on a merged review", () => {
   test("keeps every item when a body holds a bold label line", () => {
-    const outside = (id: string, body: string) => ({
+    const outside = (id: string, body: string): Finding => ({
       id,
       severity: "yellow",
       file: "x.ts",
@@ -202,7 +202,7 @@ describe("outsideDiffItems on a merged review", () => {
             outside("E-1", "The defect.\n**Proof:**\nthe output"),
             { ...outside("E-2", "Second."), lines: [9] },
           ],
-        } as FindingsFile,
+        },
       ],
       "",
       { headSha: "a", reviewerLogin: "r", author: "o", pickReasons: [] },
@@ -211,5 +211,17 @@ describe("outsideDiffItems on a merged review", () => {
     expect(items).toHaveLength(2)
     expect(items[0]).toContain("the output")
     expect(items[1]).toContain("subject E-2")
+  })
+
+  test("ends the section at a bold label with a CRLF line end", () => {
+    const body = [
+      "**Outside the diff**",
+      "- `a.ts:3` first",
+      "",
+      "**Nits**",
+      "- `b.ts:9` style only",
+      "",
+    ].join("\r\n")
+    expect(outsideDiffItems(body)).toEqual(["`a.ts:3` first"])
   })
 })

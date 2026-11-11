@@ -241,15 +241,20 @@ type Hunks = Map<string, Range[]>
 function newSideHunks(diff: string): Hunks {
   const hunks: Hunks = new Map()
   let path: string | undefined
-  let previous = ""
+  let inFileHeader = false
   for (const line of diff.split("\n")) {
-    const isFileHeader = line.startsWith("+++ ") && previous.startsWith("--- ")
-    previous = line
-    if (isFileHeader) {
+    if (line.startsWith("diff --git ")) {
+      inFileHeader = true
+      path = undefined
+      continue
+    }
+    if (inFileHeader && line.startsWith("--- ")) continue
+    if (inFileHeader && line.startsWith("+++ ")) {
       const target = line.slice(4).trim().replace(/^"|"$/g, "")
       path = target.startsWith("b/") ? target.slice(2) : undefined
       continue
     }
+    if (line.startsWith("@@")) inFileHeader = false
     const header = /^@@ -\d+(?:,\d+)? \+(\d+)(?:,(\d+))? @@/.exec(line)
     if (header && path) {
       const start = Number(header[1])
@@ -319,7 +324,9 @@ function join(group: Group): Joined {
   )
   const primary = ranked[0]
   const fix = ranked.find(
-    (member) => member.suggestion !== undefined || member.options !== undefined,
+    (member) =>
+      member.severity === primary.severity &&
+      (member.suggestion !== undefined || member.options !== undefined),
   )
   const range: Range = fix?.suggestion !== undefined
     ? span(fix)

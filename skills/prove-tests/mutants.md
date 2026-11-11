@@ -34,8 +34,8 @@ to `--only`, and set `--test` to a command that runs only that test file.
 ## Finding
 
 Use the shape the caller gives. As Reviewer D of `h2xd:review-pr`, that is its
-reviewer brief, a JSON file. The finding below has the same content as that
-JSON finding, with `what` and `why` joined in `body`. Without a shape, use this
+reviewer brief, a findings file. The finding below has the same content as that
+finding in the file, with `what` and `why` joined in `body`. Without a shape, use this
 one:
 
 ```

@@ -108,7 +108,7 @@ Done when every survivor is a finding or a counted equivalent.
 ### 5. Report
 
 Write each finding in the shape the caller gives. As Reviewer D, that is the
-reviewer brief: a JSON file with the mutant quoted in each `body`, and the
+reviewer brief: a findings file with the mutant quoted in each `body`, and the
 status lines below in `status`. Without a shape, use the one in
 [`mutants.md`](mutants.md). Put the status lines after the findings:
 

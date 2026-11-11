@@ -47,6 +47,7 @@ const DELETED_ACCOUNT_LOGIN = "ghost"
 const OUTSIDE_DIFF_HEADING = /^\s{0,3}(?:#{1,6}\s*|\*\*)\s*outside the diff\b/i
 const MARKDOWN_HEADING = /^#{1,6}\s/
 const BOLD_ONLY_LINE = /^\*\*[^*]+\*\*:?$/
+const ITEM_INDENT = /^ {1,4}/
 const BULLET = /^\s{0,3}[-*]\s+/
 const NO_FINDINGS = /^none\.?$/i
 
@@ -85,18 +86,18 @@ export function outsideDiffItems(body: string): string[] {
   for (const line of lines.slice(start + 1)) {
     if (
       MARKDOWN_HEADING.test(line) ||
-      BOLD_ONLY_LINE.test(line) ||
+      BOLD_ONLY_LINE.test(line.trimEnd()) ||
       /^Co-Authored-By:/i.test(line)
     ) {
       break
     }
     if (BULLET.test(line)) items.push([line.replace(BULLET, "")])
-    else if (items.length > 0 && line.trim() !== "") {
-      items[items.length - 1].push(line.trim())
+    else if (items.length > 0) {
+      items[items.length - 1].push(line.trim() === "" ? "" : line.replace(ITEM_INDENT, ""))
     }
   }
   return items
-    .map((itemLines) => itemLines.join("\n"))
+    .map((itemLines) => itemLines.join("\n").trimEnd())
     .filter((item) => !NO_FINDINGS.test(item.trim()))
 }
 

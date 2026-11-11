@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type FindingsFile, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
+import { type Finding, type FindingsFile, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
 import { validateDraftComments } from "./options.ts"
 import { outsideDiffItems } from "./threads.ts"
 
@@ -25,7 +25,7 @@ const CONTEXT = {
   pickReasons: [] as string[],
 }
 
-function finding(overrides: Record<string, unknown> = {}) {
+function finding(overrides: Partial<Finding> = {}): Finding {
   return {
     id: "B-1",
     severity: "yellow",
@@ -39,8 +39,16 @@ function finding(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function file(reviewer: string, findings: unknown[], status: string[] = []) {
-  return { reviewer, findings, status } as FindingsFile
+function file(reviewer: string, findings: Finding[], status: string[] = []): FindingsFile {
+  return { reviewer, findings, status }
+}
+
+function rawFinding(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return { ...finding(), ...overrides }
+}
+
+function rawFile(reviewer: string, findings: unknown[]): Record<string, unknown> {
+  return { reviewer, findings, status: [] }
 }
 
 function problemsOf(json: unknown): string[] {
@@ -50,7 +58,7 @@ function problemsOf(json: unknown): string[] {
 
 describe("parseFindings", () => {
   test("returns the typed file for a valid one", () => {
-    const result = parseFindings(file("B", [finding({ lines: [12] })]))
+    const result = parseFindings(rawFile("B", [rawFinding({ lines: [12] })]))
     expect(result.ok).toBe(true)
     if (result.ok) {
       expect(result.file.reviewer).toBe("B")
@@ -59,15 +67,15 @@ describe("parseFindings", () => {
   })
 
   test("gives no problems for a valid file", () => {
-    const valid = file("B", [
-      finding({ suggestion: "const x = 1", options: ["one", "two"] }),
+    const valid = rawFile("B", [
+      rawFinding({ suggestion: "const x = 1", options: ["one", "two"] }),
     ])
     expect(problemsOf(valid)).toEqual([])
   })
 
   test("names the finding and the field of a bad value", () => {
-    const bad = file("B", [
-      finding({ severity: "orange", lines: [14, 12], subject: "" }),
+    const bad = rawFile("B", [
+      rawFinding({ severity: "orange", lines: [14, 12], subject: "" }),
     ])
     const problems = problemsOf(bad)
     expect(problems).toHaveLength(3)
@@ -77,9 +85,9 @@ describe("parseFindings", () => {
   })
 
   test("names a missing field and an unknown field", () => {
-    const { body: _body, ...withoutBody } = finding()
+    const { body: _body, ...withoutBody } = rawFinding()
     const problems = problemsOf(
-      file("B", [{ ...withoutBody, colour: "red" }]),
+      rawFile("B", [{ ...withoutBody, colour: "red" }]),
     )
     expect(problems.some((p) => p.startsWith("B-1: body"))).toBe(true)
     expect(problems.some((p) => p.startsWith("B-1: colour"))).toBe(true)
@@ -87,7 +95,7 @@ describe("parseFindings", () => {
 
   test("rejects a label that does not fit the severity, and one option", () => {
     const problems = problemsOf(
-      file("B", [finding({ label: "praise", options: ["only"] })]),
+      rawFile("B", [rawFinding({ label: "praise", options: ["only"] })]),
     )
     expect(problems.some((p) => p.startsWith("B-1: label"))).toBe(true)
     expect(problems.some((p) => p.startsWith("B-1: options"))).toBe(true)
@@ -95,15 +103,15 @@ describe("parseFindings", () => {
 
   test("rejects an id of another reviewer and a repeated id", () => {
     const problems = problemsOf(
-      file("B", [finding({ id: "C-1" }), finding(), finding()]),
+      rawFile("B", [rawFinding({ id: "C-1" }), rawFinding(), rawFinding()]),
     )
     expect(problems.some((p) => p.startsWith("C-1: id"))).toBe(true)
     expect(problems.some((p) => p.startsWith("B-1: id"))).toBe(true)
   })
 
   test("accepts one line and three options", () => {
-    const valid = file("B", [
-      finding({ lines: [12], options: ["one", "two", "three"] }),
+    const valid = rawFile("B", [
+      rawFinding({ lines: [12], options: ["one", "two", "three"] }),
     ])
     expect(problemsOf(valid)).toEqual([])
   })
@@ -223,6 +231,7 @@ describe("mergeFindings", () => {
 
   test("reads a hunk header without a count as one line", () => {
     const oneLine = [
+      "diff --git a/src/undo.ts b/src/undo.ts",
       "--- a/src/undo.ts",
       "+++ b/src/undo.ts",
       "@@ -3 +3 @@",
@@ -448,6 +457,78 @@ describe("mergeFindings", () => {
     )
     expect(review.comments).toHaveLength(1)
     expect(stats.outside).toBe(0)
+  })
+
+  test("keeps a finding inline after a removed -- line and an added ++ line", () => {
+    const diff = [
+      "diff --git a/q.sql b/q.sql",
+      "--- a/q.sql",
+      "+++ b/q.sql",
+      "@@ -1,2 +1,2 @@",
+      " x",
+      "--- old",
+      "+++ new",
+      "@@ -10,1 +10,2 @@",
+      " c",
+      "+d",
+      "",
+    ].join("\n")
+    const { review, stats } = mergeFindings(
+      [file("B", [finding({ file: "q.sql", lines: [11] })])],
+      diff,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(stats.outside).toBe(0)
+  })
+
+  test("leaves the suggestion of a lower finding out of a blocking comment", () => {
+    const { review } = mergeFindings(
+      [
+        file("A", [
+          finding({
+            id: "A-1",
+            severity: "red",
+            label: "issue",
+            lines: [10, 12],
+            subject: "query is built from user input",
+          }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "green",
+            label: "nitpick",
+            lines: [11],
+            subject: "reap the comment",
+            suggestion: "",
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body).toContain("issue (blocking)")
+    expect(review.comments[0].body).not.toContain("```suggestion")
+    expect(review.comments[0].start_line).toBe(10)
+    expect(review.comments[0].line).toBe(12)
+  })
+
+  test("keeps an indented suggestion outside the diff intact for review-fix", () => {
+    const suggestion = "jobs:\n  test:\n\n    runs-on: x"
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ file: "c.yml", lines: [3, 5], subject: "s", suggestion }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    const items = outsideDiffItems(review.body)
+    expect(items).toHaveLength(1)
+    expect(items[0]).toContain(`\`\`\`\n${suggestion}\n\`\`\``)
   })
 
   test("takes the suggestion and the options from one reviewer", () => {
