@@ -23,8 +23,17 @@ export type FindingsFile = {
   status?: string[]
 }
 
+/** A review thread already on the PR. A thread with no `line` is outdated. */
+export type ExistingThread = {
+  path: string
+  startLine: number | null
+  line: number | null
+  url: string
+}
+
 export type MergeContext = {
   headSha: string
+  threads?: ExistingThread[]
   reviewerLogin: string
   author: string
   pickReasons: string[]
@@ -47,7 +56,7 @@ export type Review = {
   comments: ReviewComment[]
 }
 
-export type DroppedFinding = { id: string; subject: string }
+export type DroppedFinding = { id: string; subject: string; url?: string }
 
 export type MergeStats = {
   merged: number
@@ -76,6 +85,7 @@ const REQUIRED_FIELDS = [
 const KNOWN_FIELDS = [...REQUIRED_FIELDS, "suggestion", "options"]
 const MIN_OPTIONS = 2
 const MAX_OPTIONS = 3
+const ITEM_ID_SHA_LENGTH = 7
 const KEPT_NOTE = /^kept\b/i
 const OUTSIDE_HEADING = "### Outside the diff"
 const FINDINGS_HEADING = "### Findings"
@@ -275,6 +285,18 @@ function overlap(a: Range, b: Range): boolean {
   return a[0] <= b[1] && b[0] <= a[1]
 }
 
+function threadHolding(
+  finding: Finding,
+  threads: ExistingThread[],
+): ExistingThread | undefined {
+  return threads.find(
+    (thread) =>
+      thread.line !== null &&
+      thread.path === finding.file &&
+      overlap(span(finding), [thread.startLine ?? thread.line, thread.line]),
+  )
+}
+
 function inHunk(hunks: Hunks, file: string, [start, end]: Range): boolean {
   return (hunks.get(file) ?? []).some(
     ([from, to]) => from <= start && end <= to,
@@ -411,9 +433,9 @@ function toComment(joined: Joined): ReviewComment {
     : { ...comment, start_line: start, start_side: "RIGHT" }
 }
 
-function outsideItem(joined: Joined): string {
+function outsideItem(joined: Joined, id: string): string {
   const lines = [
-    `- ${ICON[joined.severity]} \`${location(joined)}\`: ${joined.subject}`,
+    `- ${ICON[joined.severity]} [${id}] \`${location(joined)}\`: ${joined.subject}`,
     ...joined.body.split("\n").map((line) => `    ${line}`),
   ]
   if (joined.suggestion !== undefined) {
@@ -484,10 +506,19 @@ export function mergeFindings(
     file.findings.map((finding) => ({ ...finding, reviewer: file.reviewer })),
   )
   const isKeptNote = (finding: Finding) => KEPT_NOTE.test(finding.subject.trim())
-  const kept = all.filter((finding) => !isKeptNote(finding))
-  const dropped = all
+  const threads = context.threads ?? []
+  const dropped: DroppedFinding[] = all
     .filter(isKeptNote)
     .map(({ id, subject }) => ({ id, subject }))
+  const kept: Tagged[] = []
+  for (const finding of all.filter((item) => !isKeptNote(item))) {
+    const thread = threadHolding(finding, threads)
+    if (thread) {
+      dropped.push({ id: finding.id, subject: finding.subject, url: thread.url })
+    } else {
+      kept.push(finding)
+    }
+  }
   const groups = groupFindings(kept)
   const joined = groups.map(join).sort(byWorst)
   const hunks = newSideHunks(diff)
@@ -516,7 +547,7 @@ export function mergeFindings(
     verdictLine(event, intended, reds, context),
     `🔴 ${count("red")} · 🟡 ${count("yellow")} · 🟢 ${count("green")}`,
     `${FINDINGS_HEADING}\n\n${bullets.length > 0 ? bullets.join("\n") : "None."}`,
-    `${OUTSIDE_HEADING}\n\n${outside.length > 0 ? outside.map(outsideItem).join("\n") : "None."}`,
+    `${OUTSIDE_HEADING}\n\n${outside.length > 0 ? outside.map((item, index) => outsideItem(item, `out-${context.headSha.slice(0, ITEM_ID_SHA_LENGTH)}-${index + 1}`)).join("\n") : "None."}`,
     `${REVIEWERS_HEADING}\n\n${[
       `- Ran: ${files.map((file) => file.reviewer).join(", ")}`,
       ...context.pickReasons.map((reason) => `- ${reason}`),
@@ -562,7 +593,7 @@ export function formatPreview(
     ...(comments.length > 0 ? [`## Comments\n\n${comments.join("\n\n")}`] : []),
     ...(dropped.length > 0
       ? [
-          `## Dropped\n\n${dropped.map((item) => `- ${item.id}: ${item.subject}`).join("\n")}`,
+          `## Dropped\n\n${dropped.map((item) => `- ${item.id}: ${item.subject}${item.url ? ` (${item.url})` : ""}`).join("\n")}`,
         ]
       : []),
   ].join("\n\n") + "\n"
