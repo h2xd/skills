@@ -25,7 +25,7 @@ import {
 } from "./findings.ts"
 import { type DraftComment, validateDraftComments } from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
-import { resolveThreads } from "./resolve.ts"
+import { resolveThreads, threadIdsFor } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
 import { formatThreadsDocument, summaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
@@ -248,11 +248,20 @@ export function replyCommand(argv: string[]): void {
 }
 
 export function resolveCommand(argv: string[]): void {
-  const { positionals } = parseArgs({ args: argv, allowPositionals: true })
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { threads: { type: "string" } },
+  })
   if (positionals.length === 0) {
-    throw new Error("usage: node scripts/review.ts resolve <thread-id>...")
+    throw new Error(
+      "usage: node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...",
+    )
   }
-  const outcome = resolveThreads(positionals, resolveThread)
+  const threadIds = values.threads
+    ? threadIdsFor(positionals, readFileSync(values.threads, "utf8"))
+    : positionals
+  const outcome = resolveThreads(threadIds, resolveThread)
   for (const line of outcome.lines) console.log(line)
   if (outcome.failed) process.exit(1)
 }
