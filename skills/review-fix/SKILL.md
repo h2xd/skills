@@ -71,7 +71,7 @@ tool, such as Agent. Give it the paths to `threads.md`, `plan.md` and
 
 Then read `changes.md` and `git diff`. Check each fix row against the diff, not
 only the suggestion. A `not applied` fix goes back to triage. A row on code
-that is not a test, with no line naming its pinning tests, goes to the fixer.
+that is not a test goes to the fixer when it lists no pinning tests or reason.
 
 Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`. It
 removes narration such as "per review".

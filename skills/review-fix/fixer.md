@@ -8,13 +8,13 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
 1. Apply every **fix** item in the order of `plan.md`.
    - The row says which change to make, and which option letter when the
      reviewer offered several.
+   - Before a row changes code that is not a test, list the behaviors of
+     that code which the change can alter but the row does not ask to
+     change. Write a test for each behavior that has none, and run it on
+     the code as it is. Each test must pass before the change and after it.
    - Take a `suggestion` block as written. Change it only when it breaks the
      code around it or the row asks for more. Then make the change the row
      names, and say so in `changes.md`.
-   - Before a row changes code that is not a test, list the behaviors of
-     that code which the change can alter. Write a test for each behavior
-     that has none, and run it on the code as it is. Each test must pass
-     before the change. Then make the change.
    - Leave **decline** items untouched.
 2. Follow the agent instructions file and `../code-quality/SKILL.md`.
    - Write no comment that explains the code. Rename or restructure instead.
@@ -32,10 +32,11 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
      when those settings are set, as `h2xd:prove-tests` does. It must report
      `killed`.
    - When it does not, the test does not pin the behavior yet. Change the test
-     and run again.
+     and run again, at most two more times.
    - When `mutation.enabled` is `false`, plant the mutant by hand, run the
-     test, and put the red output in `changes.md`.
-   - A row whose mutant still survives at the end is `not applied`, never
+     test, put the red output in `changes.md`, then revert the mutant and
+     run the test again. It must pass.
+   - A row whose mutant survives the third run is `not applied`, never
      fixed.
 
    ```sh
@@ -52,9 +53,13 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
 5. Leave the changes uncommitted.
 6. Write `$WORK/changes.md`:
    - Per item id, the files touched and one sentence on what changed.
-   - For a row on code that is not a test, the names of the pinning tests,
-     and that they passed before and after the change.
-   - For a mutation item, the test's name and the `prove-tests.sh` result line.
+   - For a row on code that is not a test, the names of the tests that pin
+     its behaviors, new or existing, and that they passed before and after
+     the change. When the change can alter no other behavior, write
+     `pinning tests: none needed, <reason>`.
+   - For a mutation item, the test's name and the `prove-tests.sh` result
+     line. When `mutation.enabled` is `false`, the red test output from the
+     hand-planted mutant instead.
    - `not applied: <reason>` when a fix turned out wrong or impossible.
    - The checks, with their exit codes.
 
