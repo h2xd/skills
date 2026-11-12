@@ -7,10 +7,10 @@
     {
       "name": "h2xd",
       "source": "./",
-      "description": "55 skills and 12 agents for Claude Code, grouped as setup, docs, plan, ask, code, prove, git, review, design and session. Lints keep docs, decisions, commits and PR bodies true, with five-reviewer PR reviews and mutation testing."
+      "description": "56 skills and 12 agents for Claude Code, grouped as setup, docs, plan, ask, code, prove, git, review, design and session. Lints keep docs, decisions, commits and PR bodies true, with five-reviewer PR reviews and mutation testing."
     }
   ],
   "metadata": {
-    "description": "The h2xd skills: one plugin with 55 skills and 12 agents for repos that keep their knowledge in an OKF docs bundle."
+    "description": "The h2xd skills: one plugin with 56 skills and 12 agents for repos that keep their knowledge in an OKF docs bundle."
   }
 }

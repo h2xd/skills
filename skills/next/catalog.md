@@ -47,6 +47,8 @@ Starting points that create work, then join the main flow.
 - Raw issues or outside PRs piling up: `h2xd:plan-triage` turns them into
   agent-ready issues. Tickets from `h2xd:to-tickets` are already agent-ready,
   so they skip triage.
+- Open issues that overlap: `h2xd:plan-backlog` merges them into one issue
+  each, after a question round, and sets the labels.
 - Something broken, failing, flaky or slow: `h2xd:code-debug` builds a red
   command first and ends with a regression test. Then `h2xd:session-reflect`
   asks what would have prevented it.
@@ -145,6 +147,7 @@ design-variants → ask-committee
 | Work through checks or decisions on a page | `h2xd:to-page` |
 | Ask a customer or someone outside the team the questions a plan waits on | `h2xd:to-questionnaire` |
 | Move incoming issues and PRs to agent-ready | `h2xd:plan-triage` |
+| Merge overlapping open issues, label them and get proposals | `h2xd:plan-backlog` |
 | Build a feature or fix a bug test-first | `h2xd:code-tdd` |
 | Diagnose and fix a bug or a slowdown | `h2xd:code-debug` |
 | Answer a design question with throwaway code | `h2xd:plan-prototype` |
