@@ -29,11 +29,7 @@
     "37. **Short sentences.** An instruction has at most about 20 words. A description has at most about 25. Use the glossary's word for a thing.",
     "38. **One concrete picture.** Open with a scene the reader remembers, such as \"A ticket that says 'export is broken' sits for a week.\" Not \"This skill enhances workflow quality.\""
   ],
-  "skills/code-architecture/SKILL.md": [
-    "  git log --since=\"6 months ago\" --name-only --format= | sort | uniq -c | sort -rn | head -40"
-  ],
   "skills/code-implement/SKILL.md": [
-    "   node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md",
     "Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A"
   ],
   "skills/code-rules/SKILL.md": [
@@ -237,15 +233,6 @@
     "- Don't keep a comment because it might help. Keep it only with proof it is about something we cannot change.",
     "- Don't restore a comment on a `MUST KILL` surprise in our own code. Reshape the code."
   ],
-  "skills/review-fix/SKILL.md": [
-    "   node scripts/review.ts reply <pr> $WORK/replies.md --sha <short sha> --threads $WORK/threads.md"
-  ],
-  "skills/review-fix/fixer.md": [
-    "   sh scripts/prove-tests.sh --mutants $WORK/mutants --only <item id> --test \"<testCommand>\" --check \"<checkCommand>\" --setup \"<setupCommand>\" --timeout-factor <timeoutFactor>"
-  ],
-  "skills/review-fix/resolver.md": [
-    "   node $WORKTREE/scripts/review.ts resolve --threads $WORK/threads.md <thread ids>"
-  ],
   "skills/review-pr/reviewer-pick.md": [
     "left out. It writes the size, the reviewers, the effort for Reviewer A and the reasons."
   ],
@@ -265,9 +252,6 @@
   ],
   "skills/setup/SKILL.md": [
     "   `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.",
-    "   \"docs:lint\": \"node scripts/lint-docs.ts\", \"docs:find\": \"node scripts/find-docs.ts\",",
-    "   \"docs:resolve\": \"node scripts/resolve-docs.ts\", \"review\": \"node scripts/review.ts\",",
-    "   \"commit:lint\": \"node scripts/lint-commit-message.ts\", \"pr:lint\": \"node scripts/lint-pr-body.ts\",",
     "   `../lang-ts-deep-modules/SKILL.md` when L was yes, `../setup-tone/SKILL.md` per M."
   ],
   "skills/setup/issue-tracker-github.md": [

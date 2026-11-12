@@ -9,8 +9,8 @@
  *   node scripts/lint-skills.ts
  *   node scripts/lint-skills.ts --write-baseline
  *
- * --write-baseline rewrites the baseline from the files as they are. Run it
- * after you wrap a long line, so the old line leaves the baseline.
+ * --write-baseline drops the baseline lines that are gone or wrapped. It
+ * never adds a line. Run it after you wrap a long line.
  */
 
 import { lstatSync, readdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs"
@@ -116,42 +116,58 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
-function longProseLines(text: string): { line: number; text: string }[] {
+function longProseLines(rawText: string): { line: number; text: string }[] {
+  const text = rawText.replace(/\r\n/g, "\n")
   const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/)?.[0] ?? ""
   const body = withoutCode(text.slice(frontmatter.length)).split("\n")
   const offset = frontmatter.split("\n").length - 1
   const original = text.split("\n")
   return body.flatMap((line, index) => {
     const source = original[offset + index]
-    if (line.trim() === "" || source.length <= MAX_LINE_LENGTH || source.trimStart().startsWith("|")) return []
+    if (line.trim() === "" || [...source].length <= MAX_LINE_LENGTH || source.trimStart().startsWith("|")) return []
     return [{ line: offset + index + 1, text: source }]
   })
 }
 
+function countLines(lines: string[]): Map<string, number> {
+  const counts = new Map<string, number>()
+  for (const line of lines) counts.set(line, (counts.get(line) ?? 0) + 1)
+  return counts
+}
+
 export function lintLongLines(path: string, text: string, baseline: Baseline): string[] {
-  const allowed = new Set(baseline[path] ?? [])
+  const allowed = countLines(baseline[path] ?? [])
   return longProseLines(text)
-    .filter((long) => !allowed.has(long.text))
+    .filter((long) => {
+      const left = allowed.get(long.text) ?? 0
+      allowed.set(long.text, left - 1)
+      return left <= 0
+    })
     .map(
       (long) =>
-        `${path}: line ${long.line}: ${long.text.length} characters, over ${MAX_LINE_LENGTH}. Wrap the line. After you wrap an old long line, run node scripts/lint-skills.ts --write-baseline`,
+        `${path}: line ${long.line}: ${[...long.text].length} characters, over ${MAX_LINE_LENGTH}. Wrap the line. After you wrap an old long line, run node scripts/lint-skills.ts --write-baseline`,
     )
 }
 
-export function buildBaseline(files: { path: string; text: string }[]): Baseline {
-  const baseline: Baseline = {}
+export function dropStaleBaselineLines(old: Baseline, files: { path: string; text: string }[]): Baseline {
+  const shrunk: Baseline = {}
   for (const { path, text } of files) {
-    const lines = longProseLines(text).map((long) => long.text)
-    if (lines.length > 0) baseline[path] = lines
+    const present = countLines(longProseLines(text).map((long) => long.text))
+    const kept = (old[path] ?? []).filter((line) => {
+      const left = present.get(line) ?? 0
+      present.set(line, left - 1)
+      return left > 0
+    })
+    if (kept.length > 0) shrunk[path] = kept
   }
-  return baseline
+  return shrunk
 }
 
 export function markdownFiles(absolute: string, relativePath: string): string[] {
   return readdirSync(absolute, { withFileTypes: true })
     .sort((a, b) => (a.name < b.name ? -1 : 1))
     .flatMap((entry) => {
-      const child = join(relativePath, entry.name)
+      const child = `${relativePath}/${entry.name}`
       if (entry.isDirectory()) return markdownFiles(join(absolute, entry.name), child)
       return entry.name.endsWith(".md") ? [child] : []
     })
@@ -207,7 +223,7 @@ function proseOnly(text: string): string {
 
 /** Blanks fenced code, keeping line breaks so line numbers still match. */
 function withoutCode(text: string): string {
-  return text.replace(/^(`{3,})[^\n]*\n[\s\S]*?^\1\s*$/gm, (block) => block.replace(/[^\n]/g, " "))
+  return text.replace(/^( *)(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1\2\s*$/gm, (block) => block.replace(/[^\n]/g, " "))
 }
 
 function lineOf(body: string, at: number, frontmatter: string): number {
@@ -220,7 +236,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const markdown = ["skills", "agents"].flatMap((dir) => markdownFiles(join(repo, dir), dir))
   if (process.argv.includes("--write-baseline")) {
     const files = markdown.map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
-    writeFileSync(join(repo, BASELINE_PATH), JSON.stringify(buildBaseline(files), null, 2) + "\n")
+    const old: Baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
+    writeFileSync(join(repo, BASELINE_PATH), JSON.stringify(dropStaleBaselineLines(old, files), null, 2) + "\n")
     console.log(`wrote ${BASELINE_PATH}`)
     process.exit(0)
   }
