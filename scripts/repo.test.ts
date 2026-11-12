@@ -62,3 +62,24 @@ describe("the comment-reaper agent", () => {
     expect(tools).toContain("Write")
   })
 })
+
+/** The doc comment at the top of a file, after an optional shebang. */
+function headerOf(text: string): string {
+  return text.replace(/^#!.*\n/, "").match(/^\/\*\*[\s\S]*?\*\//)?.[0] ?? ""
+}
+
+describe("the script usage headers", () => {
+  const scripts = ["scripts", "templates/scripts"].flatMap((dir) =>
+    readdirSync(join(ROOT, dir))
+      .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
+      .map((name) => `${dir}/${name}`),
+  )
+  for (const path of scripts) {
+    const text = readFileSync(join(ROOT, path), "utf8")
+    if (!text.includes("process.argv")) continue
+    test(`${path} opens with a doc comment that names its usage`, () => {
+      const name = path.split("/").pop()
+      expect(headerOf(text)).toContain(`node scripts/${name}`)
+    })
+  }
+})
