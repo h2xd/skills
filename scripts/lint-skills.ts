@@ -54,7 +54,7 @@ export function lintSkill(folder: string, text: string): string[] {
   const frontmatterLines = match[0].split("\n").length - 1
   const lineCount = text.endsWith("\n") ? lines.length - 1 : lines.length
   if (lineCount > MAX_LINES) {
-    problems.push(`${lineCount} lines, over ${MAX_LINES}. Move briefs, templates or catalogs to sibling files`)
+    problems.push(`${lineCount} lines, over ${MAX_LINES}. Move text to a sibling file, such as briefs, templates or catalogs. Do not cut a rule to fit`)
   }
   if (!lines.includes("## Do")) problems.push(`no "## Do" section`)
   if (!lines.includes("## Don't")) problems.push(`no "## Don't" section`)
