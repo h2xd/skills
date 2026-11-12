@@ -1,0 +1,321 @@
+{
+  "skills/add-skill/SKILL.md": [
+    "- **Do and Don't.** `## Do` and `## Don't`, three to seven bullets each, specific"
+  ],
+  "skills/add-soul/SKILL.md": [
+    "3. **Empty -ing phrases.** \"highlighting…\", \"ensuring…\", \"showcasing…\". Delete them, or say the fact they hint at.",
+    "5. **Vague sources.** \"Experts believe\", \"Studies suggest\". Name the source or cut the claim.",
+    "7. **AI words.** additionally, crucial, delve, enhance, foster, garner, interplay, intricate, landscape, pivotal, showcase, tapestry, testament, underscore, vibrant. Use the plain word.",
+    "8. **Fancy \"is\".** \"serves as\", \"stands as\", \"boasts\", \"features\". Say \"is\" or \"has\".",
+    "13. **No parentheses, no em dashes.** Prose has none, not even one. En dashes and hyphens used as dashes count too. Give an aside its own sentence, or join it with a comma. Code, inline code, link targets and `<placeholders>` do not count. The skills lint fails a skill that breaks this rule.",
+    "14. **Colon as a connector.** A colon may open a list or an example. It does not glue two thoughts together. Write two sentences.",
+    "16. **Inline-header lists.** \"**Speed:** Speed got better\" repeats itself. A bold lead-in is fine when it ends in a period and new detail follows.",
+    "20. **Chatbot phrases.** \"I hope this helps!\", \"Let me know if…\", \"Certainly!\". Cut them.",
+    "23. **Filler phrases.** \"In order to\" becomes \"to\". \"Due to the fact that\" becomes \"because\". \"It is important to note that\" goes.",
+    "25. **Generic endings.** \"The future looks bright.\" End with the next step or the last fact.",
+    "    - \"substrate\" becomes \"base\". \"wedge in\" becomes \"add\". \"vector\" becomes \"way\".",
+    "    - \"gold-plating\" becomes \"more than the job needs\". \"endgame\" becomes \"the last phase\".",
+    "    - Also replace locus, nexus, primitive as a noun, harness, \"surface\" as in \"API surface\", bedrock, scaffolding, paradigm, north star and flywheel.",
+    "27. **Say what it does, not how it feels.** \"Types that follow your schema\" is a feeling. \"A column rename fails the build\" is a fact. If a sentence could sit unchanged in another project's docs, it says nothing about this one. Cut it.",
+    "28. **One idea per sentence.** When the reader has to read twice, split the sentence.",
+    "29. **Active voice.** Name who does it. \"The file is parsed by the loader\" becomes \"the loader parses the file\".",
+    "30. **Adverbs.** \"Runs quickly\" becomes the number. \"Significantly improves\" becomes the measured change.",
+    "31. **The plain word.** \"utilize\" and \"leverage\" become \"use\". \"facilitate\" becomes \"help\". \"in the event that\" becomes \"if\".",
+    "32. **Mannered prose.** Aphorisms, figurative verbs such as \"rides along\", and personified code such as \"the plan holds it\". Write the literal phrase.",
+    "33. **Over-compression.** \"Parser rejects bad date → exit 2\" makes the reader decode. Write \"The parser rejects a bad date and exits with code 2.\" Keep the articles and the verbs.",
+    "34. **Walls of text.** At most three sentences per paragraph. Turn a list hidden in a paragraph into bullets.",
+    "35. **Summary first.** Text a person scans starts with the answer, the ask or the result. Background comes after. For GitHub text, follow `../setup-tone/github-text.md`.",
+    "36. **Status markers.** 🔴 🟡 🟢 mark status, one item per line, worst first. They never decorate.",
+    "37. **Short sentences.** An instruction has at most about 20 words. A description has at most about 25. Use the glossary's word for a thing.",
+    "38. **One concrete picture.** Open with a scene the reader remembers, such as \"A ticket that says 'export is broken' sits for a week.\" Not \"This skill enhances workflow quality.\""
+  ],
+  "skills/code-architecture/SKILL.md": [
+    "  git log --since=\"6 months ago\" --name-only --format= | sort | uniq -c | sort -rn | head -40"
+  ],
+  "skills/code-implement/SKILL.md": [
+    "   node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md",
+    "Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A"
+  ],
+  "skills/code-rules/SKILL.md": [
+    "- Don't read a whole large file into the main context. Search, then read the lines you need.",
+    "- Don't add a lock before asking whether the sharing can go. Separate the targets first.",
+    "- Don't keep intermediate states alive with throwaway adapters in a planned rewrite. Converge on the target.",
+    "- Don't write a third fix on a premise two fixes failed on. Write the premise down and test it."
+  ],
+  "skills/code-swarm/SKILL.md": [
+    "Paste no file content into a prompt. Wait for the completion notices. Do not poll the output files.",
+    "- Don't race competing versions of one change here. Use `/h2xd:code-arena`, which scores them and grafts the best parts.",
+    "- Don't start workers on a split or N the user has not named or confirmed. Show the plan and ask.",
+    "- Don't let workers start their own subagents. Split the slice in `plan.md` instead.",
+    "- Don't paste raw worker output into the report. Write one line per finding and link `$WORK/results/`."
+  ],
+  "skills/code-tdd/SKILL.md": [
+    "- For a flaky bug, control the clock, the seed or the order so the test fails every run.",
+    "- Don't write all the tests first and the code after. Write one test, make it pass, then write the next.",
+    "- Don't test private functions or check mock call counts. Assert what a caller can observe at the test entry point.",
+    "- Don't compute the expected value the way the code does. Use a literal or a worked example.",
+    "- Don't change a test to match wrong code. Fix the code, or confirm with the user that the behavior changed.",
+    "- Don't mock a module you own. Use the real one, or a fake where the system meets the outside."
+  ],
+  "skills/design-tidy/checks.md": [
+    "  `rg -o --no-filename \"from ['\\\"][^'\\\"]*<components folder>/[^'\\\"]*['\\\"]\" --glob '!<design pages>/**' | sort | uniq -c`.",
+    "- For check 6, run `git log -1 --format=%cs -L'/slug: \"<slug>\"/,+20:<entry file>' | head -1`"
+  ],
+  "skills/docs-adr/SKILL.md": [
+    "2. **Surprising without context.** A reader of the code would ask \"why this way?\"",
+    "seam between modules goes, a deliberate deviation, a constraint the code cannot show, or a",
+    "   conversation. Otherwise set `proposed`. List the deciders in `decision-makers`.",
+    "- Don't open a second issue for a question already in flight. Comment on the open one.",
+    "- Don't ask before you push or open the PR. `h2xd:git-pr-body` opens a one-way door as a draft."
+  ],
+  "skills/docs-glossary/SKILL.md": [
+    "- Write the entry in the same change as the first page or identifier that uses it.",
+    "- Link a glossary term by its heading anchor, so the lint catches a rename you missed.",
+    "- Don't define a term in both glossaries. Give it one home and link from the other.",
+    "- Don't add general programming words. Add one only when this repo gives it a meaning a newcomer would get wrong.",
+    "- Don't describe what a thing does or how it is built under **Meaning**. Say what it is.",
+    "- Don't pick a side when the user and the code disagree about a term. Show both and ask."
+  ],
+  "skills/docs-proofread/SKILL.md": [
+    "Done when `pages.txt` exists and the branch is checked out, or the stop is printed.",
+    "- the accepted decisions, from `node scripts/find-docs.ts --type Decision --status accepted`,",
+    "fixes on the page it names, and report them as `suggest`. Repeat until none is new."
+  ],
+  "skills/docs-proofread/proofreader-brief.md": [
+    "When a page has no finding, write one line for it: `### <page path> 🟢 no finding`."
+  ],
+  "skills/docs-research/SKILL.md": [
+    "- Set `stale_after` for prices, limits, beta features, laws in transition and \"latest version\" facts.",
+    "- Don't edit a file in `docs/references/`. Add a new reference and update the page."
+  ],
+  "skills/docs-research/researcher.md": [
+    "- Don't paraphrase inside `$OUT/references/`. Copy verbatim and summarize in `findings.md`."
+  ],
+  "skills/docs-wiki/SKILL.md": [
+    "`docs/` is an [LLM wiki](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)",
+    "stored as an [Open Knowledge Format v0.2](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)",
+    "- `node scripts/lint-docs.ts` checks conformance. It runs in `pre-commit` and CI.",
+    "- The bundle root is `docs.root` in `agents.config.json`. The default is `docs/`.",
+    "Done when `node scripts/lint-docs.ts` exits 0 after the last step of `ingest.md`.",
+    "Done when `docs/log.md` has the `**Lint**` entry from the last step of `lint.md`.",
+    "- Run `node scripts/find-docs.ts --links-to <path>` for each changed file before you commit."
+  ],
+  "skills/git-commit/SKILL.md": [
+    "Done when `grep -nE '^(Refs|Closes|Fixes|BREAKING CHANGE|Co-Authored-By):' \"$MESSAGE_FILE\"`",
+    "- Don't use `git commit -a`. It misses untracked files and takes in unrelated edits. Stage by path.",
+    "- Don't pass the message with `-m`. Each `-m` starts a new paragraph, and the shell expands backticks and `$`. Use `-F`.",
+    "- Don't write that a check passed. Step 7 gates the commit. Give the number a decision rests on instead.",
+    "- Don't widen a closed type or scope set in a commit. Stop and use `h2xd:docs-adr`.",
+    "- Don't skip a hook with `--no-verify`. When commit-msg rejects the message, edit the message file, run step 6 again, and commit again. When pre-commit fails, fix what it names and run the whole step 8 line again."
+  ],
+  "skills/git-guardrails/SKILL.md": [
+    "[`block-dangerous-git.sh`](../../templates/hooks/block-dangerous-git.sh) is that script. It blocks:",
+    "Copy `templates/hooks/block-dangerous-git.sh` from the plugin root, two folders up from this file:",
+    "`~/.claude/settings.json` and the command `~/.claude/hooks/block-dangerous-git.sh`.",
+    "- Don't report a deny list as equal to the hook. Mark it 🟡 and say what it misses.",
+    "- Don't change the regexes without a test. Pipe a match and a near miss through the copy.",
+    "- Don't run a blocked command to test the hook. Pipe a JSON payload into the script."
+  ],
+  "skills/git-pr-body/SKILL.md": [
+    "`origin/`, unless the user named one. Run `git log --format='%h %s%n%b' <base>..HEAD`,",
+    "- Don't pass the body with `--body`. Shell quoting breaks backticks. Use `--body-file`."
+  ],
+  "skills/lang-ts-base/SKILL.md": [
+    "  uses, such as `kind`, `type` or `tag`. A type with a `boolean` flag and optional"
+  ],
+  "skills/lang-ts-deep-modules/SKILL.md": [
+    "- **Docs**: the pages `node scripts/find-docs.ts --links-to <modules root>` lists.",
+    "Done when `.dependency-cruiser.cjs` holds the five rules with the confirmed root.",
+    "   `<modules root>/<module>/lib/impl`. Run `lint:boundaries`. It must fail with `entrypoint-boundary-from-app` or",
+    "3. When the module has a `tests/` folder, plant `import \"../lib/impl\"` in a test.",
+    "Done when each planted import failed with its rule name, and the last run passed.",
+    "3. When the user wants the module seams recorded as a decision, run `h2xd:docs-adr`.",
+    "- Offer baselined violations to the user as targets for `/h2xd:code-architecture`."
+  ],
+  "skills/next/SKILL.md": [
+    "the token can read checks, `gh pr checks` tells a pending check from a failing one for"
+  ],
+  "skills/next/catalog.md": [
+    "  depth on a page, for the user or the team. `h2xd:to-questionnaire` puts broad questions on a page"
+  ],
+  "skills/plan-prototype/SKILL.md": [
+    "- Don't build variants that differ only in color, copy or names. Change the structure, or build one.",
+    "- Don't wire a prototype to real mutations or the real database. Use memory or a scratch store named `prototype`.",
+    "- Don't leave the switcher or losing variants on the working branch. Move them to `prototype/<slug>`.",
+    "- Don't use this to compare agent-built production candidates. Suggest `h2xd:code-arena` to the user.",
+    "- Don't keep a hard-to-reverse verdict only in a comment. Record it with `h2xd:docs-adr`."
+  ],
+  "skills/plan-triage/SKILL.md": [
+    "asking anyone. A PR is an issue with attached code, with the same roles and states.",
+    "agent takes the next step on the diff, and `ready-for-human` means a person merges.",
+    "- Every comment you post starts with `> *This was generated by AI during triage.*`",
+    "5. **Rejected before?** Run `node scripts/find-docs.ts --type Decision --search \"<words>\"`.",
+    "On a yes, use **Comment**, then **Label**. Add the new labels and remove the old state.",
+    "- When the move is to `ready-for-agent` and no brief exists, ask whether to write one.",
+    "- When an issue carries two states, or a move skips the usual path, say so and ask.",
+    "- Don't use the role names as labels. Use the strings from `docs/agents/issue-tracker.md`.",
+    "- Don't list a collaborator's PR in step 2. Show external PRs only, unless the user names one.",
+    "- Don't record an already-built request as a rejection. Close it with a pointer to the code."
+  ],
+  "skills/plan-triage/brief.md": [
+    "- **Short.** Follow [`../setup-tone/github-text.md`](../setup-tone/github-text.md)."
+  ],
+  "skills/prove-blast-radius/SKILL.md": [
+    "4. **Ran.** A script or test calls the real code and fails loudly when you are wrong.",
+    "- `file` and `lines` mark the breakage in the PR head version, even outside the diff.",
+    "- Use `yellow` for a confirmed risk below level 3, an open risk, or an unproven fact.",
+    "- In chat mode, offer a second pass on another model tier for a wide change across packages or a shared contract. Merge the results, because different models catch different bugs.",
+    "- Don't hand back a write-up you did not test. Run a script, or mark the fact unproven.",
+    "- Don't invent a caller, a field or an API. Cite the `file:line`, or say the search found nothing.",
+    "- Don't run a proof that writes to a shared database, queue or remote service. Stop at level 3 and name the check.",
+    "- Don't put the proof script in the repo tree. Keep it in `$WORK`, and offer it as a test in the report."
+  ],
+  "skills/prove-e2e-create/SKILL.md": [
+    "When the app does not build or start, fix it, or report the exact error and stop."
+  ],
+  "skills/prove-e2e-create/feature-map-example/README.md": [
+    "This directory tells an agent how to prove what a Notes user sees. Read this index before you drive the app. Then follow the matching feature file as the recipe.",
+    "- Set `NOTES_DATA_DIR=/tmp/notes-verify-$RUN_ID` so concurrent runs do not share state.",
+    "- Run `control-notes doctor` and require the expected URL, data directory, and build revision.",
+    "- Start every recipe from the baseline state, unless its preconditions say otherwise.",
+    "- UI proof includes an ARIA snapshot and a screenshot with the app identity visible.",
+    "- Write artifacts to `artifacts/$RUN_ID/<feature-id>/`. Git ignores `artifacts/`.",
+    "- Report an unreachable path with the attempted command and the unmet precondition.",
+    "Each feature file starts with an H1 title and one paragraph on the behavior a user sees. Then come exactly four H2 sections, in this order:",
+    "3. `Driving it with <harness>` starts with `Preconditions:` and uses labeled bullets that pair each user action with an exact command and observable result.",
+    "Keep implementation details out of the map. Name only user paths, stable handles, required state, commands and observable proof.",
+    "- [Create a note](./create-note.md) covers browser and CLI creation, cancellation, persistence, and cleanup.",
+    "- [Search notes](./search.md) covers toolbar, keyboard, and CLI search with matching, empty, and clear states."
+  ],
+  "skills/prove-e2e-create/feature-map-example/create-note.md": [
+    "A user saves a titled note from the browser or the CLI, cancels an unfinished draft, and finds the saved note again from a second view.",
+    "- **Open editor.** Choose `New note`. Run `control-notes browser click --role button --name \"New note\"`. A form named `Note editor` appears with focus in the `Title` textbox.",
+    "- **Enter content.** Type the title and body. Run `control-notes browser fill --role textbox --name \"Title\" --value \"Release checklist\"` and `control-notes browser fill --role textbox --name \"Body\" --value \"Tag and publish\"`. The `Save note` button becomes enabled.",
+    "- **Save note.** Choose `Save note`. Run `control-notes browser click --role button --name \"Save note\"`. A status named `Note saved` appears and the heading reads `Release checklist`.",
+    "- **Confirm persistence.** Return to the note list and reopen the note. Run `control-notes browser click --role link --name \"All notes\"` and `control-notes browser click --role link --name \"Release checklist\"`. The editor shows both saved values.",
+    "- **Cancel draft.** Open a new note, enter `Discard me`, and choose `Cancel`. Run `control-notes browser click --role button --name \"New note\"`, `control-notes browser fill --role textbox --name \"Title\" --value \"Discard me\"`, and `control-notes browser click --role button --name \"Cancel\"`. The note list returns and has no `Discard me` link.",
+    "- **CLI entry.** Create a second note. Run `control-notes cli -- notes create --title \"CLI note\" --body \"Created from terminal\" --format json`. Exit code `0` and stdout contain the new note ID and title.",
+    "- **Proof.** Reopen both saved notes from `All notes`. Run `control-notes browser snapshot --aria --path artifacts/$RUN_ID/create-note/list.aria.txt` and `control-notes browser screenshot --path artifacts/$RUN_ID/create-note/list.png`. The artifacts show `Release checklist` and `CLI note`.",
+    "- Titles are trimmed on save. Assert the rendered title, not the draft input value.",
+    "- Remove `Release checklist` and `CLI note` during cleanup, but keep their proof artifacts."
+  ],
+  "skills/prove-e2e-create/feature-map-example/search.md": [
+    "A user finds notes by title or body text, opens a match, and can tell an empty result from a search that failed.",
+    "- The disposable data directory contains `Quarterly plan` with body text `Draft budget`.",
+    "- **Toolbar entry.** Choose the `Search` button. Run `control-notes browser click --role button --name \"Search\"`. A dialog named `Search notes` appears with focus in its searchbox.",
+    "- **Keyboard entry.** Close the dialog, focus the page, and press `/`. Run `control-notes browser press --key \"/\"`. The same dialog appears and the page does not insert a slash.",
+    "- **Title match.** Type `quarterly`. Run `control-notes browser fill --role searchbox --name \"Search notes\" --value \"quarterly\"`. The `Search results` list contains `Quarterly plan` and does not contain `Grocery list`.",
+    "- **Body match.** Replace the query with `budget`. Run `control-notes browser fill --role searchbox --name \"Search notes\" --value \"budget\"`. The result `Quarterly plan` remains visible with a body-match excerpt.",
+    "- **Open result.** Choose `Quarterly plan`. Run `control-notes browser click --role link --name \"Quarterly plan\"`. The dialog closes and the editor heading reads `Quarterly plan`.",
+    "- **Empty state.** Reopen search and enter `volcano`. Run `control-notes browser fill --role searchbox --name \"Search notes\" --value \"volcano\"`. A status named `No matching notes` appears after search completes.",
+    "- **Clear query.** Choose `Clear search`. Run `control-notes browser click --role button --name \"Clear search\"`. The searchbox is empty and the `Recent notes` region replaces the result list.",
+    "- **CLI match.** Search from the terminal. Run `control-notes cli -- notes search \"quarterly\" --format json`. Exit code `0` and stdout contain one object whose title is `Quarterly plan`.",
+    "- **CLI miss.** Search for an absent value. Run `control-notes cli -- notes search \"volcano\" --format json`. Exit code `0` and stdout are `[]`.",
+    "- **Proof.** Capture the populated result state. Run `control-notes browser snapshot --aria --path artifacts/$RUN_ID/search/results.aria.txt` and `control-notes browser screenshot --path artifacts/$RUN_ID/search/results.png`. Both artifacts identify Notes, the query, and `Quarterly plan`.",
+    "- When the editor or searchbox has focus, `/` types a slash and does not open search.",
+    "- Results update after a short debounce. Wait for the results list or empty status, not a fixed sleep.",
+    "- The CLI defaults to human-readable output. Use `--format json` for stable assertions.",
+    "- Opening a result changes browser state. Reopen search before proving another query."
+  ],
+  "skills/prove-measure/SKILL.md": [
+    "Done when each side ran tuned, inside the limits, with the end-to-end share known.",
+    "`docs/agents/issue-tracker.md`. The comment follows `../setup-tone/github-text.md`.",
+    "- Don't trust a time saved larger than the time the changed piece took. Find the cache, no-op or bug.",
+    "- Don't call a change useless because the number did not move. Find the limiter first.",
+    "- Don't commit on a number without it in the body. Add it as the `measurement` token of `h2xd:git-commit`."
+  ],
+  "skills/prove-tests/SKILL.md": [
+    "Done when each chosen mutant is `killed` and the tests pass on the unmutated tree.",
+    "- Don't run mutants in the user's working tree. Use `prove-tests.sh`, which makes a worktree.",
+    "- Don't change production code to kill a mutant. Write the test. Delete the code only when the mutant shows it is dead.",
+    "- Don't suggest tests that check internals or mock call counts. Assert what a caller sees."
+  ],
+  "skills/prove-tests/mutants.md": [
+    "finding in the file, with `what` and `why` joined in `body`. Without a shape, use this"
+  ],
+  "skills/review-code-comments/SKILL.md": [
+    "- Don't keep a comment because it might help. Keep it only with proof it is about something we cannot change.",
+    "- Don't restore a comment on a `MUST KILL` surprise in our own code. Reshape the code."
+  ],
+  "skills/review-fix/SKILL.md": [
+    "   node scripts/review.ts reply <pr> $WORK/replies.md --sha <short sha> --threads $WORK/threads.md"
+  ],
+  "skills/review-fix/fixer.md": [
+    "   sh scripts/prove-tests.sh --mutants $WORK/mutants --only <item id> --test \"<testCommand>\" --check \"<checkCommand>\" --setup \"<setupCommand>\" --timeout-factor <timeoutFactor>"
+  ],
+  "skills/review-fix/resolver.md": [
+    "   node $WORKTREE/scripts/review.ts resolve --threads $WORK/threads.md <thread ids>"
+  ],
+  "skills/review-pr/reviewer-pick.md": [
+    "left out. It writes the size, the reviewers, the effort for Reviewer A and the reasons."
+  ],
+  "skills/session-handoff/SKILL.md": [
+    "- Decision records with `node scripts/find-docs.ts --type Decision --search \"<words>\"`.",
+    "- Don't keep a secret in the document. Replace it with `<redacted: what it was>`."
+  ],
+  "skills/session-reflect/SKILL.md": [
+    "  `docs/agents/issue-tracker.md`, in the shape of `../setup-tone/github-text.md`.",
+    "- Route every lesson from the top of the ladder down. Say why each higher level fails.",
+    "- Don't write a rule in prose when a type, lint or test can hold it. Build the check.",
+    "- Don't send a plugin issue without a yes, or with the user's repo, code or links in it.",
+    "- Don't keep a lesson from a one-off or a drifting fact. Drop it with the reason."
+  ],
+  "skills/session-reflect/plugin-issue.md": [
+    "Done when the user saw the draft and chose send, edit or drop. On edit, change the draft, check it again and show it again. On"
+  ],
+  "skills/setup/SKILL.md": [
+    "   `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.",
+    "   \"docs:lint\": \"node scripts/lint-docs.ts\", \"docs:find\": \"node scripts/find-docs.ts\",",
+    "   \"docs:resolve\": \"node scripts/resolve-docs.ts\", \"review\": \"node scripts/review.ts\",",
+    "   \"commit:lint\": \"node scripts/lint-commit-message.ts\", \"pr:lint\": \"node scripts/lint-pr-body.ts\",",
+    "   `../lang-ts-deep-modules/SKILL.md` when L was yes, `../setup-tone/SKILL.md` per M."
+  ],
+  "skills/setup/issue-tracker-github.md": [
+    "**PRs in triage: {{TRIAGE_PRS}}.** Set to `yes` to triage external PRs like issues."
+  ],
+  "skills/setup/issue-tracker-gitlab.md": [
+    "**PRs in triage: {{TRIAGE_PRS}}.** Set to `yes` to triage external merge requests like issues."
+  ],
+  "skills/setup/questions.md": [
+    "Where the [OKF](https://github.com/GoogleCloudPlatform/open-knowledge-format/blob/main/SPEC.md)",
+    "`h2xd:code-arena` and the build workers of `h2xd:code-implement` run them. Recommended: the install the lockfile implies, for example"
+  ],
+  "skills/teach/SKILL.md": [
+    "to understand the thing, not to change it. The how skill finds how the code works. The why skill finds why it is that",
+    "- Don't strengthen a hedged claim from the why output. Keep its tier and wording.",
+    "- Don't list functions and constants as the explanation. Say what problem each part solves and how.",
+    "- Don't draw one diagram with every part at once. Draw a series that adds one part each.",
+    "- Don't change code or docs here. Report the gap and offer the skill that fixes it."
+  ],
+  "skills/to-page/SKILL.md": [
+    "Call the tool as `node \"${CLAUDE_PLUGIN_ROOT}/skills/to-page/scripts/to-page.ts\"`."
+  ],
+  "skills/to-questionnaire/SKILL.md": [
+    "- Set `id`, `title` and `intro`. Put the reader in `to`, the sender in `from`, the date from step 2 in `deadline`, and the decision the answers feed in `purpose`.",
+    "loads nothing from outside, so it works offline. The reader clicks **Save answers** and sends back the answers file, or the JSON the page"
+  ],
+  "skills/to-spec/SKILL.md": [
+    "- Don't interview the user about what the conversation settled. Ask only about gaps, and take the rest from the conversation.",
+    "- Don't write file paths or code into the spec, because they go stale. Describe modules and interfaces, and inline a prototype snippet only when it states a decision best.",
+    "- Don't write a decision record inside the spec. List it as `Needs a record` and hand it to `h2xd:docs-adr`."
+  ],
+  "skills/to-spec/template.md": [
+    "List every record `node scripts/find-docs.ts` returned that constrains this work. When the",
+    "conversation made a decision that passes the bar in `h2xd:docs-adr` and no record"
+  ],
+  "skills/to-tickets/SKILL.md": [
+    "- Each ticket crosses every layer it needs such as schema, API, UI and tests, narrowly.",
+    "- Don't slice by layer, such as \"the schema ticket\" and \"the UI ticket\". Cut one thin path through all of them.",
+    "- Don't write a criterion a test cannot check. Name the input and the expected result.",
+    "- Don't name file paths or line numbers in a ticket. They go stale. Name the module, type or behavior."
+  ],
+  "skills/to-tickets/slicing.md": [
+    "code base, such as renaming a column or retyping a shared symbol. One edit breaks every"
+  ],
+  "skills/what/SKILL.md": [
+    "Done when the message is sent, and a reader who skipped the work could act on it."
+  ],
+  "agents/committee-engineering-spike-builder.md": [
+    "   `git worktree add -b spike/<yyyymmdd-hhmm>-<call id> ../<repo>-spike-<yyyymmdd-hhmm>-<call id>`."
+  ]
+}
