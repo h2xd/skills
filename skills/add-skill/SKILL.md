@@ -51,7 +51,8 @@ one reading, as an instruction to follow or a fact to rely on.
 - **GitHub text.** Text the skill posts to GitHub follows
   `../setup-tone/github-text.md`.
 - **Length.** At most 150 lines. Move templates, catalogs, briefs for subagents
-  and long examples to sibling files, and link them by relative path.
+  and long examples to sibling files, and link them by relative path. At the
+  limit, move text to a sibling file. Never cut a rule to fit.
 
 ## Agent definitions
 
