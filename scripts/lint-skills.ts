@@ -22,7 +22,6 @@ export const MAX_LINES = 150
 
 export const MAX_LINE_LENGTH = 80
 
-/** Repo-relative path of the long lines that exist today, keyed by file path. */
 export const BASELINE_PATH = "scripts/lint-skills.baseline.json"
 
 export type Baseline = Record<string, string[]>
@@ -117,8 +116,7 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
-/** The prose lines over the limit, with 1-based numbers. Skips frontmatter, fenced code and table rows. */
-function longLines(text: string): { line: number; text: string }[] {
+function longProseLines(text: string): { line: number; text: string }[] {
   const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/)?.[0] ?? ""
   const body = withoutCode(text.slice(frontmatter.length)).split("\n")
   const offset = frontmatter.split("\n").length - 1
@@ -130,10 +128,9 @@ function longLines(text: string): { line: number; text: string }[] {
   })
 }
 
-/** A prose line over 80 characters that the baseline does not hold is one problem. */
 export function lintLongLines(path: string, text: string, baseline: Baseline): string[] {
   const allowed = new Set(baseline[path] ?? [])
-  return longLines(text)
+  return longProseLines(text)
     .filter((long) => !allowed.has(long.text))
     .map(
       (long) =>
@@ -141,17 +138,15 @@ export function lintLongLines(path: string, text: string, baseline: Baseline): s
     )
 }
 
-/** The long lines of every file, keyed by path, as the baseline stores them. */
 export function buildBaseline(files: { path: string; text: string }[]): Baseline {
   const baseline: Baseline = {}
   for (const { path, text } of files) {
-    const lines = longLines(text).map((long) => long.text)
+    const lines = longProseLines(text).map((long) => long.text)
     if (lines.length > 0) baseline[path] = lines
   }
   return baseline
 }
 
-/** Repo-relative paths of every .md under `dir`, recursively, sorted. */
 export function markdownFiles(absolute: string, relativePath: string): string[] {
   return readdirSync(absolute, { withFileTypes: true })
     .sort((a, b) => (a.name < b.name ? -1 : 1))
