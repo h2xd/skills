@@ -23,9 +23,9 @@ the internal skills.
 - `node scripts/lint-skills.ts` checks what a script can: frontmatter, length, a
   `Done when` per numbered step, `## Do` and `## Don't`, and tool or model
   names only as examples. It also fails a new prose line over 80 characters in
-  `skills/` and `agents/`, against `scripts/lint-skills.baseline.json`.
-  `--write-baseline` only removes old lines. `npm test` runs it on every
-  skill.
+  `skills/` and `agents/`, against the long-line baseline,
+  `scripts/lint-skills.baseline.json`. `--write-baseline` only removes old
+  lines. `npm test` runs it on every skill.
 - Skills name each other as `h2xd:<name>`. A skill with
   `disable-model-invocation: true` in its frontmatter is user-only. It is
   read by path, `../<name>/SKILL.md`, never invoked by another skill. Telling

@@ -45,8 +45,9 @@ const CLI_SPECIFIC = [
 
 const EXAMPLE_MARKER = /(such as|for example)[^.]*$/i
 
-export function lintSkill(folder: string, text: string): string[] {
+export function lintSkill(folder: string, rawText: string): string[] {
   const problems: string[] = []
+  const text = rawText.replace(/\r\n/g, "\n")
   const match = text.match(/^---\n([\s\S]*?)\n---\n/)
   if (!match) return ["no frontmatter"]
   let frontmatter: Record<string, unknown>
@@ -118,7 +119,7 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
 
 function longProseLines(rawText: string): { line: number; text: string }[] {
   const text = rawText.replace(/\r\n/g, "\n")
-  const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/)?.[0] ?? ""
+  const frontmatter = text.match(/^---\n[\w-]+:[\s\S]*?\n---\n/)?.[0] ?? ""
   const body = withoutCode(text.slice(frontmatter.length)).split("\n")
   const offset = frontmatter.split("\n").length - 1
   const original = text.split("\n")
@@ -135,14 +136,16 @@ function countLines(lines: string[]): Map<string, number> {
   return counts
 }
 
+function takeOne(counts: Map<string, number>, line: string): boolean {
+  const left = counts.get(line) ?? 0
+  counts.set(line, left - 1)
+  return left > 0
+}
+
 export function lintLongLines(path: string, text: string, baseline: Baseline): string[] {
   const allowed = countLines(baseline[path] ?? [])
   return longProseLines(text)
-    .filter((long) => {
-      const left = allowed.get(long.text) ?? 0
-      allowed.set(long.text, left - 1)
-      return left <= 0
-    })
+    .filter((long) => !takeOne(allowed, long.text))
     .map(
       (long) =>
         `${path}: line ${long.line}: ${[...long.text].length} characters, over ${MAX_LINE_LENGTH}. Wrap the line. After you wrap an old long line, run node scripts/lint-skills.ts --write-baseline`,
@@ -153,11 +156,7 @@ export function dropStaleBaselineLines(old: Baseline, files: { path: string; tex
   const shrunk: Baseline = {}
   for (const { path, text } of files) {
     const present = countLines(longProseLines(text).map((long) => long.text))
-    const kept = (old[path] ?? []).filter((line) => {
-      const left = present.get(line) ?? 0
-      present.set(line, left - 1)
-      return left > 0
-    })
+    const kept = (old[path] ?? []).filter((line) => takeOne(present, line))
     if (kept.length > 0) shrunk[path] = kept
   }
   return shrunk
