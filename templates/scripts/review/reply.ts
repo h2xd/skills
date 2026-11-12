@@ -24,12 +24,18 @@ export function parseItemIds(threadsMarkdown: string): Map<string, string> {
 
 export function parseReplySections(repliesMarkdown: string): ReplySection[] {
   const matches = repliesMarkdown.matchAll(
-    /^## (\S+)\n([\s\S]*?)(?=^## |(?![\s\S]))/gm,
+    /^## ([^\r\n]*?)[ \t]*\r?\n([\s\S]*?)(?=^## |(?![\s\S]))/gm,
   )
   return [...matches].map((match) => ({
     id: match[1],
     body: match[2].trim(),
   }))
+}
+
+function textBeforeFirstHeading(repliesMarkdown: string): string {
+  const firstHeading = repliesMarkdown.search(/^## /m)
+  const end = firstHeading === -1 ? repliesMarkdown.length : firstHeading
+  return repliesMarkdown.slice(0, end).trim()
 }
 
 /** Throws with every problem found, so nothing is posted on a partial plan. */
@@ -47,12 +53,17 @@ export function planReplies(input: {
   const itemIds = parseItemIds(input.threadsMarkdown)
 
   const problems: string[] = []
+  if (textBeforeFirstHeading(input.repliesMarkdown) !== "") {
+    problems.push(
+      "Text comes before the first heading. Open the replies file with ## T<n> or ## S<n>",
+    )
+  }
   if (sections.length === 0)
     problems.push("replies file has no T or S sections")
   for (const section of sections) {
     if (!/^[TS]\d+$/.test(section.id)) {
       problems.push(
-        `## ${section.id} is not a T or S label. Head each reply with the label from the threads file, such as ## S1`,
+        `## ${section.id} is not a T or S label. Head each reply with the label from the threads file, such as ## S1. A reply body uses ### or lower for its own headings`,
       )
     }
     if (section.body.includes(SHA_PLACEHOLDER)) {

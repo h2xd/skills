@@ -78,6 +78,48 @@ describe("planReplies", () => {
     ).toThrow("## out-1a2b3c4d is not a T or S label. Head each reply with the label from the threads file, such as ## S1")
   })
 
+  for (const [name, text, heading] of [
+    ["a heading with a space", "## T1\nFixed in <sha>.\n\n## Why this way\nlost text\n## S1\nok\n", "## Why this way"],
+    ["a heading inside a fenced block", "## T1\nFixed:\n```md\n## Usage notes\nmore\n```\nend\n", "## Usage notes"],
+  ] as const) {
+    test(`rejects ${name} instead of dropping its text`, () => {
+      const label = heading.trimEnd().slice(3)
+      expect(() =>
+        planReplies({ repliesMarkdown: text, threadsMarkdown: THREADS, sha: "abc1234" }),
+      ).toThrow(`## ${label} is not a T or S label`)
+    })
+  }
+
+  test("starts a section at a heading with a trailing space", () => {
+    const sections = parseReplySections("## T1\nok\n## S1 \nmore\n")
+    expect(sections.map((section) => section.id)).toEqual(["T1", "S1"])
+    expect(sections[1].body).toBe("more")
+  })
+
+  test("parses a file with CRLF line endings", () => {
+    const sections = parseReplySections("## T1\r\nok\r\n## S1\r\nok\r\n")
+    expect(sections.map((section) => section.id)).toEqual(["T1", "S1"])
+    expect(sections.map((section) => section.body)).toEqual(["ok", "ok"])
+  })
+
+  test("rejects a mistyped first heading, so its text is not dropped", () => {
+    expect(() =>
+      planReplies({ repliesMarkdown: "##T1\nFixed.\n## S1\nok\n", threadsMarkdown: THREADS, sha: "abc1234" }),
+    ).toThrow("Open the replies file with ## T<n> or ## S<n>")
+  })
+
+  test("rejects text before the first heading", () => {
+    expect(() =>
+      planReplies({ repliesMarkdown: "intro\n## T1\nok\n", threadsMarkdown: THREADS, sha: "abc1234" }),
+    ).toThrow("Open the replies file with ## T<n> or ## S<n>")
+  })
+
+  test("tells the writer a reply body uses ### for its own headings", () => {
+    expect(() =>
+      planReplies({ repliesMarkdown: "## T1\nok\n## Details\nx\n", threadsMarkdown: THREADS, sha: "abc1234" }),
+    ).toThrow("A reply body uses ### or lower for its own headings")
+  })
+
   test("fills the sha and pairs each T reply with its thread id", () => {
     const plan = planReplies({
       repliesMarkdown: REPLIES,
