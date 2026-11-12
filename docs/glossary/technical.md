@@ -87,3 +87,9 @@ An entry looks like this:
 - **Meaning:** The read-only subagent on the cheapest model that maps each acceptance criterion of a ticket to the files it touches. It marks a criterion `unsure` when it cannot name them.
 - **Code:** [`skills/code-implement/scout.md`](../../skills/code-implement/scout.md)
 - **Avoid:** Explorer, mapper
+
+### Long-line baseline
+
+- **Meaning:** The prose lines over 80 characters that already existed when the line limit began. `lint-skills` allows each one, once per copy, and fails any other. `--write-baseline` only drops lines that are gone or short.
+- **Code:** [`scripts/lint-skills.baseline.json`](../../scripts/lint-skills.baseline.json), read by [`scripts/lint-skills.ts`](../../scripts/lint-skills.ts)
+- **Avoid:** Baseline alone, allowlist

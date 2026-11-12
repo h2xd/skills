@@ -37,6 +37,10 @@ Done when it exits 0.
 `
 
 describe("lintSkill", () => {
+  test("reads a CRLF skill like an LF one", () => {
+    expect(lintSkill("demo", GOOD.replace(/\n/g, "\r\n"))).toEqual([])
+  })
+
   test("passes a skill that follows the rules", () => {
     expect(lintSkill("demo", GOOD)).toEqual([])
   })
@@ -122,11 +126,15 @@ describe("lintLongLines", () => {
     expect(lintLongLines(path, text, {})).toEqual([])
   })
 
+  test("counts a leading thematic break as prose, not frontmatter", () => {
+    expect(lintLongLines(path, `---\n\n${long}\n\n---\n`, {})).toHaveLength(1)
+  })
+
   test("allows a line of exactly the limit", () => {
     expect(lintLongLines(path, `${"x".repeat(MAX_LINE_LENGTH)}\n`, {})).toEqual([])
   })
 
-  test("keeps an indented baseline line through a rebuild", () => {
+  test("keeps an indented baseline line when the baseline shrinks", () => {
     const text = `short\n  - ${long}\n`
     const baseline = dropStaleBaselineLines({ [path]: [`  - ${long}`] }, [{ path, text }])
     expect(baseline).toEqual({ [path]: [`  - ${long}`] })
@@ -221,7 +229,9 @@ describe("the long lines in this repo", () => {
   }
 
   test("the baseline holds no line that is gone or short", () => {
-    const files = Object.keys(baseline).map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
+    const files = ["skills", "agents"]
+      .flatMap((dir) => markdownFiles(join(repo, dir), dir))
+      .map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
     expect(dropStaleBaselineLines(baseline, files)).toEqual(baseline)
   })
 })
