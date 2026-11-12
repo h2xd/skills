@@ -5,6 +5,7 @@ import { join } from "node:path"
 import {
   BASELINE_PATH,
   EXEMPT,
+  buildBaseline,
   MAX_LINES,
   MAX_LINE_LENGTH,
   lintCatalog,
@@ -123,6 +124,13 @@ describe("lintLongLines", () => {
 
   test("allows a line of exactly the limit", () => {
     expect(lintLongLines(path, `${"x".repeat(MAX_LINE_LENGTH)}\n`, {})).toEqual([])
+  })
+
+  test("accepts every line of a baseline built from the same files, indented ones too", () => {
+    const text = `short\n  - ${long}\n`
+    const baseline = buildBaseline([{ path, text }, { path: "agents/x.md", text: "short\n" }])
+    expect(baseline).toEqual({ [path]: [`  - ${long}`] })
+    expect(lintLongLines(path, text, baseline)).toEqual([])
   })
 })
 
