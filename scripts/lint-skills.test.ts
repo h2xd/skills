@@ -72,6 +72,12 @@ describe("lintSkill", () => {
     expect(lintSkill("demo", text)[0]).toStartWith(`${GOOD.split("\n").length - 1 + MAX_LINES} lines`)
   })
 
+  test("tells the writer to move text to a sibling file, not to cut a rule", () => {
+    const text = GOOD + "\n".repeat(MAX_LINES)
+    expect(lintSkill("demo", text)[0]).toContain("sibling file")
+    expect(lintSkill("demo", text)[0]).toContain("Do not cut a rule to fit")
+  })
+
   test("accepts a tool or model named as an example only", () => {
     const named = GOOD.replace("Run `demo`.", "Ask with AskUserQuestion.")
     expect(lintSkill("demo", named)).toEqual([
