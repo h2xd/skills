@@ -5,7 +5,6 @@ import { join } from "node:path"
 import {
   BASELINE_PATH,
   EXEMPT,
-  buildBaseline,
   MAX_LINES,
   MAX_LINE_LENGTH,
   lintCatalog,
@@ -13,6 +12,7 @@ import {
   lintLongLines,
   lintSkill,
   markdownFiles,
+  dropStaleBaselineLines,
 } from "./lint-skills.ts"
 
 const GOOD = `---
@@ -126,11 +126,56 @@ describe("lintLongLines", () => {
     expect(lintLongLines(path, `${"x".repeat(MAX_LINE_LENGTH)}\n`, {})).toEqual([])
   })
 
-  test("accepts every line of a baseline built from the same files, indented ones too", () => {
+  test("keeps an indented baseline line through a rebuild", () => {
     const text = `short\n  - ${long}\n`
-    const baseline = buildBaseline([{ path, text }, { path: "agents/x.md", text: "short\n" }])
+    const baseline = dropStaleBaselineLines({ [path]: [`  - ${long}`] }, [{ path, text }])
     expect(baseline).toEqual({ [path]: [`  - ${long}`] })
     expect(lintLongLines(path, text, baseline)).toEqual([])
+  })
+})
+
+describe("lintLongLines edge cases", () => {
+  const long = "x".repeat(MAX_LINE_LENGTH + 1)
+  const path = "skills/demo/SKILL.md"
+
+  test("a CRLF file passes with a baseline built from its LF text", () => {
+    const text = `---\nname: a\ndescription: ${long}\n---\n\n${long}\n`
+    const baseline = { [path]: [long] }
+    expect(lintLongLines(path, text.replace(/\n/g, "\r\n"), baseline)).toEqual([])
+  })
+
+  test("a baseline line pasted a second time gives one problem", () => {
+    const problems = lintLongLines(path, `${long}\nshort\n${long}\n`, { [path]: [long] })
+    expect(problems.length).toBe(1)
+    expect(problems[0]).toStartWith(`${path}: line 3:`)
+  })
+
+  test("counts code points, so a status marker counts as one", () => {
+    const line = `${"a".repeat(MAX_LINE_LENGTH - 2)}🔴🔴`
+    expect(lintLongLines(path, `${line}\n`, {})).toEqual([])
+    expect(lintLongLines(path, `${line}🔴\n`, {})[0]).toContain(`${MAX_LINE_LENGTH + 1} characters`)
+  })
+
+  test("skips a fence indented under a numbered step, and a ~~~ fence", () => {
+    const text = `1. step\n\n   \`\`\`sh\n   ${long}\n   \`\`\`\n\n~~~\n${long}\n~~~\n`
+    expect(lintLongLines(path, text, {})).toEqual([])
+  })
+})
+
+describe("dropStaleBaselineLines", () => {
+  const long = "x".repeat(MAX_LINE_LENGTH + 1)
+  const other = "y".repeat(MAX_LINE_LENGTH + 1)
+  const path = "a.md"
+
+  test("never adds a new long line", () => {
+    const shrunk = dropStaleBaselineLines({ [path]: [long] }, [{ path, text: `${long}\n${other}\n` }])
+    expect(shrunk).toEqual({ [path]: [long] })
+  })
+
+  test("drops a wrapped line and a copy that is gone", () => {
+    expect(dropStaleBaselineLines({ [path]: [long, other] }, [{ path, text: `${long}\n` }])).toEqual({ [path]: [long] })
+    expect(dropStaleBaselineLines({ [path]: [long, long] }, [{ path, text: `${long}\n` }])).toEqual({ [path]: [long] })
+    expect(dropStaleBaselineLines({ [path]: [long] }, [{ path, text: "short\n" }])).toEqual({})
   })
 })
 
@@ -176,10 +221,8 @@ describe("the long lines in this repo", () => {
   }
 
   test("the baseline holds no line that is gone or short", () => {
-    for (const [path, lines] of Object.entries<string[]>(baseline)) {
-      const text = readFileSync(join(repo, path), "utf8")
-      for (const line of lines) expect(text.split("\n").includes(line)).toBe(true)
-    }
+    const files = Object.keys(baseline).map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
+    expect(dropStaleBaselineLines(baseline, files)).toEqual(baseline)
   })
 })
 
