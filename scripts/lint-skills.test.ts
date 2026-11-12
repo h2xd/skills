@@ -2,7 +2,17 @@ import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { EXEMPT, MAX_LINES, lintCatalog, lintLinks, lintSkill } from "./lint-skills.ts"
+import {
+  BASELINE_PATH,
+  EXEMPT,
+  MAX_LINES,
+  MAX_LINE_LENGTH,
+  lintCatalog,
+  lintLinks,
+  lintLongLines,
+  lintSkill,
+  markdownFiles,
+} from "./lint-skills.ts"
 
 const GOOD = `---
 name: demo
@@ -90,6 +100,32 @@ describe("lintSkill", () => {
   })
 })
 
+describe("lintLongLines", () => {
+  const long = "x".repeat(MAX_LINE_LENGTH + 1)
+  const path = "skills/demo/SKILL.md"
+
+  test("names the file and the 1-based line of a long prose line", () => {
+    const problems = lintLongLines(path, `short\n${long}\n`, {})
+    expect(problems.length).toBe(1)
+    expect(problems[0]).toStartWith(`${path}: line 2: ${long.length} characters, over ${MAX_LINE_LENGTH}.`)
+    expect(problems[0]).toContain("--write-baseline")
+  })
+
+  test("allows a line that the baseline holds for that file", () => {
+    expect(lintLongLines(path, `${long}\n`, { [path]: [long] })).toEqual([])
+    expect(lintLongLines(path, `${long}\n`, { "other.md": [long] }).length).toBe(1)
+  })
+
+  test("skips fenced code, table rows and the frontmatter", () => {
+    const text = `---\ndescription: ${long}\n---\n\n\`\`\`\n${long}\n\`\`\`\n\n| ${long} |\n`
+    expect(lintLongLines(path, text, {})).toEqual([])
+  })
+
+  test("allows a line of exactly the limit", () => {
+    expect(lintLongLines(path, `${"x".repeat(MAX_LINE_LENGTH)}\n`, {})).toEqual([])
+  })
+})
+
 describe("lintCatalog", () => {
   const row = (name: string) => `| Do ${name} | \`h2xd:${name}\` |`
 
@@ -119,6 +155,24 @@ describe("the skills in this repo", () => {
       expect(lintSkill(folder, text)).toEqual([])
     })
   }
+})
+
+describe("the long lines in this repo", () => {
+  const repo = join(import.meta.dirname, "..")
+  const baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
+
+  for (const path of ["skills", "agents"].flatMap((dir) => markdownFiles(join(repo, dir), dir))) {
+    test(path, () => {
+      expect(lintLongLines(path, readFileSync(join(repo, path), "utf8"), baseline)).toEqual([])
+    })
+  }
+
+  test("the baseline holds no line that is gone or short", () => {
+    for (const [path, lines] of Object.entries<string[]>(baseline)) {
+      const text = readFileSync(join(repo, path), "utf8")
+      for (const line of lines) expect(text.split("\n").includes(line)).toBe(true)
+    }
+  })
 })
 
 describe("lintLinks", () => {

@@ -22,7 +22,9 @@ the internal skills.
   template keep MADR's title case.
 - `node scripts/lint-skills.ts` checks what a script can: frontmatter, length, a
   `Done when` per numbered step, `## Do` and `## Don't`, and tool or model
-  names only as examples. `npm test` runs it on every skill.
+  names only as examples. It also fails a new prose line over 80 characters,
+  against `scripts/lint-skills.baseline.json`. `npm test` runs it on every
+  skill.
 - Skills name each other as `h2xd:<name>`. A skill with
   `disable-model-invocation: true` in its frontmatter is user-only. It is
   read by path, `../<name>/SKILL.md`, never invoked by another skill. Telling

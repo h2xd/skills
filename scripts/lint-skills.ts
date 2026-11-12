@@ -1,17 +1,31 @@
 #!/usr/bin/env node
 /**
  * Checks every skill in skills/ and every internal skill in .claude/skills/
- * against the rules of skills/add-skill that a script can check. Prints one line per problem and exits 1 when any exist.
+ * against the rules of skills/add-skill that a script can check. It also
+ * checks every .md under skills/ and agents/ for prose lines over 80
+ * characters. Lines that already existed are in scripts/lint-skills.baseline.json.
+ * Prints one line per problem and exits 1 when any exist.
  *
  *   node scripts/lint-skills.ts
+ *   node scripts/lint-skills.ts --write-baseline
+ *
+ * --write-baseline rewrites the baseline from the files as they are. Run it
+ * after you wrap a long line, so the old line leaves the baseline.
  */
 
-import { lstatSync, readdirSync, readFileSync, readlinkSync } from "node:fs"
+import { lstatSync, readdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { parseYaml } from "../templates/scripts/yaml.ts"
 import { fileURLToPath } from "node:url"
 
 export const MAX_LINES = 150
+
+export const MAX_LINE_LENGTH = 80
+
+/** Repo-relative path of the long lines that exist today, keyed by file path. */
+export const BASELINE_PATH = "scripts/lint-skills.baseline.json"
+
+export type Baseline = Record<string, string[]>
 
 /** Skills the lint skips. Empty: every skill follows add-skill. */
 export const EXEMPT = new Set<string>()
@@ -103,6 +117,51 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
+/** The prose lines over the limit, with 1-based numbers. Skips frontmatter, fenced code and table rows. */
+function longLines(text: string): { line: number; text: string }[] {
+  const frontmatter = text.match(/^---\n[\s\S]*?\n---\n/)?.[0] ?? ""
+  const body = withoutCode(text.slice(frontmatter.length)).split("\n")
+  const offset = frontmatter.split("\n").length - 1
+  const original = text.split("\n")
+  return body.flatMap((line, index) => {
+    const source = original[offset + index]
+    if (line.trim() === "" || source.length <= MAX_LINE_LENGTH || source.trimStart().startsWith("|")) return []
+    return [{ line: offset + index + 1, text: source }]
+  })
+}
+
+/** A prose line over 80 characters that the baseline does not hold is one problem. */
+export function lintLongLines(path: string, text: string, baseline: Baseline): string[] {
+  const allowed = new Set(baseline[path] ?? [])
+  return longLines(text)
+    .filter((long) => !allowed.has(long.text))
+    .map(
+      (long) =>
+        `${path}: line ${long.line}: ${long.text.length} characters, over ${MAX_LINE_LENGTH}. Wrap the line. After you wrap an old long line, run node scripts/lint-skills.ts --write-baseline`,
+    )
+}
+
+/** The long lines of every file, keyed by path, as the baseline stores them. */
+export function buildBaseline(files: { path: string; text: string }[]): Baseline {
+  const baseline: Baseline = {}
+  for (const { path, text } of files) {
+    const lines = longLines(text).map((long) => long.text)
+    if (lines.length > 0) baseline[path] = lines
+  }
+  return baseline
+}
+
+/** Repo-relative paths of every .md under `dir`, recursively, sorted. */
+export function markdownFiles(absolute: string, relativePath: string): string[] {
+  return readdirSync(absolute, { withFileTypes: true })
+    .sort((a, b) => (a.name < b.name ? -1 : 1))
+    .flatMap((entry) => {
+      const child = join(relativePath, entry.name)
+      if (entry.isDirectory()) return markdownFiles(join(absolute, entry.name), child)
+      return entry.name.endsWith(".md") ? [child] : []
+    })
+}
+
 type Entry = { name: string; target: string | null }
 
 /**
@@ -161,8 +220,23 @@ function lineOf(body: string, at: number, frontmatter: string): number {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const root = resolve(import.meta.dirname, "..", "skills")
+  const repo = resolve(import.meta.dirname, "..")
+  const root = resolve(repo, "skills")
+  const markdown = ["skills", "agents"].flatMap((dir) => markdownFiles(join(repo, dir), dir))
+  if (process.argv.includes("--write-baseline")) {
+    const files = markdown.map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
+    writeFileSync(join(repo, BASELINE_PATH), JSON.stringify(buildBaseline(files), null, 2) + "\n")
+    console.log(`wrote ${BASELINE_PATH}`)
+    process.exit(0)
+  }
   let failed = false
+  const baseline: Baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
+  for (const path of markdown) {
+    for (const problem of lintLongLines(path, readFileSync(join(repo, path), "utf8"), baseline)) {
+      console.error(problem)
+      failed = true
+    }
+  }
   for (const folder of readdirSync(root).sort()) {
     if (EXEMPT.has(folder)) continue
     const path = join(root, folder, "SKILL.md")
