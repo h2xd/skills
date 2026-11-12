@@ -58,7 +58,7 @@
     ]
   ],
   "mutation": {
-    "enabled": false,
+    "enabled": true,
     "runner": "sh",
     "testCommand": "npm test",
     "checkCommand": "npm run typecheck",
