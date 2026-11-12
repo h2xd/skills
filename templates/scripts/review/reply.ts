@@ -24,7 +24,7 @@ export function parseItemIds(threadsMarkdown: string): Map<string, string> {
 
 export function parseReplySections(repliesMarkdown: string): ReplySection[] {
   const matches = repliesMarkdown.matchAll(
-    /^## ([TS]\d+)\n([\s\S]*?)(?=^## [TS]\d+\n|(?![\s\S]))/gm,
+    /^## (\S+)\n([\s\S]*?)(?=^## |(?![\s\S]))/gm,
   )
   return [...matches].map((match) => ({
     id: match[1],
@@ -50,6 +50,11 @@ export function planReplies(input: {
   if (sections.length === 0)
     problems.push("replies file has no T or S sections")
   for (const section of sections) {
+    if (!/^[TS]\d+$/.test(section.id)) {
+      problems.push(
+        `## ${section.id} is not a T or S label. Head each reply with the label from the threads file, such as ## S1`,
+      )
+    }
     if (section.body.includes(SHA_PLACEHOLDER)) {
       problems.push(
         `${section.id} still contains ${SHA_PLACEHOLDER}, pass --sha`,

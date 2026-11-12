@@ -71,6 +71,13 @@ describe("parseReplySections", () => {
 })
 
 describe("planReplies", () => {
+  test("rejects a heading that is not a T or S label, so its text never joins the reply above", () => {
+    const misnamed = `${REPLIES}\n## out-1a2b3c4d\nFixed in <sha>: moved.\n`
+    expect(() =>
+      planReplies({ repliesMarkdown: misnamed, threadsMarkdown: THREADS, sha: "abc1234" }),
+    ).toThrow("## out-1a2b3c4d is not a T or S label. Head each reply with the label from the threads file, such as ## S1")
+  })
+
   test("fills the sha and pairs each T reply with its thread id", () => {
     const plan = planReplies({
       repliesMarkdown: REPLIES,
