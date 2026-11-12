@@ -2,6 +2,8 @@
 /**
  * Checks one commit message against the convention in CLAUDE.md.
  *
+ *   node scripts/lint-commit-message.ts <message file>
+ *
  * Run by .githooks/commit-msg with the message file as argv[2]. The type and
  * scope vocabularies in agents.config.json are closed on purpose: a scope only
  * helps a future session if there are few enough of them to hold in mind at
