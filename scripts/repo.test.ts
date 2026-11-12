@@ -63,23 +63,37 @@ describe("the comment-reaper agent", () => {
   })
 })
 
-/** The doc comment at the top of a file, after an optional shebang. */
-function headerOf(text: string): string {
+function leadingDocComment(text: string): string {
   return text.replace(/^#!.*\n/, "").match(/^\/\*\*[\s\S]*?\*\//)?.[0] ?? ""
 }
 
+function leadingHashComment(text: string): string {
+  const lines = text.replace(/^#!.*\n/, "").split("\n")
+  const end = lines.findIndex((line) => !line.startsWith("#"))
+  return lines.slice(0, end === -1 ? lines.length : end).join("\n")
+}
+
 describe("the script usage headers", () => {
-  const scripts = ["scripts", "templates/scripts"].flatMap((dir) =>
+  const scriptPaths = ["scripts", "templates/scripts"].flatMap((dir) =>
     readdirSync(join(ROOT, dir))
-      .filter((name) => name.endsWith(".ts") && !name.endsWith(".test.ts"))
+      .filter((name) => /\.(ts|sh)$/.test(name) && !name.endsWith(".test.ts"))
       .map((name) => `${dir}/${name}`),
   )
-  for (const path of scripts) {
+  for (const path of scriptPaths) {
     const text = readFileSync(join(ROOT, path), "utf8")
-    if (!text.includes("process.argv")) continue
-    test(`${path} opens with a doc comment that names its usage`, () => {
-      const name = path.split("/").pop()
-      expect(headerOf(text)).toContain(`node scripts/${name}`)
-    })
+    const name = path.split("/").pop()
+    if (path.endsWith(".sh")) {
+      test(`${path} opens with a comment that names its usage`, () => {
+        expect(leadingHashComment(text)).toContain(`sh scripts/${name}`)
+      })
+    } else if (path.endsWith(".ts")) {
+      const readsArgv = text.includes("process.argv")
+      const isEntryPointReadingEnv =
+        text.includes("process.env") && text.startsWith("#!")
+      if (!readsArgv && !isEntryPointReadingEnv) continue
+      test(`${path} opens with a doc comment that names its usage`, () => {
+        expect(leadingDocComment(text)).toContain(`node scripts/${name}`)
+      })
+    }
   }
 })
