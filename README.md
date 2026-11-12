@@ -1,6 +1,6 @@
 # h2xd skills
 
-55 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
+56 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
 
 An agent forgets everything when a session ends. A repo does not have to.
 
