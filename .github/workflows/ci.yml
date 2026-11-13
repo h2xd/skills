@@ -5,44 +5,29 @@ on:
     branches: [main]
   pull_request:
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# One job, not five. The free plan bills each job for its own whole minutes, and
+# every check here takes seconds. One runner start and one install cost less.
 jobs:
-  test:
-    name: tests on node ${{ matrix.node }}
+  check:
+    name: check
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        # 22.18 is the oldest version the scripts promise to run on. 26 is the
-        # version this repo develops on, pinned in .nvmrc.
-        node: ["22.18", "26"]
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
+      # 26 is the version this repo develops on, pinned in .nvmrc.
       - uses: actions/setup-node@v5
         with:
-          node-version: ${{ matrix.node }}
+          node-version-file: .nvmrc
           cache: npm
       - run: npm ci
       - name: Typecheck
         run: npm run typecheck
       - name: Tests, including the skills lint on every skill
         run: npm test
-
-  skills:
-    name: skills lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: .nvmrc
-      # The lint uses node builtins only, so no install step is needed.
-      - run: node scripts/lint-skills.ts
-
-  shell:
-    name: shell scripts
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
       - name: Parse every shell script with dash, the strictest common sh
         run: |
           sudo apt-get install -y -qq dash >/dev/null
@@ -52,16 +37,7 @@ jobs:
           for f in templates/githooks/* templates/scripts/prove-tests.sh templates/hooks/block-dangerous-git.sh; do
             test -x "$f" || { echo "not executable: $f"; exit 1; }
           done
-
-  docs-seed:
-    name: seed docs bundle lints clean
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
-        with:
-          node-version-file: .nvmrc
-      - name: Lint a fresh bundle the way setup creates it
+      - name: Lint a fresh docs bundle the way setup creates it
         run: |
           mkdir -p "$RUNNER_TEMP/repo" && cd "$RUNNER_TEMP/repo"
           cp -r "$GITHUB_WORKSPACE/templates/scripts" scripts
@@ -69,3 +45,10 @@ jobs:
           cp "$GITHUB_WORKSPACE/templates/agents.config.json" .
           find docs -name "*.md" -exec sed -i "s/{{DATE}}/2026-01-01/g; s#{{ACTOR}}#human:ci#g" {} +
           node scripts/lint-docs.ts
+      # 22.18 is the oldest version the scripts promise to run on. The scripts
+      # use node builtins only, so the install from above still works.
+      - uses: actions/setup-node@v5
+        with:
+          node-version: "22.18"
+      - name: Tests on the oldest supported node
+        run: npm test
