@@ -47,6 +47,8 @@ Add one only when this repo uses it with a meaning a newcomer would get wrong.
   what the thing does or how it is built. Required.
 - **Avoid** lists the other words people use for it. A search for them lands
   here, and the reader learns the right word. Optional.
+- **Retired** lists a word the repo's own content check bans outright. Not
+  every repo defines this field. Optional.
 - **Code** points at where the term lives. Optional in the project glossary.
   Required in the technical glossary when its `requiredFields` in the config
   list it.
@@ -88,9 +90,12 @@ Done when you have the list of files that use the old word.
 
 ### 2. Rename the entry
 
-Rename the `###` heading and move the old word to **Avoid**. Add a
-**Renamed from** line that links the decision or issue. Update every link to
-the old anchor. `node scripts/lint-docs.ts` fails on each link you missed.
+Rename the `###` heading. Add a **Renamed from** line that links the
+decision or issue. Update every link to the old anchor. `node
+scripts/lint-docs.ts` fails on each link you missed.
+
+Ask whether a consuming repo's own content check must ban the old word
+outright. When yes, move it to **Retired**. Otherwise, move it to **Avoid**.
 
 Done when `node scripts/lint-docs.ts` reports no broken glossary link.
 
@@ -109,9 +114,9 @@ glossary heading. When you rename a term in one, say so in its
 `## More Information`. Then add an `**Update**` entry to `docs/log.md`.
 
 Done when `node scripts/lint-docs.ts` exits 0. The old word appears only under
-**Avoid**, in the **Renamed from** line, in older `docs/log.md` entries, in
-records that keep their wording, and in verbatim sources under
-`docs/references/`.
+**Avoid** or **Retired**, in the **Renamed from** line, in older
+`docs/log.md` entries, in records that keep their wording, and in verbatim
+sources under `docs/references/`.
 
 ## Do
 
