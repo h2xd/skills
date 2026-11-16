@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process"
 import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
+import { envWithoutGit } from "../../scripts/test-env.ts"
 
 const SCRIPT = join(import.meta.dirname, "prove-tests.sh")
 
@@ -14,7 +15,7 @@ let repo: string
 let mutants: string
 
 function sh(command: string, cwd = repo) {
-  return spawnSync("sh", ["-c", command], { cwd, encoding: "utf8" })
+  return spawnSync("sh", ["-c", command], { cwd, encoding: "utf8", env: envWithoutGit() })
 }
 
 function mutant(id: string, from: string, to: string) {
@@ -28,6 +29,7 @@ function prove(...args: string[]) {
   return spawnSync("sh", [SCRIPT, "--mutants", mutants, "--test", "sh test.sh", ...args], {
     cwd: repo,
     encoding: "utf8",
+    env: envWithoutGit(),
   })
 }
 
