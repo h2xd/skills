@@ -24,6 +24,11 @@ describe("threadNodeIds", () => {
     expect(() => threadNodeIds(["PRRT_"], THREADS)).toThrow("neither a thread id")
   })
 
+  test("refuses a thread id with trailing or leading characters", () => {
+    expect(() => threadNodeIds(["PRRT_abc!"], "")).toThrow("neither a thread id")
+    expect(() => threadNodeIds(["xPRRT_abc"], "")).toThrow("neither a thread id")
+  })
+
   test("refuses a PR number or any other argument before a call", () => {
     expect(() => threadNodeIds(["88", "T1"], THREADS)).toThrow(
       "88 is neither a thread id (PRRT_...) nor a T label",

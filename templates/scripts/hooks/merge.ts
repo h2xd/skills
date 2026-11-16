@@ -23,7 +23,9 @@ function codeLines(text: string): string[] {
     .filter((line) => line.trim() !== "" && !line.startsWith("#!"))
 }
 
-function linesOutside(repoLines: string[], knownLines: string[]): string[] {
+type Diff = { outside: number[]; allKnownKept: boolean }
+
+function diffAgainst(repoLines: string[], knownLines: string[]): Diff {
   const common: number[][] = Array.from({ length: repoLines.length + 1 }, () =>
     new Array<number>(knownLines.length + 1).fill(0),
   )
@@ -35,7 +37,7 @@ function linesOutside(repoLines: string[], knownLines: string[]): string[] {
           : Math.max(common[r + 1][k], common[r][k + 1])
     }
   }
-  const extra: string[] = []
+  const outside: number[] = []
   let r = 0
   let k = 0
   while (r < repoLines.length) {
@@ -45,12 +47,21 @@ function linesOutside(repoLines: string[], knownLines: string[]): string[] {
     } else if (k < knownLines.length && common[r][k + 1] > common[r + 1][k]) {
       k++
     } else {
-      extra.push(repoLines[r])
+      outside.push(r)
       r++
     }
   }
-  return extra
+  return { outside, allKnownKept: repoLines.length - outside.length === knownLines.length }
 }
+
+function startsInsideBlock(repoLines: string[], outside: number[]): boolean {
+  return outside.some((index, position) => {
+    const startsRun = position === 0 || outside[position - 1] !== index - 1
+    return startsRun && /^\s/.test(repoLines[index])
+  })
+}
+
+const fewest = (best: Diff, next: Diff) => (next.outside.length < best.outside.length ? next : best)
 
 export function planHook({ repoHook, template, earlier, localExists, parses }: HookInput): HookPlan {
   if (repoHook === null) return { kind: "copy" }
@@ -59,9 +70,13 @@ export function planHook({ repoHook, template, earlier, localExists, parses }: H
   if (earlier.some((text) => repo === lf(text))) return { kind: "replace-unedited" }
 
   const repoLines = codeLines(repo)
-  const lines = [template, ...earlier]
-    .map((text) => linesOutside(repoLines, codeLines(text)))
-    .reduce((fewest, extra) => (extra.length < fewest.length ? extra : fewest))
+  const diffs = [template, ...earlier].map((text) => diffAgainst(repoLines, codeLines(text)))
+  const insertionsOnly = diffs.filter((diff) => diff.allKnownKept)
+  const closest = (insertionsOnly.length > 0 ? insertionsOnly : diffs).reduce(fewest)
+  const lines = closest.outside.map((index) => repoLines[index])
+  if (insertionsOnly.length === 0 || startsInsideBlock(repoLines, closest.outside)) {
+    return { kind: "manual", lines }
+  }
   if (lines.length === 0) return { kind: "replace-unedited" }
 
   const local = `#!/bin/sh\n${lines.join("\n")}\n`

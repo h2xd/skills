@@ -29,8 +29,12 @@ afterEach(() => {
   rmSync(root, { recursive: true, force: true })
 })
 
+function execute(args: string[]) {
+  return spawnSync("node", [SCRIPT, ...args], { encoding: "utf8", env: envWithoutGit() })
+}
+
 function run(...args: string[]) {
-  const result = spawnSync("node", [SCRIPT, ...args], { encoding: "utf8", env: envWithoutGit() })
+  const result = execute(args)
   return { status: result.status, out: result.stdout.trim(), err: result.stderr }
 }
 
@@ -55,6 +59,11 @@ describe("hooks.ts", () => {
     const result = run(plugin, repo)
     expect(result.status).toBe(0)
     expect(result.out).toBe("pre-commit: moved 1 lines to .githooks/pre-commit.d/50-local\n  npm run lint:extra")
+    writeFileSync(hookPath(), `${EARLIER}npm run lint:extra\n`)
+    rmSync(join(repo, ".githooks", "pre-commit.d"), { recursive: true })
+    expect(execute([plugin, repo]).stdout).toBe(
+      "pre-commit: moved 1 lines to .githooks/pre-commit.d/50-local\n  npm run lint:extra\n",
+    )
     expect(readFileSync(localPath(), "utf8")).toBe("#!/bin/sh\nnpm run lint:extra\n")
     expect(mode(localPath())).toBe(0o755)
     expect(readFileSync(hookPath(), "utf8")).toBe(TEMPLATE)
@@ -85,6 +94,6 @@ describe("hooks.ts", () => {
     writeFileSync(hookPath(), `${EARLIER}if true; then\n`)
     const result = run(plugin, repo)
     expect(result.status).toBe(1)
-    expect(result.out).toBe("pre-commit: 1 repo lines do not parse alone, merge them by hand")
+    expect(result.out).toBe("pre-commit: needs a hand merge, 1 repo lines differ")
   })
 })
