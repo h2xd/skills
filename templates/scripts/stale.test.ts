@@ -30,6 +30,11 @@ describe("an unknown subcommand or option", () => {
     })
   }
 
+  test("does not flag the --base option of resolve-docs.ts", () => {
+    const run = runScript("resolve-docs.ts", "--base", "main")
+    expect(run.stderr).not.toContain(STALE)
+  })
+
   test("leaves the usage line in place for the subcommand check", () => {
     const run = runScript("review.ts")
     expect(run.status).toBe(1)
