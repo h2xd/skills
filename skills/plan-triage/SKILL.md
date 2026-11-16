@@ -80,8 +80,9 @@ is asked, and which records or closed issues match.
 
 ### 4. Recommend
 
-Give the category, the state, the reason, and what step 3 found: code paths,
-matching records, prior rejections. Ask the user to confirm or redirect.
+Say it in at most five lines: the category, the state and one reason. Name the
+code path, record or prior rejection that decides it. Ask through the CLI's
+question tool, such as AskUserQuestion, with the recommended option first.
 Done when the user named a direction.
 
 ### 5. Verify the claim
