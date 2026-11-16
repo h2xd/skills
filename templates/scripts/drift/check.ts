@@ -1,17 +1,11 @@
-/** The drift check: which copies in a repo are older than the plugin's templates. */
-
 export type DriftFile = {
-  /** The path in the repo, such as `scripts/review.ts`. */
   path: string
   template: string
-  /** `null` when the repo has no such file. */
   copy: string | null
-  /** An optional file counts as drift only when the repo has it and it differs. */
-  optional: boolean
+  mayBeMissing: boolean
 }
 
 export type DriftInput = {
-  /** The version `h2xd:setup` wrote into `agents.config.json`, or `null`. */
   repoVersion: string | null
   pluginVersion: string
   files: DriftFile[]
@@ -25,7 +19,6 @@ export type DriftReport = {
   missing: string[]
 }
 
-/** A negative number, 0 or a positive number, as for `a - b`. Parts are numbers, such as `0.16.2`. */
 export function compareVersions(a: string, b: string): number {
   const left = a.split(".").map(Number)
   const right = b.split(".").map(Number)
@@ -46,7 +39,7 @@ export function findDrift(input: DriftInput): DriftReport {
       .filter((file) => file.copy !== null && file.copy !== file.template)
       .map((file) => file.path),
     missing: files
-      .filter((file) => file.copy === null && !file.optional)
+      .filter((file) => file.copy === null && !file.mayBeMissing)
       .map((file) => file.path),
   }
 }

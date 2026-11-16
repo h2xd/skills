@@ -32,22 +32,21 @@ function filesIn(directory: string): string[] {
     .sort()
 }
 
-/** A template folder, the folder it is copied to, and whether a repo may lack the copy. */
 const COPIES = [
-  { from: "templates/scripts", to: "scripts", optional: false },
-  { from: "templates/githooks", to: ".githooks", optional: false },
-  { from: "templates/workflows", to: ".github/workflows", optional: true },
-  { from: "templates/hooks", to: ".claude/hooks", optional: true },
+  { from: "templates/scripts", to: "scripts", mayBeMissing: false },
+  { from: "templates/githooks", to: ".githooks", mayBeMissing: false },
+  { from: "templates/workflows", to: ".github/workflows", mayBeMissing: true },
+  { from: "templates/hooks", to: ".claude/hooks", mayBeMissing: true },
 ]
 
-const files: DriftFile[] = COPIES.flatMap(({ from, to, optional }) => {
+const files: DriftFile[] = COPIES.flatMap(({ from, to, mayBeMissing }) => {
   const directory = join(pluginRoot, from)
   if (!existsSync(directory)) return []
   return filesIn(directory).map((file) => ({
     path: `${to}/${file}`,
     template: readFileSync(join(directory, file), "utf8"),
     copy: readIfExists(join(repoRoot, to, file)),
-    optional,
+    mayBeMissing,
   }))
 })
 

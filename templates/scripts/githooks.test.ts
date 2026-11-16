@@ -20,7 +20,6 @@ afterEach(() => {
   rmSync(repo, { recursive: true, force: true })
 })
 
-/** Install a hook and the lint script it calls. The lint appends to `log`. */
 function install(hook: string, lint: string, lintExit = 0) {
   writeFileSync(join(repo, ".githooks", hook), readFileSync(join(HOOKS, hook), "utf8"))
   writeFileSync(
@@ -31,7 +30,6 @@ function install(hook: string, lint: string, lintExit = 0) {
   )
 }
 
-/** Add an executable file to `.githooks/<hook>.d/` that logs its name and arguments. */
 function addScript(hook: string, name: string, exit = 0, executable = true) {
   const dir = join(repo, ".githooks", `${hook}.d`)
   mkdirSync(dir, { recursive: true })

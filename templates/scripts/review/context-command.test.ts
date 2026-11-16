@@ -8,7 +8,6 @@ import { envWithoutGit } from "../../../scripts/test-env.ts"
 
 const REVIEW = join(import.meta.dirname, "..", "review.ts")
 
-/** A `gh` that answers the calls of `review.ts context` for one pull request. */
 const FAKE_GH = `#!/usr/bin/env node
 const args = process.argv.slice(2).join(" ")
 if (args.startsWith("pr view")) {
@@ -49,7 +48,6 @@ function git(cwd: string, ...args: string[]): string {
   return result.stdout.trim()
 }
 
-/** A worktree on branch `feat` whose origin holds `main`, and a `gh` on the PATH. */
 function setup(): { worktree: string; head: string } {
   const origin = join(root, "origin.git")
   const worktree = join(root, "work")

@@ -28,13 +28,8 @@ export const GUARD_HOOK_PATH = "templates/hooks/block-dangerous-git.sh"
 
 export const GUARD_EXCEPTIONS_PATH = "scripts/lint-skills.git-exceptions.json"
 
-/** `unlessPushAllowed` marks a check the hook skips under --allow-push. */
 export type GuardPattern = { regex: RegExp; reason: string; unlessPushAllowed: boolean }
 
-/**
- * An exception: a skill line that names a blocked command on purpose. `line`
- * is text the code line contains. With no `line`, the whole file is exempt.
- */
 export type GuardException = { file: string; line?: string; reason: string }
 
 export type Baseline = Record<string, string[]>
@@ -130,7 +125,6 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
-/** Turns a POSIX ERE from the hook into a JS regex. */
 function ereToJs(ere: string): RegExp {
   const source = ere
     .replace(/\[:alnum:\]/g, "a-zA-Z0-9")
@@ -139,10 +133,6 @@ function ereToJs(ere: string): RegExp {
   return new RegExp(source)
 }
 
-/**
- * Reads the G and R variables and the check calls out of the guard hook, so
- * the hook stays the one source of the blocked commands.
- */
 export function guardPatterns(hook: string): GuardPattern[] {
   const variable = (name: string) => hook.match(new RegExp(`^${name}='(.*)'$`, "m"))?.[1]
   const vars: Record<string, string> = { G: variable("G") ?? "", R: variable("R") ?? "" }
@@ -156,7 +146,6 @@ export function guardPatterns(hook: string): GuardPattern[] {
   return patterns
 }
 
-/** The lines of fenced code and inline code in a markdown file, with line numbers. */
 function codeLines(text: string): { line: number; text: string }[] {
   const lines = text.replace(/\r\n/g, "\n").split("\n")
   const found: { line: number; text: string }[] = []
@@ -175,11 +164,6 @@ function codeLines(text: string): { line: number; text: string }[] {
   return found
 }
 
-/**
- * Runs the blocked-command patterns of the guard hook over the code in a
- * skill file. Skills push through the hook's --allow-push mode, so the plain
- * push check is skipped. A line in `exceptions` for this file is skipped.
- */
 export function lintBlockedGit(
   path: string,
   text: string,
