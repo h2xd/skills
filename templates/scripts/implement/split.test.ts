@@ -181,6 +181,19 @@ describe("a checks criterion", () => {
     expect(split.workers.map((worker) => worker.criteria)).toEqual([[1, 2]])
   })
 
+  test("is listed for step 5 when the single worker path runs", () => {
+    const split = plan("1: a.ts\n2: checks\n", 2)
+    expect(split.verdict).toBe("single")
+    expect(split.checks).toEqual([2])
+    expect(formatSplit(split)).toContain("## Step 5 checks\n\n- Criteria: 2\n")
+  })
+
+  test("leaves no build worker when every criterion is a checks criterion", () => {
+    const split = plan("1: checks\n", 1)
+    expect(split.workers).toEqual([])
+    expect(split.checks).toEqual([1])
+  })
+
   test("rejects a needs line that names it", () => {
     expect(() => parseFileMap("1: a.ts\n2: checks\n2 needs 1\n", 2)).toThrow(
       "criterion 2 is a checks criterion, it has no build worker",
