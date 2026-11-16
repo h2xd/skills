@@ -11,16 +11,20 @@ one lens, also see the caller that breaks, the test that proves nothing and the
 comment that lies. You brief them, merge what they find, and post one review.
 
 You are the orchestrator. You gather context, pick and brief the reviewers,
-post and summarize. Subagents do the reading and writing. Every hand-off goes
-through a file in your scratchpad, called `$WORK` below, so file dumps stay out
-of your context.
+post and summarize. Subagents read and write. Every hand-off goes through a
+file in your scratchpad, called `$WORK` below, so dumps stay out of context.
 
-Severity is the finding's status for the merge. 🔴 blocks it, 🟡 needs
-attention, 🟢 is fine to leave. [`reviewer-brief.md`](reviewer-brief.md) has the
-full scale.
+Severity is a finding's status for the merge: 🔴 blocks it, 🟡 needs
+attention, 🟢 is fine to leave. [`reviewer-brief.md`](reviewer-brief.md) has
+the scale.
 
-The `node scripts/review.ts` subcommands from `h2xd:setup` do the mechanical
-work. Run one command per shell call, never chained with `&&` or `;`.
+## Before step 1
+
+Run `node scripts/review.ts` with no arguments. It prints a `usage:` line. The
+line must list `worktree`, `context`, `fleet`, `merge`, `options`, `missing`,
+`setup` and `findings`. `h2xd:setup` copies them all, `merge` included. When
+one is missing, stop with one line: "run /h2xd:setup". Run one command per
+shell call, never chained with `&&` or `;`.
 
 ## Steps
 
@@ -73,10 +77,11 @@ runs in its own worktree of the head SHA. Reviewer B also gets the path of
 [`reviewer-b.md`](reviewer-b.md). A later review needs no exclusion list in the
 prompts. See [`reviewers.md`](reviewers.md), "A later review".
 
-Before step 4, `ls` each started reviewer's findings file and name a missing
-one. Retry it as [`reviewers.md`](reviewers.md) says.
+Before step 4, run `node scripts/review.ts missing $WORK <letters>` with the
+letters of the started reviewers. Retry each reviewer it names, as
+[`reviewers.md`](reviewers.md) says.
 
-Done when every findings file exists or is named missing.
+Done when the command printed `ok`, or each missing file is named.
 
 ### 4. Merge the findings
 
@@ -86,14 +91,10 @@ A script builds the review. No subagent writes `review.json`.
 node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WORK/pick.md --out $WORK/review.json --preview $WORK/preview.md
 ```
 
-It checks each findings file first. When one fails, retry that reviewer as
-[`reviewers.md`](reviewers.md) says. When it fails again, delete its file,
-merge without it, and name the missing lens in the summary. It joins
-duplicates, moves a line outside the diff to "Outside the diff", writes the
-Conventional Comments and sorts worst first. It keeps a finding on lines that
-a thread holds, open or resolved, and links the thread in the comment. A
-thread never drops a finding. The event is `REQUEST_CHANGES` with a 🔴,
-otherwise `APPROVE`, and `COMMENT` on your own PR.
+It keeps a finding on lines that a thread holds, open or resolved, and links
+the thread in the comment. A thread never drops a finding. A findings file
+that fails the check goes back to its reviewer, as [`merge.md`](merge.md)
+says, which also lists what else `merge` does.
 
 Then start one subagent on the cheapest model, such as Haiku. Give it the
 paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and
@@ -105,7 +106,7 @@ node scripts/review.ts options --validate $WORK/review.json
 ```
 
 Done when the merge printed `wrote`, `options --validate` prints `ok`, and
-you removed the extra worktree as [`reviewers.md`](reviewers.md) says.
+the extra worktree is gone, per [`reviewers.md`](reviewers.md).
 
 ### 5. Post
 
@@ -128,8 +129,7 @@ one line per finding, worst first. The `wrote` line has the counts:
 🟢 <n> optional comments, <n> merged, <n> dropped, <n> moved out of the diff
 ```
 
-When you created a worktree, name its path. `git worktree remove <path>`
-cleans it up.
+Name a worktree you created. `git worktree remove <path>` cleans it up.
 
 Done when every 🔴 and 🟡 finding has its line.
 

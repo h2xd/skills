@@ -15,8 +15,12 @@ and summarize. You ask only about an **ask** item, a failing check, a dirty
 tree or a diverged head. A subagent makes the code changes. Every hand-off goes
 through a file in your scratchpad, called `$WORK` below.
 
-`node scripts/review.ts` from `h2xd:setup` does the mechanical work. Run one
-command per shell call. Chain only stage and commit, as `h2xd:git-commit` does.
+## Before step 1
+
+Run `node scripts/review.ts` with no arguments. It prints a `usage:` line. The
+line must list `worktree`, `threads`, `reply` and `resolve`. When one is
+missing, stop with one line: "run /h2xd:setup". Run one command per shell
+call, except stage and commit, as `h2xd:git-commit` does.
 
 ## Steps
 
@@ -93,11 +97,7 @@ Done when `replies.md` has one reply per item.
 
 1. Commit with `h2xd:git-commit`. Add `Refs: #<issue>` and `Refs: <PR URL>`.
 2. Run `git push`. When the remote moved ahead, stop and ask.
-3. Re-read the PR body with `gh pr view <pr> --json body -q .body`. A fix
-   that changes a number, a word or a file the body names makes that
-   sentence untrue. Write the new body to `$WORK/body.md`, run
-   `PR_BODY="$(cat $WORK/body.md)" node scripts/lint-pr-body.ts`, then
-   `gh pr edit <pr> --body-file $WORK/body.md`.
+3. Make the PR body true to the pushed head, per [`body.md`](body.md).
 4. Post the replies:
 
    ```sh
