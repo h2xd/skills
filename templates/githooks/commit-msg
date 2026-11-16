@@ -5,11 +5,22 @@
 #
 # The message is not available to pre-commit, which is why this is its own hook.
 #
+# Then run each executable file in .githooks/commit-msg.d/, in name order, with
+# the path of the message, and fail on the first failure. Setup never touches
+# that folder.
+#
 # To commit past a known failure: git commit --no-verify
 
-if ! command -v node >/dev/null 2>&1; then
+if command -v node >/dev/null 2>&1; then
+  node scripts/lint-commit-message.ts "$1" || exit 1
+else
   echo "commit-msg: node not found, skipping the commit message check" >&2
-  exit 0
 fi
 
-exec node scripts/lint-commit-message.ts "$1"
+for check in .githooks/commit-msg.d/*; do
+  [ -f "$check" ] && [ -x "$check" ] || continue
+  "$check" "$@" || {
+    echo "commit-msg: $check failed" >&2
+    exit 1
+  }
+done
