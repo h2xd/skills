@@ -10,18 +10,36 @@ import { run } from "./shell.ts"
 const PULL_REQUEST_FIELDS =
   "number,title,body,author,url,baseRefName,headRefName,headRefOid,closingIssuesReferences"
 
+const PAGE_INFO = "pageInfo { hasNextPage endCursor }"
+
 const REVIEW_DATA_QUERY = `
-query($owner: String!, $name: String!, $number: Int!) {
+query($owner: String!, $name: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
-      reviewThreads(first: 100) {
+      reviewThreads(first: 100, after: $after) {
+        ${PAGE_INFO}
         nodes {
-          id isResolved isOutdated diffSide path line startLine originalLine
-          comments(first: 50) { nodes { author { login } body url createdAt } }
+          id isResolved isOutdated diffSide path line startLine startDiffSide originalLine
+          comments(first: 100) {
+            ${PAGE_INFO}
+            nodes { author { login } body url createdAt }
+          }
         }
       }
       reviews(first: 50) { nodes { author { login } state body url submittedAt } }
       comments(last: 100) { nodes { body } }
+    }
+  }
+}`
+
+const THREAD_COMMENTS_QUERY = `
+query($threadId: ID!, $after: String) {
+  node(id: $threadId) {
+    ... on PullRequestReviewThread {
+      comments(first: 100, after: $after) {
+        ${PAGE_INFO}
+        nodes { author { login } body url createdAt }
+      }
     }
   }
 }`
@@ -77,44 +95,90 @@ export function viewIssue(number: number, cwd?: string): LinkedIssue {
   return { number, ...(JSON.parse(json) as { title: string; body: string }) }
 }
 
+type PageInfo = { hasNextPage: boolean; endCursor: string | null }
+type ThreadComments = ReviewThread["comments"]
+type ReceivedThread = Omit<ReviewThread, "comments"> & {
+  comments: ThreadComments & { pageInfo?: PageInfo }
+}
+
+function graphql(query: string, variables: string[], cwd?: string): unknown {
+  return JSON.parse(
+    run(
+      ["gh", "api", "graphql", ...variables, "-f", `query=${query}`],
+      cwd,
+    ),
+  )
+}
+
+function afterCursor(cursor: string | null): string[] {
+  return cursor === null ? [] : ["-f", `after=${cursor}`]
+}
+
+function moreComments(thread: ReceivedThread, cwd?: string): ThreadComments {
+  const nodes = [...thread.comments.nodes]
+  let page = thread.comments.pageInfo
+  while (page?.hasNextPage) {
+    const next = (
+      graphql(
+        THREAD_COMMENTS_QUERY,
+        ["-F", `threadId=${thread.id}`, ...afterCursor(page.endCursor)],
+        cwd,
+      ) as {
+        data: { node: { comments: ThreadComments & { pageInfo: PageInfo } } }
+      }
+    ).data.node.comments
+    nodes.push(...next.nodes)
+    page = next.pageInfo
+  }
+  return { nodes }
+}
+
 export function fetchReviewData(
   owner: string,
   name: string,
   number: number,
   cwd?: string,
 ): { threads: ReviewThread[]; reviews: Review[]; comments: string[] } {
-  const json = run(
-    [
-      "gh",
-      "api",
-      "graphql",
-      "-f",
-      `owner=${owner}`,
-      "-f",
-      `name=${name}`,
-      "-F",
-      `number=${number}`,
-      "-f",
-      `query=${REVIEW_DATA_QUERY}`,
-    ],
-    cwd,
-  )
-  const parsed = JSON.parse(json) as {
+  type Data = {
     data: {
       repository: {
         pullRequest: {
-          reviewThreads: { nodes: ReviewThread[] }
+          reviewThreads: { pageInfo: PageInfo; nodes: ReceivedThread[] }
           reviews: { nodes: Review[] }
           comments: { nodes: { body: string }[] }
         }
       }
     }
   }
-  const { reviewThreads, reviews, comments } = parsed.data.repository.pullRequest
+  const fetchPage = (cursor: string | null) =>
+    graphql(
+      REVIEW_DATA_QUERY,
+      [
+        "-f",
+        `owner=${owner}`,
+        "-f",
+        `name=${name}`,
+        "-F",
+        `number=${number}`,
+        ...afterCursor(cursor),
+      ],
+      cwd,
+    ) as Data
+  const first = fetchPage(null).data.repository.pullRequest
+  const received = [...first.reviewThreads.nodes]
+  let page = first.reviewThreads.pageInfo
+  while (page.hasNextPage) {
+    const next = fetchPage(page.endCursor).data.repository.pullRequest
+    received.push(...next.reviewThreads.nodes)
+    page = next.reviewThreads.pageInfo
+  }
   return {
-    threads: reviewThreads.nodes,
-    reviews: reviews.nodes,
-    comments: comments.nodes.map((comment) => comment.body),
+    threads: received.map((thread) => ({
+      ...thread,
+      comments: moreComments(thread, cwd),
+    })),
+    reviews: first.reviews.nodes,
+    comments: first.comments.nodes.map((comment) => comment.body),
   }
 }
 
