@@ -3,7 +3,8 @@
  * Checks every skill in skills/ and every internal skill in .claude/skills/
  * against the rules of skills/add-skill that a script can check. It also
  * checks every .md under skills/ and agents/ for prose lines over 80
- * characters. Lines that already existed are in scripts/lint-skills.baseline.json.
+ * characters, and every agent in agents/ for a model line. Lines that already
+ * existed are in scripts/lint-skills.baseline.json.
  * Prints one line per problem and exits 1 when any exist.
  *
  *   node scripts/lint-skills.ts
@@ -123,6 +124,15 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
     if (!folders.includes(row)) problems.push(`skills/next/catalog.md: row h2xd:${row} has no folder in skills/`)
   }
   return problems
+}
+
+/** An agent without a `model:` line runs on its caller's model, so its cost depends on who starts it. */
+export function lintAgent(path: string, text: string): string[] {
+  const frontmatter = text.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n/)
+  if (!frontmatter) return [`${path}: no frontmatter`]
+  const model = (parseYaml(frontmatter[1]) as Record<string, unknown>).model
+  if (typeof model === "string" && model.trim() !== "") return []
+  return [`${path}: no model in the frontmatter. Add a model line, such as model: haiku`]
 }
 
 function ereToJs(ere: string): RegExp {
@@ -346,6 +356,12 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   for (const problem of lintLinks(readdirSync(root).sort(), entries)) {
     console.error(problem)
     failed = true
+  }
+  for (const name of readdirSync(join(repo, "agents")).filter((n) => n.endsWith(".md")).sort()) {
+    for (const problem of lintAgent(`agents/${name}`, readFileSync(join(repo, "agents", name), "utf8"))) {
+      console.error(problem)
+      failed = true
+    }
   }
   const catalog = readFileSync(join(root, "next", "catalog.md"), "utf8")
   for (const problem of lintCatalog(readdirSync(root).sort(), catalog)) {

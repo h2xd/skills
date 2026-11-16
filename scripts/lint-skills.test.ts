@@ -11,6 +11,7 @@ import {
   GUARD_HOOK_PATH,
   guardPatterns,
   lintBlockedGit,
+  lintAgent,
   lintCatalog,
   lintLinks,
   lintLongLines,
@@ -222,6 +223,16 @@ describe("the skills in this repo", () => {
   }
 })
 
+describe("the agents in this repo", () => {
+  const root = join(import.meta.dirname, "..", "agents")
+
+  for (const name of readdirSync(root).filter((n) => n.endsWith(".md"))) {
+    test(name, () => {
+      expect(lintAgent(`agents/${name}`, readFileSync(join(root, name), "utf8"))).toEqual([])
+    })
+  }
+})
+
 describe("the long lines in this repo", () => {
   const repo = join(import.meta.dirname, "..")
   const baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
@@ -355,4 +366,22 @@ describe("the blocked commands in the skills of this repo", () => {
       expect(lintBlockedGit(path, readFileSync(join(repo, path), "utf8"), patterns, exceptions)).toEqual([])
     })
   }
+})
+
+describe("lintAgent", () => {
+  const agent = (extra: string) => `---\nname: a\ndescription: d\ntools: Read\n${extra}---\n\n# A\n`
+
+  test("passes an agent that names its model", () => {
+    expect(lintAgent("agents/a.md", agent("model: haiku\n"))).toEqual([])
+  })
+
+  test("names the file of an agent without a model", () => {
+    expect(lintAgent("agents/a.md", agent(""))).toEqual([
+      "agents/a.md: no model in the frontmatter. Add a model line, such as model: haiku",
+    ])
+  })
+
+  test("fails an agent without frontmatter", () => {
+    expect(lintAgent("agents/a.md", "# A\n")).toEqual(["agents/a.md: no frontmatter"])
+  })
 })

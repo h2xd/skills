@@ -27,7 +27,8 @@ the internal skills.
   `scripts/lint-skills.git-exceptions.json`. It also fails a new prose line
   over 80 characters in `skills/` and `agents/`, against the long-line
   baseline, `scripts/lint-skills.baseline.json`. `--write-baseline` only
-  removes old lines. `npm test` runs it on every skill.
+  removes old lines. It fails an agent in `agents/` without a `model:` line.
+  `npm test` runs it on every skill and agent.
 - Skills name each other as `h2xd:<name>`. A skill with
   `disable-model-invocation: true` in its frontmatter is user-only. It is
   read by path, `../<name>/SKILL.md`, never invoked by another skill. Telling
