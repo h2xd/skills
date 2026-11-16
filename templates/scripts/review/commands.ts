@@ -284,9 +284,10 @@ export function resolveCommand(argv: string[]): void {
       "usage: node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...",
     )
   }
-  const threadIds = values.threads
-    ? threadNodeIds(positionals, readFileSync(values.threads, "utf8"))
-    : positionals
+  const threadIds = threadNodeIds(
+    positionals,
+    values.threads ? readFileSync(values.threads, "utf8") : "",
+  )
   const outcome = resolveThreads(threadIds, resolveThread)
   for (const line of outcome.lines) console.log(line)
   if (outcome.failed) process.exit(1)

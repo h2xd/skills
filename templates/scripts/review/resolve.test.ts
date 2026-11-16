@@ -13,6 +13,16 @@ describe("threadNodeIds", () => {
     ])
   })
 
+  test("refuses a PR number or any other argument before a call", () => {
+    expect(() => threadNodeIds(["88", "T1"], THREADS)).toThrow(
+      "88 is neither a thread id (PRRT_...) nor a T label",
+    )
+  })
+
+  test("refuses a T label without a threads file", () => {
+    expect(() => threadNodeIds(["T1"], "")).toThrow("T1")
+  })
+
   test("refuses a T label that threads.md does not hold", () => {
     expect(() => threadNodeIds(["T9"], THREADS)).toThrow("T9")
   })
