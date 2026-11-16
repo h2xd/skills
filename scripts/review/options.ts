@@ -8,6 +8,7 @@
  *   Note: Reply with A or B. If you reply with nothing Suggestion A will be used.
  */
 
+import { realpathSync } from "node:fs"
 import { homedir } from "node:os"
 
 export type Option = { letter: string; recommended: boolean; fix: string }
@@ -151,8 +152,22 @@ export function validateDraftComments(comments: DraftComment[]): string[] {
   )
 }
 
+function aliasesOf(path: string): string[] {
+  const aliases = [path]
+  try {
+    aliases.push(realpathSync(path))
+  } catch {}
+  for (const alias of [...aliases]) {
+    if (alias.startsWith("/private/")) aliases.push(alias.slice("/private".length))
+    else if (alias.startsWith("/tmp/") || alias.startsWith("/var/")) {
+      aliases.push(`/private${alias}`)
+    }
+  }
+  return aliases
+}
+
 export function localFolders(extra: string[] = []): string[] {
-  return [...new Set([homedir(), ...extra])].filter(
+  return [...new Set([homedir(), ...extra.flatMap(aliasesOf)])].filter(
     (path) => path.length > 1,
   )
 }

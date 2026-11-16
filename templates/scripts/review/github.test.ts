@@ -214,6 +214,22 @@ describe("the review summary data", () => {
     expect(fetchReviewData("o", "r", 1).comments).toEqual(["one", "two"])
   })
 
+  test("returns all 101 reviews and 101 pull request comments over two pages", () => {
+    servePages({
+      "reviews:": summaryPage("reviews", Array.from({ length: 100 }, (_, n) => review(n)), "r1"),
+      "reviews:r1": summaryPage("reviews", [review(100)], null),
+      "prcomments:": summaryPage(
+        "comments",
+        Array.from({ length: 100 }, (_, n) => ({ body: `c${n}` })),
+        "p1",
+      ),
+      "prcomments:p1": summaryPage("comments", [{ body: "c100" }], null),
+    })
+    const data = fetchReviewData("o", "r", 1)
+    expect(data.reviews).toHaveLength(101)
+    expect(data.comments).toHaveLength(101)
+  })
+
   test("asks for the reviews and the comments once, not on every thread page", () => {
     servePages({
       "threads:": threadsPage([thread("t0", 1, null)], "c1"),
