@@ -59,7 +59,7 @@ you accept with one click.
 - the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
 - how many build workers may build one ticket at the same time
 - a hook that stops the agent from running destructive git commands
-- the triage labels
+- the triage labels, and the `in-progress` label
 - module boundaries, for TypeScript repos
 - the writing tone of the agent
 

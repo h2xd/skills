@@ -664,6 +664,69 @@ describe("mergeFindings", () => {
     expect(review.comments[0].body).toContain("https://x/t13")
   })
 
+  test("writes the thread link line in full, after the options, outside the diff", () => {
+    const { review } = mergeFindings(
+      [file("B", [finding({ id: "B-1", lines: [40], options: ["fix one", "fix two"] })])],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 40, url: "https://x/t9" }],
+      },
+    )
+    const item = outsideDiffItems(review.body)[0]
+    expect(item).toContain("Suggestion B: fix two")
+    expect(item).toContain("\nEarlier thread on these lines: https://x/t9")
+  })
+
+  test("writes the thread link line in full on an inline comment", () => {
+    const { review } = mergeFindings(
+      [file("B", [finding({ id: "B-1", lines: [11, 12] })])],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 12, url: "https://x/t1" }],
+      },
+    )
+    expect(review.comments[0].body).toContain("\n\nEarlier thread on these lines: https://x/t1")
+  })
+
+  test("links the thread of the lower-ranked finding when only it sits on a thread", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [finding({ id: "B-1", severity: "red", label: "issue", lines: [11, 12], subject: "same issue" })]),
+        file("C", [finding({ id: "C-1", lines: [12, 13], subject: "same issue" })]),
+      ],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 13, url: "https://x/t13" }],
+      },
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body).toContain("Earlier thread on these lines: https://x/t13")
+  })
+
+  test("links the thread of the first ranked finding when two members sit on different threads", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [finding({ id: "B-1", severity: "red", label: "issue", lines: [11, 12], subject: "same issue" })]),
+        file("C", [finding({ id: "C-1", lines: [12, 13], subject: "same issue" })]),
+      ],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [
+          { path: "src/undo.ts", startLine: null, line: 11, url: "https://x/t11" },
+          { path: "src/undo.ts", startLine: null, line: 13, url: "https://x/t13" },
+        ],
+      },
+    )
+    expect(review.comments).toHaveLength(1)
+    const body = review.comments[0].body
+    expect(body).toContain("https://x/t11")
+    expect(body).not.toContain("https://x/t13")
+  })
+
   test("keeps a finding on lines that a resolved thread holds, with the thread link", () => {
     const resolved = thread({ isResolved: true, line: 12 })
     const { review, dropped } = mergeFindings(

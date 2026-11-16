@@ -1,21 +1,32 @@
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { fetchReviewData } from "./github.ts"
+import { fetchReviewData, viewPullRequest } from "./github.ts"
 
 const FAKE_GH = `#!/usr/bin/env node
-const { readFileSync } = require("node:fs")
+const { appendFileSync, readFileSync } = require("node:fs")
 const args = process.argv.slice(2)
+appendFileSync(process.env.FAKE_GH_LOG, JSON.stringify(args) + "\\n")
+if (args[0] === "pr") {
+  console.log("{}")
+  process.exit(0)
+}
 const value = (name) => {
   const flag = args.findIndex((arg, i) => /^-[fF]$/.test(arg) && args[i + 1].startsWith(name + "="))
   return flag === -1 ? "" : args[flag + 1].slice(name.length + 1)
 }
+const query = value("query")
 const pages = JSON.parse(readFileSync(process.env.FAKE_GH_PAGES, "utf8"))
-const key = value("threadId")
-  ? "comments:" + value("threadId") + ":" + value("after")
-  : "threads:" + value("after")
+const kind = value("threadId")
+  ? "comments:" + value("threadId")
+  : query.includes("reviewThreads")
+    ? "threads"
+    : query.includes("reviews(")
+      ? "reviews"
+      : "prcomments"
+const key = kind + ":" + value("after")
 if (!(key in pages)) {
   console.error("no fake page " + key)
   process.exit(1)
@@ -50,11 +61,27 @@ const threadsPage = (nodes: unknown[], next: string | null) => ({
     repository: {
       pullRequest: {
         reviewThreads: { pageInfo: { hasNextPage: next !== null, endCursor: next }, nodes },
-        reviews: { nodes: [] },
-        comments: { nodes: [{ body: "top" }] },
       },
     },
   },
+})
+
+const summaryPage = (field: string, nodes: unknown[], next: string | null) => ({
+  data: {
+    repository: {
+      pullRequest: {
+        [field]: { pageInfo: { hasNextPage: next !== null, endCursor: next }, nodes },
+      },
+    },
+  },
+})
+
+const review = (n: number) => ({
+  author: { login: "bot" },
+  state: "COMMENTED",
+  body: `review ${n}`,
+  url: `https://x/review-${n}`,
+  submittedAt: "2026-01-01T00:00:00Z",
 })
 
 const commentsPage = (id: string, from: number, count: number, next: string | null) => ({
@@ -78,16 +105,38 @@ beforeEach(() => {
   savedPath = process.env.PATH
   process.env.PATH = `${directory}:${savedPath}`
   process.env.FAKE_GH_PAGES = join(directory, "pages.json")
+  process.env.FAKE_GH_LOG = join(directory, "calls.log")
+  writeFileSync(process.env.FAKE_GH_LOG, "")
 })
 
 afterEach(() => {
   process.env.PATH = savedPath
   delete process.env.FAKE_GH_PAGES
+  delete process.env.FAKE_GH_LOG
   rmSync(directory, { recursive: true, force: true })
 })
 
 function servePages(pages: Record<string, unknown>) {
-  writeFileSync(join(directory, "pages.json"), JSON.stringify(pages))
+  const summaries = {
+    "threads:": threadsPage([], null),
+    "reviews:": summaryPage("reviews", [], null),
+    "prcomments:": summaryPage("comments", [{ body: "top" }], null),
+  }
+  writeFileSync(join(directory, "pages.json"), JSON.stringify({ ...summaries, ...pages }))
+}
+
+function calls(): string[][] {
+  return readFileSync(process.env.FAKE_GH_LOG as string, "utf8")
+    .trim()
+    .split("\n")
+    .filter((line) => line !== "")
+    .map((line) => JSON.parse(line))
+}
+
+function queriesContaining(text: string): string[] {
+  return calls()
+    .flatMap((args) => args.filter((arg) => arg.startsWith("query=")))
+    .filter((query) => query.includes(text))
 }
 
 describe("fetchReviewData", () => {
@@ -135,5 +184,86 @@ describe("fetchReviewData", () => {
     expect(threads[0].comments.nodes).toHaveLength(120)
     expect(threads[0].comments.nodes[119].body).toBe("t0-119")
     expect(threads[1].comments.nodes).toHaveLength(2)
+  })
+})
+
+describe("the review summary data", () => {
+  test("returns the reviews of the pull request", () => {
+    servePages({ "reviews:": summaryPage("reviews", [review(1)], null) })
+    expect(fetchReviewData("o", "r", 1).reviews).toEqual([review(1)])
+  })
+
+  test("reads every review past 100, with its own cursor", () => {
+    servePages({
+      "reviews:": summaryPage("reviews", [review(1)], "r1"),
+      "reviews:r1": summaryPage("reviews", [review(2)], "r2"),
+      "reviews:r2": summaryPage("reviews", [review(3)], null),
+    })
+    expect(fetchReviewData("o", "r", 1).reviews.map((item) => item.body)).toEqual([
+      "review 1",
+      "review 2",
+      "review 3",
+    ])
+  })
+
+  test("reads every pull request comment past 100, with its own cursor", () => {
+    servePages({
+      "prcomments:": summaryPage("comments", [{ body: "one" }], "p1"),
+      "prcomments:p1": summaryPage("comments", [{ body: "two" }], null),
+    })
+    expect(fetchReviewData("o", "r", 1).comments).toEqual(["one", "two"])
+  })
+
+  test("asks for the reviews and the comments once, not on every thread page", () => {
+    servePages({
+      "threads:": threadsPage([thread("t0", 1, null)], "c1"),
+      "threads:c1": threadsPage([thread("t1", 1, null)], null),
+    })
+    fetchReviewData("o", "r", 1)
+    expect(queriesContaining("reviews(")).toHaveLength(1)
+    expect(queriesContaining("pullRequest(number: $number) {\n      comments(")).toHaveLength(1)
+    expect(queriesContaining("reviewThreads")).toHaveLength(2)
+  })
+})
+
+describe("the GraphQL queries", () => {
+  const flat = (query: string) => query.replace(/\s+/g, " ")
+  const PAGE_INFO = "{ pageInfo { hasNextPage endCursor }"
+
+  test("ask for pageInfo in the thread and the comment selections", () => {
+    servePages({
+      "threads:": threadsPage([thread("t0", 100, "k1")], null),
+      "comments:t0:k1": commentsPage("t0", 100, 1, null),
+    })
+    fetchReviewData("o", "r", 1)
+    const threadsQuery = flat(queriesContaining("reviewThreads")[0])
+    expect(threadsQuery).toContain(`reviewThreads(first: 100, after: $after) ${PAGE_INFO}`)
+    expect(threadsQuery).toContain(`comments(first: 100) ${PAGE_INFO}`)
+    const commentsQuery = flat(queriesContaining("on PullRequestReviewThread")[0])
+    expect(commentsQuery).toContain(`comments(first: 100, after: $after) ${PAGE_INFO}`)
+  })
+
+  test("ask for the start side of a thread", () => {
+    servePages({ "threads:": threadsPage([], null) })
+    fetchReviewData("o", "r", 1)
+    expect(queriesContaining("reviewThreads")[0]).toContain("startDiffSide")
+  })
+
+  test("pass the thread id as a typed -F field", () => {
+    servePages({
+      "threads:": threadsPage([thread("t0", 100, "k1")], null),
+      "comments:t0:k1": commentsPage("t0", 100, 1, null),
+    })
+    fetchReviewData("o", "r", 1)
+    const call = calls().find((args) => args.includes("threadId=t0")) as string[]
+    expect(call[call.indexOf("threadId=t0") - 1]).toBe("-F")
+  })
+
+  test("ask gh pr view for the merge state fields", () => {
+    viewPullRequest(undefined)
+    const call = calls().find((args) => args[0] === "pr") as string[]
+    const fields = call[call.indexOf("--json") + 1].split(",")
+    expect(fields).toContain("mergeable")
+    expect(fields).toContain("mergeStateStatus")
   })
 })

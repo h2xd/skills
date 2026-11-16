@@ -39,10 +39,14 @@ function addScript(hook: string, name: string, exit = 0, executable = true) {
 }
 
 function run(hook: string, ...args: string[]) {
-  const result = spawnSync("sh", [join(repo, ".githooks", hook), ...args], {
+  return runWith(envWithoutGit(), hook, ...args)
+}
+
+function runWith(env: NodeJS.ProcessEnv, hook: string, ...args: string[]) {
+  const result = spawnSync("/bin/sh", [join(repo, ".githooks", hook), ...args], {
     cwd: repo,
     encoding: "utf8",
-    env: envWithoutGit(),
+    env,
   })
   let log: string[] = []
   try {
@@ -91,9 +95,27 @@ describe("the pre-commit hook", () => {
     addScript("pre-commit", "20-second")
     addScript("pre-commit", "10-first")
     addScript("pre-commit", "15-not-executable", 0, false)
+    addScript("pre-commit", "lint")
     const result = run("pre-commit")
     expect(result.status).toBe(0)
-    expect(result.log).toEqual(["lint", "10-first", "20-second"])
+    expect(result.log).toEqual(["lint", "10-first", "20-second", "lint"])
+  })
+
+  test("passes its arguments to each executable in pre-commit.d", () => {
+    install("pre-commit", "lint-docs.ts")
+    addScript("pre-commit", "10-first")
+    expect(run("pre-commit", "one", "two").log).toEqual(["lint", "10-first one two"])
+  })
+
+  test("runs pre-commit.d on a machine without node, and says so", () => {
+    install("pre-commit", "lint-docs.ts")
+    addScript("pre-commit", "10-first")
+    const noNode = join(repo, "empty-path")
+    mkdirSync(noNode)
+    const result = runWith({ PATH: noNode }, "pre-commit")
+    expect(result.status).toBe(0)
+    expect(result.stderr).toContain("node not found")
+    expect(result.log).toEqual(["10-first"])
   })
 
   test("fails on the first failure and runs nothing after it", () => {

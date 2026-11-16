@@ -8,6 +8,9 @@
  *   Note: Reply with A or B. If you reply with nothing Suggestion A will be used.
  */
 
+import { realpathSync } from "node:fs"
+import { homedir, tmpdir } from "node:os"
+
 export type Option = { letter: string; recommended: boolean; fix: string }
 
 export type Choice =
@@ -149,23 +152,50 @@ export function validateDraftComments(comments: DraftComment[]): string[] {
   )
 }
 
-const LOCAL_PATH =
-  /(?<![\w:/.-])(?:\/(?:Users|home|private|tmp|var|root|Volumes)\/[^\s`"'<>)]*|[A-Za-z]:\\+Users\\+[^\s`"'<>)]*)/g
-
-function localPaths(text: string): string[] {
-  return [...text.matchAll(LOCAL_PATH)].map((match) => match[0].replace(/[.,;:!?]+$/, ""))
+function realpathOrSelf(path: string): string {
+  try {
+    return realpathSync(path)
+  } catch {
+    return path
+  }
 }
 
-export function validateNoLocalPaths(review: {
-  body?: string
-  comments?: DraftComment[]
-}): string[] {
+export function localFolders(extra: string[] = []): string[] {
+  const temp = tmpdir()
+  return [...new Set([homedir(), temp, realpathOrSelf(temp), ...extra])].filter(
+    (path) => path.length > 1,
+  )
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+}
+
+function localPathPattern(paths: string[]): RegExp | null {
+  if (paths.length === 0) return null
+  const prefixes = [...paths]
+    .sort((a, b) => b.length - a.length)
+    .map((path) => escapeRegExp(path.replace(/[\\/]+$/, "")))
+  const tail = "(?:/[^\\s`\"'<>)]*)?"
+  return new RegExp(`(?<![\\w:/.-])(?:${prefixes.join("|")})(?![\\w-])${tail}`, "g")
+}
+
+function localPaths(text: string, pattern: RegExp | null): string[] {
+  if (pattern === null) return []
+  return [...text.matchAll(pattern)].map((match) => match[0].replace(/[.,;:!?]+$/, ""))
+}
+
+export function validateNoLocalPaths(
+  review: { body?: string; comments?: DraftComment[] },
+  paths: string[] = localFolders(),
+): string[] {
+  const pattern = localPathPattern(paths)
   return [
-    ...localPaths(review.body ?? "").map(
+    ...localPaths(review.body ?? "", pattern).map(
       (path) => `review body: local absolute path ${path}`,
     ),
     ...(review.comments ?? []).flatMap((comment) =>
-      localPaths(comment.body).map(
+      localPaths(comment.body, pattern).map(
         (path) => `${comment.path}:${comment.line}: local absolute path ${path}`,
       ),
     ),

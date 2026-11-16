@@ -47,7 +47,7 @@ GitHub shares one number space across issues and PRs. Resolve a bare `#42` with
 | `adr` | The issue a decision record was opened under. The `h2xd:docs-adr` skill creates and searches it |
 | `spec` | A spec written by `h2xd:to-spec`. `/h2xd:to-tickets` splits it into tickets |
 | `idea` | An idea, not yet a request or a decision. `h2xd:plan-grill` files it, per its `idea-issue.md`. Triage leaves it alone |
-| `in-progress` | A skill or a person works on the issue. **Claim** adds it and **Unclaim** removes it. A merged PR closes the issue and the label goes with it. Create it once with `gh label create in-progress` |
+| `in-progress` | A skill or a person works on the issue. **Claim** adds it and **Unclaim** removes it. A merged PR closes the issue, and the label stays on the closed issue, which is harmless. Create it once with `gh label create in-progress` |
 
 ## Triage
 

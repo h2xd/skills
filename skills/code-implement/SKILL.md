@@ -20,9 +20,7 @@ or need each other. Groups run at once, each in its own worktree.
 
 ## Before step 1
 
-Run `node scripts/implement.ts` with no arguments. It prints a `usage:` line.
-The line must list `split`, `worktree` and `cleanup`. When the script or one
-of them is missing, stop with one line: "run /h2xd:setup".
+Run the checks in [`preflight.md`](preflight.md). When one says stop, stop.
 
 ## Steps
 
@@ -48,8 +46,10 @@ and list each open issue that mentions the ticket.
   the ticket. When one exists, stop and name it. Otherwise go on.
 
 When these checks pass, run **Claim** when the tracker page lists it. When it
-fails, stop and name the ticket as claimed. Then run **Assign** when the page
-lists it. When **Assign** fails, go on and add a 🟡 line to the report.
+fails, stop. Name the ticket as claimed, the `in-progress` label and the
+**Unclaim** command, so the user can clear a stale label. Then run **Assign**
+when the page lists it. When **Assign** fails, go on and add a 🟡 line to the
+report.
 
 Done when you can list the acceptance criteria, every blocker is closed, no
 other person or open PR holds the ticket, and **Claim** and **Assign** ran or
@@ -83,7 +83,8 @@ Done when `git branch --show-current` prints the new branch.
 4. Start one scout and group the criteria, per
    [`planning.md`](planning.md). It ends with `$WORK/split.md`.
 
-Done when every criterion belongs to exactly one build worker.
+Done when every criterion belongs to exactly one build worker, or to step 5
+as a checks criterion.
 
 ### 4. Build
 
@@ -98,8 +99,8 @@ For more than one, follow [`parallel.md`](parallel.md).
 Then read every `$WORK/built-<id>.md` and the commits since `origin/HEAD`. A
 criterion marked `not built` goes to the report.
 
-Done when every criterion has a passing test and a commit on the ticket
-branch, or a reason in a `built` file.
+Done when every criterion that has a build worker has a passing test and a
+commit on the ticket branch, or a reason in a `built` file.
 
 ### 5. Check the whole change
 

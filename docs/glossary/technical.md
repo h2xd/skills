@@ -66,7 +66,7 @@ An entry looks like this:
 
 ### Criteria group
 
-- **Meaning:** The acceptance criteria of one ticket that one [build worker](#build-worker) gets, because they share files or depend on each other. A criterion is in exactly one criteria group.
+- **Meaning:** The acceptance criteria of one ticket that one [build worker](#build-worker) gets, because they share files or depend on each other. A criterion is in exactly one criteria group, except a [checks criterion](#checks-criterion), which is in none.
 - **Code:** [`templates/scripts/implement/split.ts`](../../templates/scripts/implement/split.ts)
 - **Avoid:** Slice, batch, chunk
 
@@ -76,6 +76,12 @@ An entry looks like this:
 - **Code:** [`skills/code-implement/build-worker.md`](../../skills/code-implement/build-worker.md)
 - **Avoid:** Implementer agent, implementation agent
 
+### Checks criterion
+
+- **Meaning:** An acceptance criterion that the [scout](#scout) marks `checks`, because it only says the checks pass. It is in no [criteria group](#criteria-group) and gets no [build worker](#build-worker). It runs in step 5 of `h2xd:code-implement`, under `## Step 5 checks` in `split.md`.
+- **Code:** [`templates/scripts/implement/split.ts`](../../templates/scripts/implement/split.ts)
+- **Avoid:** Global criterion, check-only criterion
+
 ### Fix worker
 
 - **Meaning:** The one subagent on a fast model that repairs a failed cherry-pick or a red test on the ticket branch, once per ticket.
@@ -84,7 +90,7 @@ An entry looks like this:
 
 ### Scout
 
-- **Meaning:** The read-only subagent on the cheapest model that maps each acceptance criterion of a ticket to the files it touches. It marks a criterion `unsure` when it cannot name them.
+- **Meaning:** The read-only subagent on the cheapest model that maps each acceptance criterion of a ticket to the files it touches. It marks a criterion `unsure` when it cannot name them, and `checks` when the criterion only says the checks pass.
 - **Code:** [`skills/code-implement/scout.md`](../../skills/code-implement/scout.md)
 - **Avoid:** Explorer, mapper
 

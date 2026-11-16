@@ -26,6 +26,7 @@ export type ContextData = {
   localHead: string
   currentBranch: string
   status: string
+  behindBase: number
   diffStat: string
   changedFiles: string[]
   issues: LinkedIssue[]

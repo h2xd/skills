@@ -1,7 +1,7 @@
 import { existsSync, statSync } from "node:fs"
 import { join } from "node:path"
 
-const EXTENSIONS = ["json", "md"]
+const EXTENSIONS = ["json"]
 
 function written(path: string): boolean {
   return existsSync(path) && statSync(path).size > 0

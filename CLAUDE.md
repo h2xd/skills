@@ -22,7 +22,9 @@ the internal skills.
   template keep MADR's title case.
 - `node scripts/lint-skills.ts` checks what a script can: frontmatter, length, a
   `Done when` per numbered step, `## Do` and `## Don't`, and tool or model
-  names only as examples. It also fails a new prose line over 80 characters in
+  names only as examples. It fails a code block or inline code that matches a
+  pattern of `templates/hooks/block-dangerous-git.sh`, except the entries of
+  `scripts/lint-skills.git-exceptions.json`. It also fails a new prose line over 80 characters in
   `skills/` and `agents/`, against the long-line baseline,
   `scripts/lint-skills.baseline.json`. `--write-baseline` only removes old
   lines. `npm test` runs it on every skill.
@@ -47,10 +49,12 @@ the internal skills.
   A new setting gets a default there, a key in `templates/agents.config.json`,
   and a question in `skills/setup/SKILL.md`, in the same change.
 - Pure checks take settings as arguments, and the CLI entry points read
-  `config`. That keeps the tests independent of any one repo's config. The one
+  `config`. That keeps the tests independent of any one repo's config. One
   exception is the bundle and decisions directory names, which
   `docs/bundle.ts` reads at import because every path in the bundle code
-  depends on them. The tests assume the defaults.
+  depends on them. The tests assume the defaults. The other exception is
+  `drift.ts`, which runs from the plugin against another repo, so it reads
+  that repo's `agents.config.json` itself.
 - `prove-tests.sh` is POSIX `sh` so it runs in repos without node. It cannot
   import `config.ts`. The `prove-tests` skill reads the `mutation` settings and
   passes them as flags.
@@ -100,8 +104,8 @@ Every merged PR is a release, and GitHub releases are the changelog. The
 repo keeps no `CHANGELOG.md`.
 
 - A commit in the PR, `chore: ship <version>`, bumps `version` in
-  `.claude-plugin/plugin.json`: minor when the PR holds a `feat`, patch
-  otherwise.
+  `.claude-plugin/plugin.json` and in `agents.config.json`: minor when the PR
+  holds a `feat`, patch otherwise.
 - After the merge, run the internal `release` skill without asking. It tags
   the merge commit and creates a draft release. The user publishes it.
 

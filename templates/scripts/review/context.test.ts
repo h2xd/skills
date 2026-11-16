@@ -19,6 +19,7 @@ const DATA: ContextData = {
   worktree: "/work/snack-drawer.feat-biscuit",
   localHead: "abc",
   currentBranch: "feat/biscuit",
+  behindBase: 0,
   status: "",
   diffStat: " a.ts | 2 +-\n 1 file changed",
   changedFiles: ["a.ts", "b.ts"],

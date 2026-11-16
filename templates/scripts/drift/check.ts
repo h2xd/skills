@@ -44,16 +44,19 @@ export function findDrift(input: DriftInput): DriftReport {
   }
 }
 
-export function hasDrift(report: DriftReport): boolean {
-  return report.older || report.changed.length > 0 || report.missing.length > 0
+export function hasMissingCopy(report: DriftReport): boolean {
+  return report.missing.length > 0
 }
 
 export function formatDrift(report: DriftReport): string {
-  if (!hasDrift(report)) {
+  if (!report.older && report.changed.length === 0 && report.missing.length === 0) {
     return `ok: the copies match plugin ${report.pluginVersion}`
   }
+  const versions = `repo ${report.repoVersion ?? "no version"}, plugin ${report.pluginVersion}`
   const lines = [
-    `drift: the copies are older than the plugin (repo ${report.repoVersion ?? "no version"}, plugin ${report.pluginVersion})`,
+    report.older
+      ? `drift: the copies are older than the plugin (${versions})`
+      : `drift: the copies differ from the plugin (${versions})`,
   ]
   if (report.changed.length > 0) lines.push(`changed: ${report.changed.join(", ")}`)
   if (report.missing.length > 0) lines.push(`missing: ${report.missing.join(", ")}`)

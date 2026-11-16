@@ -199,6 +199,19 @@ describe("a checks criterion", () => {
       "criterion 2 is a checks criterion, it has no build worker",
     )
   })
+
+  test("rejects a needs line that names it as the needed side", () => {
+    expect(() => parseFileMap("1: checks\n2: a.ts\n2 needs 1\n", 2)).toThrow(
+      "criterion 1 is a checks criterion, it has no build worker",
+    )
+  })
+
+  test("rejects a second line for the same criterion, in any order", () => {
+    const twoLines = "criterion 1 has two lines"
+    expect(() => parseFileMap("1: checks\n1: a.ts\n2: b.ts\n", 2)).toThrow(twoLines)
+    expect(() => parseFileMap("1: checks\n1: checks\n2: b.ts\n", 2)).toThrow(twoLines)
+    expect(() => parseFileMap("1: a.ts\n1: checks\n2: b.ts\n", 2)).toThrow(twoLines)
+  })
 })
 
 describe("formatSplit", () => {

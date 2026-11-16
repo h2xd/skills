@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { compareVersions, findDrift, formatDrift } from "./check.ts"
+import { compareVersions, findDrift, formatDrift, hasMissingCopy } from "./check.ts"
 
 const file = (path: string, template: string, copy: string | null, mayBeMissing = false) => ({
   path,
@@ -14,6 +14,12 @@ describe("compareVersions", () => {
     expect(compareVersions("0.9.0", "0.10.0")).toBeLessThan(0)
     expect(compareVersions("1.0.0", "0.99.9")).toBe(1)
     expect(compareVersions("0.16.2", "0.16.2")).toBe(0)
+  })
+
+  test("reads a missing part as zero, from either side", () => {
+    expect(compareVersions("1.2", "1.2.1")).toBe(-1)
+    expect(compareVersions("1.2.1", "1.2")).toBe(1)
+    expect(compareVersions("1.2", "1.2.0")).toBe(0)
   })
 })
 
@@ -52,6 +58,15 @@ describe("findDrift", () => {
   })
 })
 
+describe("hasMissingCopy", () => {
+  test("is true only for a missing file", () => {
+    const base = { repoVersion: "0.1.0", pluginVersion: "0.2.0" }
+    expect(hasMissingCopy(findDrift({ ...base, files: [file("scripts/a.ts", "n", "o")] }))).toBe(false)
+    expect(hasMissingCopy(findDrift({ ...base, files: [] }))).toBe(false)
+    expect(hasMissingCopy(findDrift({ ...base, files: [file("scripts/a.ts", "n", null)] }))).toBe(true)
+  })
+})
+
 describe("formatDrift", () => {
   test("says ok when nothing differs", () => {
     const report = findDrift({ repoVersion: "0.16.2", pluginVersion: "0.16.2", files: [] })
@@ -74,6 +89,21 @@ describe("formatDrift", () => {
     )
   })
 
+  test("says the copies differ, not older, when the versions are equal", () => {
+    const report = findDrift({
+      repoVersion: "0.16.2",
+      pluginVersion: "0.16.2",
+      files: [file("scripts/a.ts", "n", "o")],
+    })
+    expect(formatDrift(report)).toBe(
+      [
+        "drift: the copies differ from the plugin (repo 0.16.2, plugin 0.16.2)",
+        "changed: scripts/a.ts",
+        "run /h2xd:setup",
+      ].join("\n"),
+    )
+  })
+
   test("reports a missing file even when the versions match", () => {
     const report = findDrift({
       repoVersion: "0.16.2",
@@ -82,7 +112,7 @@ describe("formatDrift", () => {
     })
     expect(formatDrift(report)).toBe(
       [
-        "drift: the copies are older than the plugin (repo 0.16.2, plugin 0.16.2)",
+        "drift: the copies differ from the plugin (repo 0.16.2, plugin 0.16.2)",
         "missing: scripts/new.ts",
         "run /h2xd:setup",
       ].join("\n"),
