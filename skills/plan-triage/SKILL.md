@@ -38,10 +38,14 @@ agent takes the next step on the diff, and `ready-for-human` means a person merg
 
 ### 1. Load the setup
 
+Run the plugin's drift check first. The plugin root is two folders above this
+file. Run `node <plugin root>/templates/scripts/drift.ts <plugin root> .`. On
+exit 1, stop and put its report in the stop message.
 Read `docs/agents/issue-tracker.md`. Find the operations, the label per role,
 the PR flag, and who counts as external. When the `## Triage` section is
 missing, stop. Tell the user to re-run setup, per `../setup/SKILL.md`.
-Done when you can name all seven label strings and whether PRs are in scope.
+Done when the check passed and you can name all seven label strings and
+whether PRs are in scope.
 
 ### 2. Show what needs attention
 
@@ -115,12 +119,7 @@ Done when **View** shows the comment and exactly one category and one state.
 
 ## Moving an issue directly
 
-When the user says "move #42 to `<state>`", skip steps 3 to 6. Show the label
-change and any comment, then apply them on a yes.
-
-- When the issue has the `idea` label, say so and stop.
-- When the move is to `ready-for-agent` and no brief exists, ask whether to write one.
-- When an issue carries two states, or a move skips the usual path, say so and ask.
+When the user says "move #42 to `<state>`", follow [`moving.md`](moving.md).
 
 ## Report
 

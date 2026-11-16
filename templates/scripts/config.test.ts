@@ -15,6 +15,11 @@ describe("mergeConfig", () => {
     expect(merged.docs).toEqual(DEFAULTS.docs)
   })
 
+  test("keeps the plugin version that setup wrote, and defaults to none", () => {
+    expect(mergeConfig({}).version).toBe(null)
+    expect(mergeConfig({ version: "0.16.2" }).version).toBe("0.16.2")
+  })
+
   test("replaces a list whole, never appends to it", () => {
     const merged = mergeConfig({
       docs: { glossaries: [{ path: "GLOSSARY.md", requiredFields: [] }] },

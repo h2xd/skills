@@ -15,22 +15,32 @@
 
 import { parseArgs } from "node:util"
 import { REPO_ROOT } from "./config.ts"
+import { failStale, isUnknownOption } from "./stale.ts"
 import { loadBundle } from "./docs/bundle.ts"
 import { findPages, formatPage } from "./docs/find.ts"
 
-const { values } = parseArgs({
-  options: {
-    type: { type: "string" },
-    status: { type: "string" },
-    tag: { type: "string" },
-    search: { type: "string" },
-    "links-to": { type: "string" },
-    backlinks: { type: "string" },
-    stale: { type: "boolean" },
-    orphans: { type: "boolean" },
-    help: { type: "boolean" },
-  },
-})
+const OPTIONS = {
+  type: { type: "string" },
+  status: { type: "string" },
+  tag: { type: "string" },
+  search: { type: "string" },
+  "links-to": { type: "string" },
+  backlinks: { type: "string" },
+  stale: { type: "boolean" },
+  orphans: { type: "boolean" },
+  help: { type: "boolean" },
+} as const
+
+function readOptions() {
+  try {
+    return parseArgs({ options: OPTIONS })
+  } catch (error) {
+    if (isUnknownOption(error)) failStale("docs:find")
+    throw error
+  }
+}
+
+const { values } = readOptions()
 
 if (values.help) {
   console.log(

@@ -18,6 +18,11 @@ export type GlossaryConfig = {
 }
 
 export type Config = {
+  /**
+   * The h2xd plugin version that `/h2xd:setup` last copied from. `scripts/drift.ts`
+   * compares it with the installed plugin. `null` for a repo setup never wrote.
+   */
+  version: string | null
   docs: {
     /** Repo-relative directory of the OKF bundle. */
     root: string
@@ -86,6 +91,7 @@ export type Config = {
 }
 
 export const DEFAULTS: Config = {
+  version: null,
   docs: {
     root: "docs",
     decisions: "decisions",
@@ -129,15 +135,17 @@ export const CONFIG_FILE = "agents.config.json"
 
 export const REPO_ROOT = resolve(import.meta.dirname, "..")
 
-type Section = Exclude<keyof Config, "worktreeSetup">
+type Section = Exclude<keyof Config, "worktreeSetup" | "version">
 
 /** What agents.config.json may hold: any section, any key within it. */
 type Overrides = { [K in Section]?: Partial<Config[K]> } & {
   worktreeSetup?: string[][]
+  version?: string | null
 }
 
 export function mergeConfig(overrides: Overrides): Config {
   return {
+    version: overrides.version ?? DEFAULTS.version,
     docs: { ...DEFAULTS.docs, ...overrides.docs },
     commits: { ...DEFAULTS.commits, ...overrides.commits },
     pullRequests: { ...DEFAULTS.pullRequests, ...overrides.pullRequests },

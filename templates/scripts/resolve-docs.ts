@@ -25,6 +25,7 @@ import {
   sortDecisionEntries,
 } from "./docs/resolve.ts"
 import { run, runAllowingFailure } from "./review/shell.ts"
+import { failStale } from "./stale.ts"
 import * as fs from "node:fs/promises"
 
 const DEFAULT_BASE = "origin/main"
@@ -51,6 +52,9 @@ function git(...args: string[]): string {
 }
 
 function parseBase(argv: string[]): string {
+  if (argv.some((arg) => arg.startsWith("--") && arg !== BASE_FLAG)) {
+    failStale("docs:resolve")
+  }
   const flagIndex = argv.indexOf(BASE_FLAG)
   if (flagIndex === -1) return DEFAULT_BASE
   const base = argv[flagIndex + 1]
