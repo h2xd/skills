@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Names the copies in a repo that are older than the plugin.
+ * Names the copies in a repo that are missing or differ from the plugin, and a version gap.
  *
  *   node scripts/drift.ts <plugin root> <repo root>
  *

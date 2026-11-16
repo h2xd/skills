@@ -271,4 +271,15 @@ describe("localFolders", () => {
     expect(paths).toContain(abs("srv", "scratch"))
     expect(paths).not.toContain("/")
   })
+
+  test("flags the tmp form of a private/tmp folder", () => {
+    const folders = localFolders(["/private/tmp/scratch-a"])
+    expect(validateNoLocalPaths({ body: "see /tmp/scratch-a/out.txt", comments: [] }, folders)).toHaveLength(1)
+  })
+
+  test("flags the private/tmp form of a tmp folder", () => {
+    const folders = localFolders(["/tmp/scratch-b"])
+    const body = "see /private/tmp/scratch-b/out.txt"
+    expect(validateNoLocalPaths({ body, comments: [] }, folders)).toHaveLength(1)
+  })
 })
