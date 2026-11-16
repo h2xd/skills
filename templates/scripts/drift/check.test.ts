@@ -2,11 +2,11 @@ import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
 import { compareVersions, findDrift, formatDrift } from "./check.ts"
 
-const file = (path: string, template: string, copy: string | null, optional = false) => ({
+const file = (path: string, template: string, copy: string | null, mayBeMissing = false) => ({
   path,
   template,
   copy,
-  optional,
+  mayBeMissing,
 })
 
 describe("compareVersions", () => {

@@ -5,11 +5,6 @@ import { afterEach, beforeEach, describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
 import { fetchReviewData } from "./github.ts"
 
-/**
- * A `gh` that answers the review data queries from fake pages. A page is keyed
- * `threads:<cursor>` or `comments:<thread id>:<cursor>`, with an empty cursor
- * for the first page.
- */
 const FAKE_GH = `#!/usr/bin/env node
 const { readFileSync } = require("node:fs")
 const args = process.argv.slice(2)

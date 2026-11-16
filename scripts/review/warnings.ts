@@ -2,16 +2,12 @@ export type LocalState = {
   headRefName: string
   headRefOid: string
   localHead: string
-  /** `git status --short` output. Empty when the tree is clean. */
   status: string
-  /** Left out by callers that don't care which branch is checked out. */
   currentBranch?: string
-  /** GitHub's `mergeable` and `mergeStateStatus` of the PR. */
   mergeable?: string
   mergeStateStatus?: string
 }
 
-/** Conditions the review skills stop and ask about. */
 export function collectWarnings(state: LocalState): string[] {
   const warnings: string[] = []
   if (state.localHead !== state.headRefOid) {

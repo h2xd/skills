@@ -281,7 +281,6 @@ describe("lintBlockedGit", () => {
   const patterns = guardPatterns(readFileSync(join(repo, GUARD_HOOK_PATH), "utf8"))
   const path = "skills/demo/SKILL.md"
 
-  // The cleanup step of skills/code-implement/parallel.md at commit b14aabf.
   const parallelAtB14aabf = [
     "For each build worker whose commits are on the ticket branch:",
     "",

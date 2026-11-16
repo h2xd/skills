@@ -18,10 +18,6 @@ export type GlossaryConfig = {
 }
 
 export type Config = {
-  /**
-   * The h2xd plugin version that `/h2xd:setup` last copied from. `scripts/drift.ts`
-   * compares it with the installed plugin. `null` for a repo setup never wrote.
-   */
   version: string | null
   docs: {
     /** Repo-relative directory of the OKF bundle. */
