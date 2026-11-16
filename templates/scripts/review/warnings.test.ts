@@ -31,6 +31,34 @@ describe("collectWarnings", () => {
   test("skips the branch check when no current branch is given", () => {
     expect(collectWarnings({ ...CLEAN, currentBranch: undefined })).toEqual([])
   })
+
+  test("warns when the head is behind the base", () => {
+    const warnings = collectWarnings({
+      ...CLEAN,
+      mergeable: "MERGEABLE",
+      mergeStateStatus: "BEHIND",
+    })
+    expect(warnings).toHaveLength(1)
+    expect(warnings[0]).toContain("Head behind base")
+  })
+
+  test("warns when the PR conflicts with the base", () => {
+    for (const state of [
+      { mergeable: "CONFLICTING", mergeStateStatus: "DIRTY" },
+      { mergeable: "CONFLICTING" },
+      { mergeStateStatus: "DIRTY" },
+    ]) {
+      const warnings = collectWarnings({ ...CLEAN, ...state })
+      expect(warnings).toHaveLength(1)
+      expect(warnings[0]).toContain("Conflicting")
+    }
+  })
+
+  test("stays quiet for a clean, blocked or unknown merge state", () => {
+    for (const mergeStateStatus of ["CLEAN", "BLOCKED", "UNKNOWN", "UNSTABLE"]) {
+      expect(collectWarnings({ ...CLEAN, mergeable: "MERGEABLE", mergeStateStatus })).toEqual([])
+    }
+  })
 })
 
 describe("formatWarnings", () => {

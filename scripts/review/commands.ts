@@ -24,7 +24,12 @@ import {
   mergeFindings,
   parseFindings,
 } from "./findings.ts"
-import { type DraftComment, validateDraftComments } from "./options.ts"
+import { missingReviewFiles } from "./missing.ts"
+import {
+  type DraftComment,
+  validateDraftComments,
+  validateNoLocalPaths,
+} from "./options.ts"
 import { planReplies, postReplies } from "./reply.ts"
 import { resolveThreads, threadNodeIds } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
@@ -177,6 +182,8 @@ export function contextCommand(argv: string[]): void {
     localHead: data.localHead,
     status: data.status,
     currentBranch: data.currentBranch,
+    mergeable: data.pullRequest.mergeable,
+    mergeStateStatus: data.pullRequest.mergeStateStatus,
   })
   emit(formatContext(data, formatWarnings(warnings)), values.out)
 }
@@ -326,16 +333,34 @@ export function optionsCommand(argv: string[]): void {
   )
   if (!existsSync(reviewFile)) throw new Error(`${reviewFile} does not exist`)
   const review = JSON.parse(readFileSync(reviewFile, "utf8")) as {
+    body?: string
     comments?: DraftComment[]
   }
-  const problems = validateDraftComments(review.comments ?? [])
+  const problems = [
+    ...validateDraftComments(review.comments ?? []),
+    ...validateNoLocalPaths(review),
+  ]
   if (problems.length > 0) {
     for (const problem of problems) console.error(problem)
     throw new Error(
-      `${problems.length} choice block problem(s) in ${reviewFile}`,
+      `${problems.length} problem(s) in ${reviewFile}`,
     )
   }
   console.log(`ok: ${review.comments?.length ?? 0} comments checked`)
+}
+
+export function missingCommand(argv: string[]): void {
+  const { positionals } = parseArgs({ args: argv, allowPositionals: true })
+  const [directory, ...letters] = positionals
+  if (!directory || letters.length === 0) {
+    throw new Error("usage: node scripts/review.ts missing <dir> <letter>...")
+  }
+  const missing = missingReviewFiles(directory, letters)
+  if (missing.length > 0) {
+    for (const name of missing) console.error(`missing ${name}.json`)
+    throw new Error(`${missing.length} reviewer file(s) missing in ${directory}`)
+  }
+  console.log(`ok: ${letters.length} reviewer file(s) found`)
 }
 
 function readJson(file: string): unknown {

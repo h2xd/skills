@@ -12,6 +12,8 @@ export type PullRequest = {
   headRefName: string
   headRefOid: string
   closingIssuesReferences: { number: number }[]
+  mergeable?: string
+  mergeStateStatus?: string
 }
 
 export type LinkedIssue = { number: number; title: string; body: string }

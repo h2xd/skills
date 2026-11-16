@@ -7,6 +7,7 @@ import {
   parseOptions,
   validateChoiceBlock,
   validateDraftComments,
+  validateNoLocalPaths,
 } from "./options.ts"
 
 describe("validateDraftComments", () => {
@@ -170,5 +171,36 @@ describe("validateChoiceBlock", () => {
     expect(validateChoiceBlock("- Suggestion A recommended: x")[0]).toContain(
       "does not match",
     )
+  })
+})
+
+describe("validateNoLocalPaths", () => {
+  const review = (body: string, comment = "fine") => ({
+    body,
+    comments: [{ path: "a.ts", line: 3, body: comment }],
+  })
+
+  test("accepts a review with repo paths and links", () => {
+    const text = "See `scripts/review.ts:12` and https://github.com/Users/x/pull/1 and src/home/a.ts"
+    expect(validateNoLocalPaths(review(text, text))).toEqual([])
+  })
+
+  test("rejects a local absolute path in the review body", () => {
+    const problems = validateNoLocalPaths(review("Read /Users/jo/work/repo/a.ts first"))
+    expect(problems).toEqual(["review body: local absolute path /Users/jo/work/repo/a.ts"])
+  })
+
+  test("rejects a local absolute path in a comment, with its place", () => {
+    const problems = validateNoLocalPaths(
+      review("ok", "see `/private/tmp/claude-1/scratch/out.md` and /home/jo/x"),
+    )
+    expect(problems).toEqual([
+      "a.ts:3: local absolute path /private/tmp/claude-1/scratch/out.md",
+      "a.ts:3: local absolute path /home/jo/x",
+    ])
+  })
+
+  test("rejects a Windows user path", () => {
+    expect(validateNoLocalPaths(review("at C:\\Users\\jo\\a.ts"))).toHaveLength(1)
   })
 })
