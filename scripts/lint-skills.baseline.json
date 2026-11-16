@@ -29,9 +29,6 @@
     "37. **Short sentences.** An instruction has at most about 20 words. A description has at most about 25. Use the glossary's word for a thing.",
     "38. **One concrete picture.** Open with a scene the reader remembers, such as \"A ticket that says 'export is broken' sits for a week.\" Not \"This skill enhances workflow quality.\""
   ],
-  "skills/code-implement/SKILL.md": [
-    "Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A"
-  ],
   "skills/code-rules/SKILL.md": [
     "- Don't read a whole large file into the main context. Search, then read the lines you need.",
     "- Don't add a lock before asking whether the sharing can go. Separate the targets first.",

@@ -25,6 +25,12 @@ tool supports and how the repo does it today are facts. Ask only for choices.
 
 ### 1. Look up the facts
 
+In the first wave, when the user names a ticket, run **Claim** from
+`docs/agents/issue-tracker.md`, when the tracker page lists it. When it fails,
+stop and name the ticket as claimed. Run **Search** for `#<n>` and list each
+open issue that mentions the ticket. A grill opens no PR, so run **Unclaim**
+in step 6, when the page lists it.
+
 Read the code, the docs and the tracker for every fact the frontier needs. For
 a long search, start a subagent with a fresh context, through the CLI's
 subagent tool, such as Agent. Only the questions downstream of a running search
@@ -33,7 +39,8 @@ wait for it.
 When a customer or someone outside the team holds an answer, offer
 `/h2xd:to-questionnaire` for that branch. Keep grilling the rest.
 
-Done when no question in the next wave asks for something you could look up.
+Done when the claim held or no ticket was named, and no question in the next
+wave asks for something you could look up.
 
 ### 2. Ask a wave
 
@@ -44,18 +51,9 @@ Before the wave, write one line: the wave number, what the last answers
 settled, and about how many decisions are left. Add one or two lines on the
 facts you found, so the options make sense.
 
-Ask with clickable options, through the CLI's question tool, such as
-AskUserQuestion. Put all questions of the wave in one call:
-
-- Give each question 2 to 4 options that exclude each other.
-- Never add an "Other" option. The tool adds one for free text.
-- Put your recommendation first. Its label ends in `(Recommended)`.
-- Write the label as the answer in 1 to 5 words. The description says what
-  follows from picking it.
-- Set `header` to a short topic tag of at most 12 characters.
-- Set `multiSelect: true` only when the options do not exclude each other.
-- Add a `preview` when the user compares concrete things, such as code,
-  config, a layout or a file tree.
+Ask with clickable options, per [`wave.md`](wave.md). Put your
+recommendation first, marked `(Recommended)`, and put all questions of the
+wave in one call.
 
 Done when the user answered every question in the wave.
 
@@ -101,6 +99,11 @@ assumed.
 
 ### 6. Close
 
+Before the table, run `h2xd:docs-fact-check` on the settled decisions. A
+decision that contradicts an accepted record goes back to the user, with the
+record. Example: the user decides that `h2xd:review-pr` asks before it posts.
+Record 0003 says it posts, then reports. Ask again with that record quoted.
+
 Show the decisions as one table: the decision, the answer, and whose it was.
 Mark each answer as your recommendation or the user's own choice. Then list
 what step 4 wrote, one line each:
@@ -113,15 +116,11 @@ what step 4 wrote, one line each:
 
 Ask with the question tool whether the table is right. The options are
 confirm, change some answers, or keep grilling. Do not act on the decisions
-before the user confirms.
+before the user confirms. When you ran **Claim**, run **Unclaim** now.
 
-Done when the user confirmed the table.
-
-## Without a question tool
-
-When the CLI has no question tool, ask the same wave of at most four as a
-numbered list. Give each question its options as `a)`, `b)`, `c)`. Put the
-recommended option first and mark it, so the user can reply `1a 2b 3a 4c`.
+Done when `h2xd:docs-fact-check` ran on every decision, each contradiction went
+back to the user, the user confirmed the table, and **Unclaim** ran after a
+**Claim**.
 
 ## Do
 

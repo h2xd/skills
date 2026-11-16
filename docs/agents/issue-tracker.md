@@ -24,12 +24,15 @@ Skills name these operations. Each one is a single command.
 | Comment | `gh issue comment <n> --body-file <file>` |
 | Label | `gh issue edit <n> --add-label "<label>"`, `--remove-label "<label>"` |
 | Assign | `gh issue edit <n> --add-assignee @me` |
+| Claim | Fails when the issue has the `in-progress` label: `gh issue view <n> --json labels --jq '.labels[].name'` lists it. Otherwise `gh issue edit <n> --add-label "in-progress"`. Run it before **Assign** |
+| Unclaim | `gh issue edit <n> --remove-label "in-progress"` |
 | Close | `gh issue close <n>`. Post the reason with **Comment** first |
 | Block | `gh api repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by -X POST -F issue_id=$(gh api repos/{owner}/{repo}/issues/<blocker> --jq .id)` makes `<blocker>` block `<n>`. List with `gh api repos/{owner}/{repo}/issues/<n>/dependencies/blocked_by` |
 | Sub-issue | `gh api repos/{owner}/{repo}/issues/<parent>/sub_issues -X POST -F sub_issue_id=$(gh api repos/{owner}/{repo}/issues/<n> --jq .id)`. List with `gh api repos/{owner}/{repo}/issues/<parent>/sub_issues` |
 | Link a PR | The PR body opens with `Closes #<n>`, one line per issue. `node scripts/lint-pr-body.ts` checks it in CI |
 | Open a PR | `gh pr create --base <base> --title "<title>" --body-file <file>`, add `--draft` for a draft. Edit an open PR with `gh pr edit <n> --title "<title>" --body-file <file>` |
 | PR status | `gh pr view <n> --json number,isDraft,reviewDecision,mergeStateStatus`. Run it once more when `mergeStateStatus` is `UNKNOWN` |
+| Open PRs closing a ticket | `gh pr list --state open --json number,title,url,headRefName,closingIssuesReferences --jq '.[] \| select(any(.closingIssuesReferences[]; .number == <n>))'` prints each open PR whose body closes `<n>` |
 
 Block and Sub-issue take the issue's numeric `id`, not its number. The
 `$(gh api ... --jq .id)` part looks it up. `gh` fills in `{owner}` and `{repo}`.
@@ -44,6 +47,7 @@ GitHub shares one number space across issues and PRs. Resolve a bare `#42` with
 | `adr` | The issue a decision record was opened under. The `h2xd:docs-adr` skill creates and searches it |
 | `spec` | A spec written by `h2xd:to-spec`. `/h2xd:to-tickets` splits it into tickets |
 | `idea` | An idea, not yet a request or a decision. `h2xd:plan-grill` files it, per its `idea-issue.md`. Triage leaves it alone |
+| `in-progress` | A skill or a person works on the issue. **Claim** adds it and **Unclaim** removes it. A merged PR closes the issue and the label goes with it. Create it once with `gh label create in-progress` |
 
 ## Triage
 

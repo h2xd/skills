@@ -1,6 +1,16 @@
-# Read the split verdict
+# Scout and split
 
-`node scripts/implement.ts split` writes `$WORK/split.md` and prints one
+Start one scout on the cheapest model, such as Haiku, through the CLI's
+subagent tool, such as Agent. Give it the paths to `ticket.md` and
+[`scout.md`](scout.md). It writes `$WORK/map.md`. Then group the criteria:
+
+```sh
+node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md
+```
+
+## Read the split verdict
+
+The command writes `$WORK/split.md` and prints one
 verdict. Act on it as follows:
 
 - `single`: one build worker gets every criterion.
