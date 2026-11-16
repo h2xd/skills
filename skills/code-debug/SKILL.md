@@ -1,6 +1,7 @@
 ---
 name: code-debug
 description: "Find and fix a bug whose cause is not known yet, or a performance regression. Build a command that goes red on the bug, narrow it to the first place the system went wrong, fix it there, and lock it with a regression test. Use when something is broken, throwing, failing, flaky or slow, or the user says debug or diagnose."
+argument-hint: "[ticket number]"
 ---
 
 # Debug
@@ -21,6 +22,10 @@ environment. Quote only the artifact lines that carry the signal.
 ## Steps
 
 ### 1. Build the loop
+
+When the argument is a ticket number, read the ticket with **View** in
+`docs/agents/issue-tracker.md`. Its text is the symptom. Run **Claim** when the
+tracker page lists it. When it fails, stop and name the ticket as claimed.
 
 Read the area first with `node scripts/find-docs.ts --search "<words>"` and
 `node scripts/find-docs.ts --type Decision --links-to <path>`. Use the terms
@@ -104,15 +109,8 @@ two, skip the test and report the missing seam. With a correct seam, follow
 4. Run the test and watch it pass. Run the original loop from step 1 on the
    unminimized scenario.
 
-When two fixes that share one premise have failed, stop fixing. The premise is
-the one sentence every failed fix assumed. Write it down.
-
-- **Test it.** Find an observation that comes out differently when the premise
-  is false, and make it. Look at how the failures are spread, not only how
-  large they are.
-- **Follow the result.** When the evidence contradicts the premise, go back to
-  step 3 with what the failures share. When it confirms the premise, go back
-  to step 5 and ask the next "why".
+When two fixes that share one premise have failed, stop fixing and follow
+[`premise.md`](premise.md).
 Done when the regression test passes, or the missing seam is written down, and
 the original loop is green.
 
@@ -121,8 +119,10 @@ the original loop is green.
 Remove every hit for the debug prefix and the throwaway harnesses. When the
 deciding fact took a deep search, propose a cheap, always-on signal, such as a
 log line. Commit per `h2xd:git-commit`: the root cause as the `cause` token in
-the body, the ruled-out hypotheses as `rejected` in the footer.
-Done when a search for the debug prefix finds nothing and the report exists.
+the body, the ruled-out hypotheses as `rejected` in the footer, and the ticket
+as `Refs: #<n>`. When no fix was committed, run **Unclaim**.
+Done when no debug prefix is left, the commit names the ticket and the report
+exists.
 
 ## Report
 
