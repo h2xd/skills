@@ -55,6 +55,14 @@ describe("this repo's copies of the templates", () => {
   }
 })
 
+describe("this repo's agents.config.json", () => {
+  test("holds the plugin version, so drift.ts finds no version gap", () => {
+    const config = JSON.parse(readFileSync(join(ROOT, "agents.config.json"), "utf8"))
+    const plugin = JSON.parse(readFileSync(join(ROOT, ".claude-plugin/plugin.json"), "utf8"))
+    expect(config.version).toBe(plugin.version)
+  })
+})
+
 describe("the comment-reaper agent", () => {
   test("can write its report file", () => {
     const text = readFileSync(join(ROOT, "agents/comment-reaper.md"), "utf8")

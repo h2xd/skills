@@ -27,6 +27,7 @@ import {
 import { missingReviewFiles } from "./missing.ts"
 import {
   type DraftComment,
+  localFolders,
   validateDraftComments,
   validateNoLocalPaths,
 } from "./options.ts"
@@ -155,6 +156,16 @@ function gatherContext(
     localHead: run(["git", "-C", worktree, "rev-parse", "HEAD"]),
     currentBranch: run(["git", "-C", worktree, "branch", "--show-current"]),
     status: run(["git", "-C", worktree, "status", "--short"]),
+    behindBase: Number(
+      run([
+        "git",
+        "-C",
+        worktree,
+        "rev-list",
+        "--count",
+        `HEAD..origin/${pullRequest.baseRefName}`,
+      ]),
+    ),
     diffStat: run(["git", "-C", worktree, "diff", "--stat", range]),
     changedFiles,
     issues: pullRequest.closingIssuesReferences.map((issue) =>
@@ -184,6 +195,7 @@ export function contextCommand(argv: string[]): void {
     currentBranch: data.currentBranch,
     mergeable: data.pullRequest.mergeable,
     mergeStateStatus: data.pullRequest.mergeStateStatus,
+    behindBase: data.behindBase,
   })
   emit(formatContext(data, formatWarnings(warnings)), values.out)
 }
@@ -325,11 +337,14 @@ export function fleetCommand(argv: string[]): void {
 export function optionsCommand(argv: string[]): void {
   const { values } = parseArgs({
     args: argv,
-    options: { validate: { type: "string" } },
+    options: {
+      validate: { type: "string" },
+      "local-path": { type: "string", multiple: true },
+    },
   })
   const reviewFile = requireArgument(
     values.validate,
-    "options --validate <review.json>",
+    "options --validate <review.json> [--local-path <dir>]...",
   )
   if (!existsSync(reviewFile)) throw new Error(`${reviewFile} does not exist`)
   const review = JSON.parse(readFileSync(reviewFile, "utf8")) as {
@@ -338,7 +353,7 @@ export function optionsCommand(argv: string[]): void {
   }
   const problems = [
     ...validateDraftComments(review.comments ?? []),
-    ...validateNoLocalPaths(review),
+    ...validateNoLocalPaths(review, localFolders(values["local-path"])),
   ]
   if (problems.length > 0) {
     for (const problem of problems) console.error(problem)

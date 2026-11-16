@@ -24,7 +24,8 @@ if (args.startsWith("pr view")) {
 } else if (args.startsWith("api graphql")) {
   console.log(JSON.stringify({ data: { repository: { pullRequest: {
     reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] },
-    reviews: { nodes: [] }, comments: { nodes: [] },
+    reviews: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] },
+    comments: { pageInfo: { hasNextPage: false, endCursor: null }, nodes: [] },
   } } } }))
 } else {
   console.error("fake gh: " + args)
@@ -48,7 +49,7 @@ function git(cwd: string, ...args: string[]): string {
   return result.stdout.trim()
 }
 
-function setup(): { worktree: string; head: string } {
+function setup(): { worktree: string; head: string; origin: string } {
   const origin = join(root, "origin.git")
   const worktree = join(root, "work")
   git(root, "init", "--bare", "--initial-branch=main", origin)
@@ -63,11 +64,21 @@ function setup(): { worktree: string; head: string } {
   git(worktree, "checkout", "-b", "feat")
   writeFileSync(join(root, "gh"), FAKE_GH)
   chmodSync(join(root, "gh"), 0o755)
-  return { worktree, head: git(worktree, "rev-parse", "HEAD") }
+  return { worktree, head: git(worktree, "rev-parse", "HEAD"), origin }
 }
 
-function context(mergeable: string, state: string): string {
-  const { worktree, head } = setup()
+function context(mergeable: string, state: string, options: { baseAhead?: number } = {}): string {
+  const { worktree, head, origin } = setup()
+  for (let n = 0; n < (options.baseAhead ?? 0); n++) {
+    const other = join(root, `other-${n}`)
+    git(root, "clone", "--branch", "main", origin, other)
+    git(other, "config", "user.email", "t@example.com")
+    git(other, "config", "user.name", "t")
+    writeFileSync(join(other, `b${n}.txt`), "b\n")
+    git(other, "add", ".")
+    git(other, "commit", "-m", `base ${n}`)
+    git(other, "push", "origin", "main")
+  }
   const result = spawnSync(process.execPath, [REVIEW, "context", "--worktree", worktree], {
     encoding: "utf8",
     env: {
@@ -78,13 +89,15 @@ function context(mergeable: string, state: string): string {
       FAKE_STATE: state,
     },
   })
-  expect(result.status).toBe(0)
+  if (result.status !== 0) throw new Error(result.stderr)
   return result.stdout
 }
 
 describe("review.ts context", () => {
-  test("warns when the head is behind the base", () => {
-    expect(context("MERGEABLE", "BEHIND")).toContain("Head behind base")
+  test("warns when the base has a commit the head lacks, with GitHub saying clean", () => {
+    expect(context("MERGEABLE", "CLEAN", { baseAhead: 2 })).toContain(
+      "Head behind base: the base has 2 commit(s)",
+    )
   })
 
   test("warns when the PR is conflicting", () => {
@@ -97,5 +110,9 @@ describe("review.ts context", () => {
 
   test("prints no warning for a clean PR", () => {
     expect(context("MERGEABLE", "CLEAN")).not.toContain("## Warnings")
+  })
+
+  test("trusts the local count, not a BEHIND state from GitHub", () => {
+    expect(context("MERGEABLE", "BEHIND")).not.toContain("## Warnings")
   })
 })

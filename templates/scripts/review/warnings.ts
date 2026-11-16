@@ -6,6 +6,7 @@ export type LocalState = {
   currentBranch?: string
   mergeable?: string
   mergeStateStatus?: string
+  behindBase?: number
 }
 
 export function collectWarnings(state: LocalState): string[] {
@@ -30,9 +31,10 @@ export function collectWarnings(state: LocalState): string[] {
     warnings.push(
       "Conflicting: the PR has merge conflicts with the base. Findings may sit on lines the merge changes.",
     )
-  } else if (state.mergeStateStatus === "BEHIND") {
+  }
+  if (state.behindBase !== undefined && state.behindBase > 0) {
     warnings.push(
-      "Head behind base: the base has commits the PR head lacks. Findings may be stale after an update.",
+      `Head behind base: the base has ${state.behindBase} commit(s) the PR head lacks. Findings may be stale after an update.`,
     )
   }
   return warnings

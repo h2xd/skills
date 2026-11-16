@@ -7,13 +7,13 @@
  * Compares the version that `h2xd:setup` wrote into the repo's
  * `agents.config.json` with the plugin's `.claude-plugin/plugin.json`, and the
  * content of each copied file with its template. Run the plugin's own copy of
- * this script, so a repo that predates it can be checked too. Prints one
- * report, and exits 1 on any drift.
+ * this script, so a repo that predates it can be checked too.
+ * Exits 1 only when a file of `templates/scripts` is missing in the repo.
  */
 
 import { existsSync, readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
-import { type DriftFile, findDrift, formatDrift, hasDrift } from "./drift/check.ts"
+import { type DriftFile, findDrift, formatDrift, hasMissingCopy } from "./drift/check.ts"
 
 const [pluginRoot, repoRoot] = process.argv.slice(2)
 if (!pluginRoot || !repoRoot) {
@@ -34,7 +34,7 @@ function filesIn(directory: string): string[] {
 
 const COPIES = [
   { from: "templates/scripts", to: "scripts", mayBeMissing: false },
-  { from: "templates/githooks", to: ".githooks", mayBeMissing: false },
+  { from: "templates/githooks", to: ".githooks", mayBeMissing: true },
   { from: "templates/workflows", to: ".github/workflows", mayBeMissing: true },
   { from: "templates/hooks", to: ".claude/hooks", mayBeMissing: true },
 ]
@@ -60,4 +60,4 @@ const report = findDrift({
   files,
 })
 console.log(formatDrift(report))
-process.exit(hasDrift(report) ? 1 : 0)
+process.exit(hasMissingCopy(report) ? 1 : 0)

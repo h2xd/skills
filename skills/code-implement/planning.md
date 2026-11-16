@@ -13,7 +13,8 @@ node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/spli
 The command writes `$WORK/split.md` and prints one
 verdict. Act on it as follows:
 
-- `single`: one build worker gets every criterion.
+- `single`: one build worker gets every criterion, except a checks
+  criterion, which goes to step 5.
 - `split`: use the build workers in `split.md`. Do not ask.
 - `ask`: the scout was unsure of a criterion. Show `split.md` and ask with
   clickable options, through the CLI's question tool, such as AskUserQuestion.

@@ -27,9 +27,10 @@ tool supports and how the repo does it today are facts. Ask only for choices.
 
 In the first wave, when the user names a ticket, run **Claim** from
 `docs/agents/issue-tracker.md`, when the tracker page lists it. When it fails,
-stop and name the ticket as claimed. Run **Search** for `#<n>` and list each
-open issue that mentions the ticket. A grill opens no PR, so run **Unclaim**
-in step 6, when the page lists it.
+stop. Name the ticket as claimed, the `in-progress` label and the **Unclaim**
+command. Run **Search** for `#<n>` and list each open issue that mentions the
+ticket. A grill opens no PR, so run **Unclaim** in step 6, when the page lists
+it.
 
 Read the code, the docs and the tracker for every fact the frontier needs. For
 a long search, start a subagent with a fresh context, through the CLI's
@@ -102,7 +103,8 @@ assumed.
 Before the table, run `h2xd:docs-fact-check` on the settled decisions. A
 decision that contradicts an accepted record goes back to the user, with the
 record. Example: the user decides that `h2xd:review-pr` asks before it posts.
-Record 0003 says it posts, then reports. Ask again with that record quoted.
+Record 0004, which replaced 0003, says it posts, then reports. Ask again with
+that record quoted.
 
 Show the decisions as one table: the decision, the answer, and whose it was.
 Mark each answer as your recommendation or the user's own choice. Then list

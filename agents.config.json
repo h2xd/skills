@@ -1,4 +1,5 @@
 {
+  "version": "0.17.0",
   "docs": {
     "root": "docs",
     "decisions": "decisions",

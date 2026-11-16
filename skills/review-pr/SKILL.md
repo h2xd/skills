@@ -102,7 +102,7 @@ paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and
 the merge again with `--bullets $WORK/bullets.md` added, and check the result:
 
 ```sh
-node scripts/review.ts options --validate $WORK/review.json
+node scripts/review.ts options --validate $WORK/review.json --local-path $WORK
 ```
 
 Done when the merge printed `wrote`, `options --validate` prints `ok`, and

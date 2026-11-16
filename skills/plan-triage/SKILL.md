@@ -38,12 +38,10 @@ agent takes the next step on the diff, and `ready-for-human` means a person merg
 
 ### 1. Load the setup
 
-Run the plugin's drift check first. The plugin root is two folders above this
-file. Run `node <plugin root>/templates/scripts/drift.ts <plugin root> .`. On
-exit 1, stop and put its report in the stop message.
-Read `docs/agents/issue-tracker.md`. Find the operations, the label per role,
-the PR flag, and who counts as external. When the `## Triage` section is
-missing, stop. Tell the user to re-run setup, per `../setup/SKILL.md`.
+Run the plugin's drift check first, per [`drift.md`](drift.md). Read
+`docs/agents/issue-tracker.md`. Find the operations, the label per role, the PR
+flag, and who counts as external. When the `## Triage` section is missing, stop.
+Tell the user to re-run setup, per `../setup/SKILL.md`.
 Done when the check passed and you can name all seven label strings and
 whether PRs are in scope.
 

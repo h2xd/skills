@@ -1,8 +1,11 @@
+import { realpathSync } from "node:fs"
+import { homedir, tmpdir } from "node:os"
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
 import {
   formatChoiceLine,
   formatOptionsLine,
+  localFolders,
   parseChoice,
   parseOptions,
   validateChoiceBlock,
@@ -174,33 +177,83 @@ describe("validateChoiceBlock", () => {
   })
 })
 
+const abs = (...parts: string[]) => ["", ...parts].join("/")
+
 describe("validateNoLocalPaths", () => {
+  const HOME = abs("Users", "jo")
+  const TEMP = abs("var", "folders", "x", "T")
+  const paths = [HOME, TEMP]
   const review = (body: string, comment = "fine") => ({
     body,
     comments: [{ path: "a.ts", line: 3, body: comment }],
   })
+  const check = (text: string) => validateNoLocalPaths(review(text, text), paths)
 
   test("accepts a review with repo paths and links", () => {
-    const text = "See `scripts/review.ts:12` and https://github.com/Users/x/pull/1 and src/home/a.ts"
-    expect(validateNoLocalPaths(review(text, text))).toEqual([])
+    const text = `See \`scripts/review.ts:12\` and https://github.com/Users/x/pull/1 and src/home/a.ts`
+    expect(check(text)).toEqual([])
   })
 
-  test("rejects a local absolute path in the review body", () => {
-    const problems = validateNoLocalPaths(review("Read /Users/jo/work/repo/a.ts first"))
-    expect(problems).toEqual(["review body: local absolute path /Users/jo/work/repo/a.ts"])
+  test("accepts a server path that is not this machine's", () => {
+    const text = [
+      `WORKDIR ${abs("home", "node", "app")}`,
+      `error_log ${abs("var", "log", "nginx", "app.log")};`,
+      `upload to ${abs("tmp", "uploads")} and ${abs("srv", "app")}`,
+    ].join("\n")
+    expect(check(text)).toEqual([])
   })
 
-  test("rejects a local absolute path in a comment, with its place", () => {
+  test("accepts a URL or a relative path that holds a home-like segment", () => {
+    const text = `https://example.com${HOME}/x and .${HOME}/y and src${HOME}/z`
+    expect(check(text)).toEqual([])
+  })
+
+  test("accepts a sibling folder that only starts like the home folder", () => {
+    expect(check(`${HOME}na/x`)).toEqual([])
+  })
+
+  test("rejects a path under this machine's home, in the body", () => {
+    const problems = validateNoLocalPaths(review(`Read ${HOME}/work/repo/a.ts first`), paths)
+    expect(problems).toEqual([`review body: local absolute path ${HOME}/work/repo/a.ts`])
+  })
+
+  test("rejects a path in a comment, with its place, and trims punctuation", () => {
+    const scratch = `${TEMP}/scratch/out.md`
     const problems = validateNoLocalPaths(
-      review("ok", "see `/private/tmp/claude-1/scratch/out.md` and /home/jo/x"),
+      review("ok", `see \`${scratch}\` and ${HOME}/x.`),
+      paths,
     )
     expect(problems).toEqual([
-      "a.ts:3: local absolute path /private/tmp/claude-1/scratch/out.md",
-      "a.ts:3: local absolute path /home/jo/x",
+      `a.ts:3: local absolute path ${scratch}`,
+      `a.ts:3: local absolute path ${HOME}/x`,
     ])
   })
 
-  test("rejects a Windows user path", () => {
-    expect(validateNoLocalPaths(review("at C:\\Users\\jo\\a.ts"))).toHaveLength(1)
+  test("rejects the folder itself", () => {
+    expect(check(`in ${HOME} now`)).toHaveLength(2)
+  })
+
+  test("rejects a Windows folder that was passed in", () => {
+    const windows = "C:\\Users\\jo"
+    expect(validateNoLocalPaths(review(`at ${windows}\\a.ts`), [windows])).toHaveLength(1)
+  })
+
+  test("checks nothing when no folder is given", () => {
+    expect(validateNoLocalPaths(review(`${HOME}/a`), [])).toEqual([])
+  })
+})
+
+describe("localFolders", () => {
+  test("holds the home folder, the temp folder and its real path", () => {
+    const paths = localFolders()
+    expect(paths).toContain(homedir())
+    expect(paths).toContain(tmpdir())
+    expect(paths).toContain(realpathSync(tmpdir()))
+  })
+
+  test("adds the extra folders and drops a bare root", () => {
+    const paths = localFolders([abs("srv", "scratch"), "/"])
+    expect(paths).toContain(abs("srv", "scratch"))
+    expect(paths).not.toContain("/")
   })
 })

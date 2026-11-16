@@ -26,8 +26,30 @@ query($owner: String!, $name: String!, $number: Int!, $after: String) {
           }
         }
       }
-      reviews(first: 50) { nodes { author { login } state body url submittedAt } }
-      comments(last: 100) { nodes { body } }
+    }
+  }
+}`
+
+const REVIEWS_QUERY = `
+query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      reviews(first: 100, after: $after) {
+        ${PAGE_INFO}
+        nodes { author { login } state body url submittedAt }
+      }
+    }
+  }
+}`
+
+const PULL_REQUEST_COMMENTS_QUERY = `
+query($owner: String!, $name: String!, $number: Int!, $after: String) {
+  repository(owner: $owner, name: $name) {
+    pullRequest(number: $number) {
+      comments(first: 100, after: $after) {
+        ${PAGE_INFO}
+        nodes { body }
+      }
     }
   }
 }`
@@ -133,52 +155,71 @@ function moreComments(thread: ReceivedThread, cwd?: string): ThreadComments {
   return { nodes }
 }
 
+type Page<Node> = { pageInfo: PageInfo; nodes: Node[] }
+
+function allPages<Node>(fetchPage: (cursor: string | null) => Page<Node>): Node[] {
+  const nodes: Node[] = []
+  let cursor: string | null = null
+  do {
+    const page = fetchPage(cursor)
+    nodes.push(...page.nodes)
+    cursor = page.pageInfo.hasNextPage ? page.pageInfo.endCursor : null
+  } while (cursor !== null)
+  return nodes
+}
+
 export function fetchReviewData(
   owner: string,
   name: string,
   number: number,
   cwd?: string,
 ): { threads: ReviewThread[]; reviews: Review[]; comments: string[] } {
-  type Data = {
-    data: {
-      repository: {
-        pullRequest: {
-          reviewThreads: { pageInfo: PageInfo; nodes: ReceivedThread[] }
-          reviews: { nodes: Review[] }
-          comments: { nodes: { body: string }[] }
-        }
+  const pullRequestPage = <Field extends string, Node>(
+    query: string,
+    field: Field,
+    cursor: string | null,
+  ): Page<Node> =>
+    (
+      graphql(
+        query,
+        [
+          "-f",
+          `owner=${owner}`,
+          "-f",
+          `name=${name}`,
+          "-F",
+          `number=${number}`,
+          ...afterCursor(cursor),
+        ],
+        cwd,
+      ) as {
+        data: { repository: { pullRequest: Record<Field, Page<Node>> } }
       }
-    }
-  }
-  const fetchPage = (cursor: string | null) =>
-    graphql(
+    ).data.repository.pullRequest[field]
+  const received = allPages((cursor) =>
+    pullRequestPage<"reviewThreads", ReceivedThread>(
       REVIEW_DATA_QUERY,
-      [
-        "-f",
-        `owner=${owner}`,
-        "-f",
-        `name=${name}`,
-        "-F",
-        `number=${number}`,
-        ...afterCursor(cursor),
-      ],
-      cwd,
-    ) as Data
-  const first = fetchPage(null).data.repository.pullRequest
-  const received = [...first.reviewThreads.nodes]
-  let page = first.reviewThreads.pageInfo
-  while (page.hasNextPage) {
-    const next = fetchPage(page.endCursor).data.repository.pullRequest
-    received.push(...next.reviewThreads.nodes)
-    page = next.reviewThreads.pageInfo
-  }
+      "reviewThreads",
+      cursor,
+    ),
+  )
+  const reviews = allPages((cursor) =>
+    pullRequestPage<"reviews", Review>(REVIEWS_QUERY, "reviews", cursor),
+  )
+  const comments = allPages((cursor) =>
+    pullRequestPage<"comments", { body: string }>(
+      PULL_REQUEST_COMMENTS_QUERY,
+      "comments",
+      cursor,
+    ),
+  )
   return {
     threads: received.map((thread) => ({
       ...thread,
       comments: moreComments(thread, cwd),
     })),
-    reviews: first.reviews.nodes,
-    comments: first.comments.nodes.map((comment) => comment.body),
+    reviews,
+    comments: comments.map((comment) => comment.body),
   }
 }
 

@@ -43,20 +43,32 @@ describe("drift.ts <plugin root> <repo root>", () => {
     expect(run.status).toBe(0)
   })
 
-  test("exits 1 and names an older version, a changed file and a missing file", () => {
+  test("exits 0 and names an older version and a changed file", () => {
     put(repo, "agents.config.json", JSON.stringify({ version: "0.1.0" }))
     put(repo, "scripts/a.ts", "edited\n")
+    const run = drift()
+    expect(run.status).toBe(0)
+    expect(run.stdout).toContain("(repo 0.1.0, plugin 0.2.0)")
+    expect(run.stdout).toContain("changed: scripts/a.ts")
+  })
+
+  test("exits 1 and names a script that the repo lacks", () => {
     put(plugin, "templates/scripts/b.ts", "b\n")
     const run = drift()
     expect(run.status).toBe(1)
-    expect(run.stdout).toContain("(repo 0.1.0, plugin 0.2.0)")
-    expect(run.stdout).toContain("changed: scripts/a.ts")
     expect(run.stdout).toContain("missing: scripts/b.ts")
   })
 
-  test("treats a repo config without a version as older", () => {
+  test("exits 0 for a repo without .githooks, a husky repo", () => {
+    rmSync(join(repo, ".githooks"), { recursive: true })
+    expect(drift().status).toBe(0)
+  })
+
+  test("treats a repo config without a version as older, and exits 0", () => {
     put(repo, "agents.config.json", "{}")
-    expect(drift().stdout).toContain("repo no version")
+    const run = drift()
+    expect(run.stdout).toContain("repo no version")
+    expect(run.status).toBe(0)
   })
 
   test("fails with usage when a root is missing", () => {

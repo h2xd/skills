@@ -73,7 +73,7 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
     const filesMatch = FILES_LINE.exec(line)
     if (!filesMatch) throw new Error(`line ${index + 1}: cannot read "${line}"`)
     const criterion = known(Number(filesMatch[1]))
-    if (files.has(criterion)) {
+    if (files.has(criterion) || checks.includes(criterion)) {
       throw new Error(`criterion ${criterion} has two lines`)
     }
     const value = filesMatch[2].trim()

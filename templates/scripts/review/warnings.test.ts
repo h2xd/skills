@@ -32,14 +32,20 @@ describe("collectWarnings", () => {
     expect(collectWarnings({ ...CLEAN, currentBranch: undefined })).toEqual([])
   })
 
-  test("warns when the head is behind the base", () => {
-    const warnings = collectWarnings({
-      ...CLEAN,
-      mergeable: "MERGEABLE",
-      mergeStateStatus: "BEHIND",
-    })
+  test("warns with the count when the base has commits the head lacks", () => {
+    const warnings = collectWarnings({ ...CLEAN, behindBase: 3 })
     expect(warnings).toHaveLength(1)
-    expect(warnings[0]).toContain("Head behind base")
+    expect(warnings[0]).toContain("Head behind base: the base has 3 commit(s)")
+  })
+
+  test("stays quiet when no base commit is missing, whatever GitHub says", () => {
+    expect(collectWarnings({ ...CLEAN, behindBase: 0 })).toEqual([])
+    expect(collectWarnings({ ...CLEAN, mergeStateStatus: "BEHIND" })).toEqual([])
+  })
+
+  test("reports a conflict and a missing base commit together", () => {
+    const warnings = collectWarnings({ ...CLEAN, mergeable: "CONFLICTING", behindBase: 1 })
+    expect(warnings).toHaveLength(2)
   })
 
   test("warns when the PR conflicts with the base", () => {

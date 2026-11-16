@@ -163,7 +163,8 @@ triage creates no duplicates. External PRs stay out of triage. The user can
 turn them on in the tracker page.
 
 Labels to create when missing: `adr` described as "Opened for a decision
-record", `spec`, `idea` described as "Not a request yet", and the triage labels.
+record", `spec`, `idea` described as "Not a request yet", `in-progress`
+described as "A skill or a person works on it", and the triage labels.
 
 ## L. Module boundaries
 

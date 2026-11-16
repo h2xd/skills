@@ -25,7 +25,8 @@ environment. Quote only the artifact lines that carry the signal.
 
 When the argument is a ticket number, read the ticket with **View** in
 `docs/agents/issue-tracker.md`. Its text is the symptom. Run **Claim** when the
-tracker page lists it. When it fails, stop and name the ticket as claimed.
+tracker page lists it. When it fails, stop and name the ticket as claimed, the
+`in-progress` label and **Unclaim**.
 
 Read the area first with `node scripts/find-docs.ts --search "<words>"` and
 `node scripts/find-docs.ts --type Decision --links-to <path>`. Use the terms
@@ -119,10 +120,9 @@ the original loop is green.
 Remove every hit for the debug prefix and the throwaway harnesses. When the
 deciding fact took a deep search, propose a cheap, always-on signal, such as a
 log line. Commit per `h2xd:git-commit`: the root cause as the `cause` token in
-the body, the ruled-out hypotheses as `rejected` in the footer, and the ticket
-as `Refs: #<n>`. When no fix was committed, run **Unclaim**.
-Done when no debug prefix is left, the commit names the ticket and the report
-exists.
+the body, the ruled-out hypotheses as `rejected` in the footer, and any ticket
+as `Refs: #<n>`. No PR opens, so run **Unclaim** after **Claim**.
+Done when no debug prefix is left, the ticket is unclaimed, the report exists.
 
 ## Report
 
