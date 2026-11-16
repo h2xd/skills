@@ -39,7 +39,8 @@ name the missing lens in the summary.
 
 ## A later review
 
-The prompts need no exclusion list. `merge` drops a 🟡 or 🟢 finding on lines
-that a thread holds, and never a 🔴. It does not drop an item outside the
-diff, which has no thread. When a reviewer words an answered item again with
-other lines or another subject, the item gets a new id and comes back as open.
+The prompts need no exclusion list. `merge` keeps a finding on lines that a
+thread holds, open or resolved, and links the thread. The reader of the
+review decides whether the thread already answers it. When a reviewer words
+an answered item again with other lines or another subject, the item gets a
+new id and comes back as open.

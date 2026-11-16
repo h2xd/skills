@@ -430,9 +430,7 @@ export function mergeCommand(argv: string[]): void {
     `wrote ${outFile}: ${review.event}, ${stats.inline} inline, ${stats.outside} outside the diff, ${stats.merged} merged, ${dropped.length} dropped`,
   )
   for (const item of dropped) {
-    console.log(
-      `dropped ${item.id}: ${item.subject}${item.url ? ` (${item.url})` : ""}`,
-    )
+    console.log(`dropped ${item.id}: ${item.subject}`)
   }
   if (!values.bullets) {
     console.log(`bullets:\n${findingsBullets(review.body).join("\n")}`)

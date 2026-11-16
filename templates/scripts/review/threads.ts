@@ -22,6 +22,7 @@ export type ReviewThread = {
   diffSide: string
   line: number | null
   startLine: number | null
+  startDiffSide?: string | null
   originalLine: number | null
   comments: { nodes: ReviewComment[] }
 }

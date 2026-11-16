@@ -620,7 +620,7 @@ describe("mergeFindings", () => {
     expect(item).toContain("Suggestion B: fix two")
   })
 
-  test("drops a finding that overlaps an existing thread on the same file", () => {
+  test("keeps a finding on lines that an open thread holds, with the thread link", () => {
     const threads = [
       { path: "src/undo.ts", startLine: null, line: 12, url: "https://x/t1" },
       { path: "src/undo.ts", startLine: 20, line: 22, url: "https://x/t2" },
@@ -631,20 +631,58 @@ describe("mergeFindings", () => {
           finding({ id: "B-1", lines: [11, 12], subject: "held by t1" }),
           finding({ id: "B-2", lines: [21], subject: "held by t2" }),
           finding({ id: "B-3", lines: [13], subject: "free" }),
-          finding({ id: "B-4", file: "src/other.ts", lines: [12], subject: "other file" }),
         ]),
       ],
       DIFF,
       { ...CONTEXT, threads },
     )
-    expect(dropped).toEqual([
-      { id: "B-1", subject: "held by t1", url: "https://x/t1" },
-      { id: "B-2", subject: "held by t2", url: "https://x/t2" },
-    ])
-    expect(review.comments.map((comment) => comment.line)).toEqual([13])
+    expect(dropped).toEqual([])
+    expect(review.comments.map((comment) => comment.line)).toEqual([12, 13])
+    expect(stats.inline).toBe(2)
     expect(stats.outside).toBe(1)
-    expect(review.body).toContain("free")
-    expect(review.body).not.toContain("held by")
+    const bodies = Object.fromEntries(
+      review.comments.map((comment) => [comment.line, comment.body]),
+    )
+    expect(bodies[12]).toContain("https://x/t1")
+    expect(outsideDiffItems(review.body).join("\n")).toContain("https://x/t2")
+    expect(bodies[13]).not.toContain("https://x/")
+  })
+
+  test("keeps a finding on lines that a resolved thread holds, with the thread link", () => {
+    const resolved = thread({ isResolved: true, line: 12 })
+    const { review, dropped } = mergeFindings(
+      [file("B", [finding({ id: "B-1", lines: [12] })])],
+      DIFF,
+      { ...CONTEXT, threads: existingThreads([resolved]) },
+    )
+    expect(dropped).toEqual([])
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body).toContain("https://x/first")
+  })
+
+  test("links the thread of a finding outside the diff in the review body", () => {
+    const { review } = mergeFindings(
+      [file("B", [finding({ id: "B-1", lines: [40], subject: "held far off" })])],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 40, url: "https://x/t9" }],
+      },
+    )
+    expect(review.comments).toEqual([])
+    expect(outsideDiffItems(review.body).join("\n")).toContain("https://x/t9")
+  })
+
+  test("a finding on another file than the thread is not linked", () => {
+    const { review } = mergeFindings(
+      [file("B", [finding({ id: "B-4", file: "src/other.ts", lines: [12] })])],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 12, url: "https://x/t1" }],
+      },
+    )
+    expect(review.body).not.toContain("https://x/t1")
   })
 
   test("a red finding is kept and requests changes when a thread holds its lines", () => {
@@ -740,6 +778,21 @@ describe("mergeFindings", () => {
     ])
   })
 
+  test("a RIGHT thread with a LEFT start holds only its own line", () => {
+    const threads = existingThreads([
+      thread({ startLine: 5, startDiffSide: "LEFT", line: 12 }),
+    ])
+    expect(threads).toEqual([
+      { path: "src/undo.ts", startLine: null, line: 12, url: "https://x/first" },
+    ])
+    const { review } = mergeFindings(
+      [file("B", [finding({ id: "B-1", lines: [11] })])],
+      DIFF,
+      { ...CONTEXT, threads },
+    )
+    expect(review.comments[0].body).not.toContain("https://x/first")
+  })
+
   test("existingThreads leaves out a LEFT thread", () => {
     expect(existingThreads([thread({ diffSide: "LEFT" })])).toEqual([])
   })
@@ -750,13 +803,6 @@ describe("mergeFindings", () => {
 
   test("existingThreads leaves out a thread without comments", () => {
     expect(existingThreads([thread({ comments: { nodes: [] } })])).toEqual([])
-  })
-
-  test("lists a dropped finding with its thread url in the preview", () => {
-    const { review } = mergeFindings([file("C", [])], DIFF, CONTEXT)
-    expect(
-      formatPreview(review, [{ id: "B-1", subject: "held", url: "https://x/t1" }]),
-    ).toContain("## Dropped\n\n- B-1: held (https://x/t1)")
   })
 
   test("lists a dropped finding in the preview", () => {

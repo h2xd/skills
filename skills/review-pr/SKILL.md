@@ -90,10 +90,10 @@ It checks each findings file first. When one fails, retry that reviewer as
 [`reviewers.md`](reviewers.md) says. When it fails again, delete its file,
 merge without it, and name the missing lens in the summary. It joins
 duplicates, moves a line outside the diff to "Outside the diff", writes the
-Conventional Comments and sorts worst first. It drops a 🟡 or 🟢 finding that
-overlaps an existing thread and prints it with the thread URL. It never drops
-a 🔴. The event is `REQUEST_CHANGES` with a 🔴, otherwise `APPROVE`, and
-`COMMENT` on your own PR.
+Conventional Comments and sorts worst first. It keeps a finding on lines that
+a thread holds, open or resolved, and links the thread in the comment. A
+thread never drops a finding. The event is `REQUEST_CHANGES` with a 🔴,
+otherwise `APPROVE`, and `COMMENT` on your own PR.
 
 Then start one subagent on the cheapest model, such as Haiku. Give it the
 paths to [`summary-bullets.md`](summary-bullets.md), `review.json` and
