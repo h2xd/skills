@@ -648,6 +648,22 @@ describe("mergeFindings", () => {
     expect(bodies[13]).not.toContain("https://x/")
   })
 
+  test("links the thread that holds the lines of a later finding in a merged group", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [finding({ id: "B-1", lines: [11, 12], subject: "same issue" })]),
+        file("C", [finding({ id: "C-1", lines: [12, 13], subject: "same issue" })]),
+      ],
+      DIFF,
+      {
+        ...CONTEXT,
+        threads: [{ path: "src/undo.ts", startLine: null, line: 13, url: "https://x/t13" }],
+      },
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body).toContain("https://x/t13")
+  })
+
   test("keeps a finding on lines that a resolved thread holds, with the thread link", () => {
     const resolved = thread({ isResolved: true, line: 12 })
     const { review, dropped } = mergeFindings(
