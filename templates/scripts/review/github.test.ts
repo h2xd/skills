@@ -109,6 +109,27 @@ describe("fetchReviewData", () => {
     expect(comments).toEqual(["top"])
   })
 
+  test("reads review threads across three pages", () => {
+    servePages({
+      "threads:": threadsPage([thread("t0", 1, null)], "c1"),
+      "threads:c1": threadsPage([thread("t1", 1, null)], "c2"),
+      "threads:c2": threadsPage([thread("t2", 1, null)], null),
+    })
+    const { threads } = fetchReviewData("o", "r", 1)
+    expect(threads.map((item) => item.id)).toEqual(["t0", "t1", "t2"])
+  })
+
+  test("reads the comments of a thread across three pages", () => {
+    servePages({
+      "threads:": threadsPage([thread("t0", 100, "k1")], null),
+      "comments:t0:k1": commentsPage("t0", 100, 100, "k2"),
+      "comments:t0:k2": commentsPage("t0", 200, 5, null),
+    })
+    const { threads } = fetchReviewData("o", "r", 1)
+    expect(threads[0].comments.nodes).toHaveLength(205)
+    expect(threads[0].comments.nodes[204].body).toBe("t0-204")
+  })
+
   test("reads every comment of a thread past 100", () => {
     servePages({
       "threads:": threadsPage([thread("t0", 100, "k1"), thread("t1", 2, null)], null),
