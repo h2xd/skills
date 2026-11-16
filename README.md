@@ -70,8 +70,8 @@ Setup shows every draft and writes nothing until you agree. Then it writes
 the `package.json` scripts. Each hook runs its own lint, then every
 executable file in `.githooks/pre-commit.d/` or `.githooks/commit-msg.d/`.
 Setup never edits a file in those two folders, so your own checks stay. On a
-re-run, it moves the extra lines of an edited hook into `50-local` in the
-matching folder before it copies the hook. It writes the
+re-run, `scripts/hooks.ts` moves the extra lines of an edited hook into
+`50-local` in the matching folder before it copies the hook. It writes the
 plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
 labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`.
