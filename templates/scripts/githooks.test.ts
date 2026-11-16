@@ -4,7 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, test } from "node:test"
 import { expect } from "../../scripts/expect.ts"
-import { gitEnv } from "../../scripts/git-env.ts"
+import { envWithoutGit } from "../../scripts/test-env.ts"
 
 const HOOKS = join(import.meta.dirname, "..", "githooks")
 
@@ -44,7 +44,7 @@ function run(hook: string, ...args: string[]) {
   const result = spawnSync("sh", [join(repo, ".githooks", hook), ...args], {
     cwd: repo,
     encoding: "utf8",
-    env: gitEnv(),
+    env: envWithoutGit(),
   })
   let log: string[] = []
   try {
