@@ -1,0 +1,16 @@
+[
+  {
+    "file": "skills/git-guardrails/SKILL.md",
+    "reason": "The skill documents the hook, so it names every blocked command."
+  },
+  {
+    "file": "skills/ask-committee/SKILL.md",
+    "line": "git branch -D",
+    "reason": "The step tells the agent to ask the user before the removal."
+  },
+  {
+    "file": "skills/code-arena/SKILL.md",
+    "line": "git branch -D",
+    "reason": "The step tells the agent to ask the user before the removal."
+  }
+]
