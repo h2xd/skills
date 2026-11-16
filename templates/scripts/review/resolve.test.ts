@@ -13,6 +13,17 @@ describe("threadNodeIds", () => {
     ])
   })
 
+  test("passes real node ids that hold a dash", () => {
+    expect(threadNodeIds(["PRRT_kwDOVdbSc8636k-a", "PRRT_kwDODKw3uc41jg--"], "")).toEqual([
+      "PRRT_kwDOVdbSc8636k-a",
+      "PRRT_kwDODKw3uc41jg--",
+    ])
+  })
+
+  test("refuses the prefix alone", () => {
+    expect(() => threadNodeIds(["PRRT_"], THREADS)).toThrow("neither a thread id")
+  })
+
   test("refuses a PR number or any other argument before a call", () => {
     expect(() => threadNodeIds(["88", "T1"], THREADS)).toThrow(
       "88 is neither a thread id (PRRT_...) nor a T label",

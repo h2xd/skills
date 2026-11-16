@@ -4,7 +4,8 @@
  *
  *   node scripts/hooks.ts <plugin root> <repo root>
  *
- * Run the plugin's own copy of this script. For each file in
+ * Run the plugin's own copy of this script. A target repo's copy is never run,
+ * as with `drift.ts`: it needs the plugin's templates. For each file in
  * `templates/githooks`, it compares the repo's `.githooks/<hook>` with the
  * template and with the earlier template in `templates/githooks-earlier`.
  * Lines that the repo added move to `.githooks/<hook>.d/50-local`.
@@ -81,6 +82,7 @@ for (const hook of readdirSync(templates).sort()) {
       install()
       const count = plan.local.split("\n").length - 2
       console.log(`${hook}: moved ${count} lines to .githooks/${hook}.d/50-local`)
+      for (const line of plan.local.split("\n").slice(1, -1)) console.log(`  ${line}`)
       break
     }
     case "ask":

@@ -3,7 +3,7 @@ import { parseThreadIds } from "./reply.ts"
 export type ResolveOutcome = { lines: string[]; failed: boolean }
 
 const THREAD_LABEL = /^T\d+$/
-const THREAD_NODE_ID = /^PRRT_\w+$/
+const THREAD_NODE_ID = /^PRRT_[\w-]+$/
 
 export function threadNodeIds(
   idsOrLabels: string[],

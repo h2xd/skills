@@ -12,11 +12,17 @@ keeps those lines. It compares each hook with the template and with
 2. Act on each line:
    - `copied`, `unchanged`, `unedited, replaced`: nothing more to do.
    - `moved <n> lines`: the script wrote `50-local` and copied the hook.
-     Report it as a 🟡 line with the text of the `50-local` file.
+     Report it as a 🟡 line with the lines the script printed below it. Show
+     `git diff .githooks` too, so the user sees the old hook.
    - `50-local exists, ask the user`: show both the file and the repo hook.
-     Ask the user with options, such as append, replace or skip.
+     Ask the user with options, such as append, replace or skip. The choice
+     decides the text of `50-local`.
    - `do not parse alone`: show the extra lines of the repo hook. The user
      merges them by hand into a file in the `.d` folder.
    Done when every line is handled and the user has seen each `50-local`.
+3. After the user chose for `ask` or merged by hand, write the chosen text
+   to the `.d` folder. Copy `templates/githooks/<hook>` over
+   `.githooks/<hook>`, executable. Run the script again.
+   Done when the script prints `unchanged` for that hook.
 
 Never change another file in a `.d` folder. They hold the repo's own checks.
