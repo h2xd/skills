@@ -34,6 +34,10 @@ Only these comments stay:
 - Doc comments that define a public API contract.
 - Links to an issue, an RFC or a decision record that explain a constraint the
   code cannot express.
+- In a template that a tool copies into other repos, a comment that tells
+  those repos how to extend their copy. For example, a hook header that says
+  repo checks go in a folder the next copy never touches. The reader there
+  cannot ask us, and the code cannot say it.
 
 A surprise in our own code is not on the list. Reap the comment, and mark the
 symbol `MUST KILL`: it needs a rename, an extraction, a type or a new shape
