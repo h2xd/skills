@@ -32,8 +32,9 @@ git -C $WORKTREE worktree remove --force $WORK/worktree-d
 
 ## A missing findings file
 
-Before step 4, run `ls $WORK/review-<x>.json` for each started reviewer and
-name each missing file. Start that reviewer once more. Reviewer D keeps
+Before step 4, run `node scripts/review.ts missing $WORK <letters>` with the
+letters of the started reviewers. It names each missing file and exits 1. Start
+that reviewer once more. Reviewer D keeps
 `$WORK/worktree-d` for the retry. When it fails again, go on without it, and
 name the missing lens in the summary.
 
