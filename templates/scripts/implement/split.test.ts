@@ -167,6 +167,27 @@ describe("planSplit", () => {
   })
 })
 
+describe("a checks criterion", () => {
+  test("goes under step 5 and gets no build worker", () => {
+    const split = plan("1: a.ts\n2: b.ts\n3: c.ts\n4: checks\n", 4)
+    expect(split.workers.flatMap((worker) => worker.criteria)).toEqual([1, 2, 3])
+    expect(split.checks).toEqual([4])
+    expect(formatSplit(split)).toContain("## Step 5 checks\n\n- Criteria: 4\n")
+  })
+
+  test("does not count toward the criteria a split needs", () => {
+    const split = plan("1: a.ts\n2: b.ts\n3: checks\n", 3)
+    expect(split.verdict).toBe("single")
+    expect(split.workers.map((worker) => worker.criteria)).toEqual([[1, 2]])
+  })
+
+  test("rejects a needs line that names it", () => {
+    expect(() => parseFileMap("1: a.ts\n2: checks\n2 needs 1\n", 2)).toThrow(
+      "criterion 2 is a checks criterion, it has no build worker",
+    )
+  })
+})
+
 describe("formatSplit", () => {
   test("prints the verdict and one section per build worker", () => {
     expect(formatSplit(plan("1: a.ts, x.ts\n2: b.ts\n3: x.ts\n", 3))).toBe(

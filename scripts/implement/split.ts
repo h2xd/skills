@@ -9,6 +9,7 @@ import path from "node:path"
 export type FileMap = {
   files: Map<number, { unsure: true } | { unsure: false; files: string[] }>
   needs: { criterion: number; needed: number }[]
+  checks: number[]
 }
 
 export type SplitSettings = { maxWorkers: number }
@@ -17,7 +18,12 @@ export type Verdict = "single" | "split" | "ask"
 
 export type BuildWorker = { id: number; criteria: number[]; files: string[] }
 
-export type Split = { verdict: Verdict; workers: BuildWorker[]; reasons: string[] }
+export type Split = {
+  verdict: Verdict
+  workers: BuildWorker[]
+  checks: number[]
+  reasons: string[]
+}
 
 export const MIN_CRITERIA = 3
 
@@ -43,6 +49,7 @@ function parseFiles(criterion: number, value: string): string[] {
 export function parseFileMap(text: string, criteriaCount: number): FileMap {
   const files: FileMap["files"] = new Map()
   const needs: FileMap["needs"] = []
+  const checks: number[] = []
   const known = (criterion: number) => {
     if (criterion < 1 || criterion > criteriaCount) {
       throw new Error(
@@ -70,6 +77,10 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
       throw new Error(`criterion ${criterion} has two lines`)
     }
     const value = filesMatch[2].trim()
+    if (value === "checks") {
+      checks.push(criterion)
+      return
+    }
     files.set(
       criterion,
       value === "unsure"
@@ -79,11 +90,20 @@ export function parseFileMap(text: string, criteriaCount: number): FileMap {
   })
 
   for (let criterion = 1; criterion <= criteriaCount; criterion++) {
-    if (!files.has(criterion)) {
+    if (!files.has(criterion) && !checks.includes(criterion)) {
       throw new Error(`criterion ${criterion} has no line`)
     }
   }
-  return { files, needs }
+  for (const { criterion, needed } of needs) {
+    for (const named of [criterion, needed]) {
+      if (checks.includes(named)) {
+        throw new Error(
+          `criterion ${named} is a checks criterion, it has no build worker`,
+        )
+      }
+    }
+  }
+  return { files, needs, checks: checks.sort((a, b) => a - b) }
 }
 
 function connectedGroups(map: FileMap): number[][] {
@@ -145,7 +165,8 @@ export function planSplit(map: FileMap, settings: SplitSettings): Split {
   )
   const single = (reason: string): Split => ({
     verdict: "single",
-    workers: toWorkers([all], map),
+    workers: all.length === 0 ? [] : toWorkers([all], map),
+    checks: map.checks,
     reasons: [reason, ...unsureReasons],
   })
   if (all.length < MIN_CRITERIA) {
@@ -188,6 +209,7 @@ export function planSplit(map: FileMap, settings: SplitSettings): Split {
   return {
     verdict: unsure.length > 0 ? "ask" : "split",
     workers: toWorkers(groups, map),
+    checks: map.checks,
     reasons,
   }
 }
@@ -206,6 +228,9 @@ export function formatSplit(split: Split): string {
       `- Files: ${worker.files.join(", ") || "unknown"}`,
       ``,
     ]),
+    ...(split.checks.length === 0
+      ? []
+      : [`## Step 5 checks`, ``, `- Criteria: ${split.checks.join(", ")}`, ``]),
     `## Why`,
     ``,
     ...split.reasons.map((reason) => `- ${reason}`),
