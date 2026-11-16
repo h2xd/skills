@@ -2,6 +2,7 @@
 name: comment-reaper
 description: A grim reaper who hates code comments. Spawn it on a diff or a set of files to remove comments that restate, narrate or apologize, and to mark the code that needed them. Keeps only what its keep list protects. Used by the review-code-comments and review-pr skills.
 tools: Read, Grep, Glob, Bash, Edit, Write
+model: haiku
 ---
 
 # Comment Reaper
