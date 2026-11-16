@@ -32,7 +32,7 @@ Skills name these operations. Each one is a single command.
 | Link a PR | The PR body opens with `Closes #<n>`, one line per issue. `node scripts/lint-pr-body.ts` checks it in CI |
 | Open a PR | `gh pr create --base <base> --title "<title>" --body-file <file>`, add `--draft` for a draft. Edit an open PR with `gh pr edit <n> --title "<title>" --body-file <file>` |
 | PR status | `gh pr view <n> --json number,isDraft,reviewDecision,mergeStateStatus`. Run it once more when `mergeStateStatus` is `UNKNOWN` |
-| Open PRs closing a ticket | `gh pr list --state open --json number,title,url,headRefName,closingIssuesReferences --jq '.[] \| select(any(.closingIssuesReferences[]; .number == <n>))'` prints each open PR whose body closes `<n>` |
+| Open PRs closing a ticket | `gh pr list --state open --limit 1000 --json number,title,url,headRefName,closingIssuesReferences --jq '.[] \| select(any(.closingIssuesReferences[]; .number == <n>))'` prints each open PR whose body closes `<n>` |
 
 Block and Sub-issue take the issue's numeric `id`, not its number. The
 `$(gh api ... --jq .id)` part looks it up. `gh` fills in `{owner}` and `{repo}`.

@@ -8,8 +8,7 @@
  *   Note: Reply with A or B. If you reply with nothing Suggestion A will be used.
  */
 
-import { realpathSync } from "node:fs"
-import { homedir, tmpdir } from "node:os"
+import { homedir } from "node:os"
 
 export type Option = { letter: string; recommended: boolean; fix: string }
 
@@ -152,17 +151,8 @@ export function validateDraftComments(comments: DraftComment[]): string[] {
   )
 }
 
-function realpathOrSelf(path: string): string {
-  try {
-    return realpathSync(path)
-  } catch {
-    return path
-  }
-}
-
 export function localFolders(extra: string[] = []): string[] {
-  const temp = tmpdir()
-  return [...new Set([homedir(), temp, realpathOrSelf(temp), ...extra])].filter(
+  return [...new Set([homedir(), ...extra])].filter(
     (path) => path.length > 1,
   )
 }

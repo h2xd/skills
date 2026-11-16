@@ -99,9 +99,23 @@ describe("formatDrift", () => {
       [
         "drift: the copies differ from the plugin (repo 0.16.2, plugin 0.16.2)",
         "changed: scripts/a.ts",
-        "run /h2xd:setup",
       ].join("\n"),
     )
+  })
+
+  test("asks for setup only when a copy is missing", () => {
+    const changedOnly = findDrift({
+      repoVersion: "0.15.0",
+      pluginVersion: "0.16.2",
+      files: [file("scripts/a.ts", "n", "o")],
+    })
+    expect(formatDrift(changedOnly)).not.toContain("run /h2xd:setup")
+    const missing = findDrift({
+      repoVersion: "0.16.2",
+      pluginVersion: "0.16.2",
+      files: [file("scripts/b.ts", "n", null)],
+    })
+    expect(formatDrift(missing)).toContain("run /h2xd:setup")
   })
 
   test("reports a missing file even when the versions match", () => {

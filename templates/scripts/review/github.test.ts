@@ -243,6 +243,25 @@ describe("the GraphQL queries", () => {
     expect(commentsQuery).toContain(`comments(first: 100, after: $after) ${PAGE_INFO}`)
   })
 
+  test("ask for the reviews with a cursor, page info and every field a review reads", () => {
+    servePages({})
+    fetchReviewData("o", "r", 1)
+    const query = flat(queriesContaining("reviews(")[0])
+    expect(query).toContain(`reviews(first: 100, after: $after) ${PAGE_INFO}`)
+    const nodes = query.match(/nodes \{(.*)\} \} \} \}/)?.[1] ?? ""
+    for (const field of ["author { login }", "state", "body", "url", "submittedAt"]) {
+      expect(nodes).toContain(field)
+    }
+  })
+
+  test("ask for the pull request comments with a cursor and page info", () => {
+    servePages({})
+    fetchReviewData("o", "r", 1)
+    const query = flat(queriesContaining("pullRequest(number: $number) {\n      comments(")[0])
+    expect(query).toContain(`comments(first: 100, after: $after) ${PAGE_INFO}`)
+    expect(query).toContain("nodes { body }")
+  })
+
   test("ask for the start side of a thread", () => {
     servePages({ "threads:": threadsPage([], null) })
     fetchReviewData("o", "r", 1)
