@@ -3,16 +3,41 @@
 # the day it breaks. Enabled by `git config core.hooksPath .githooks`, which the
 # `prepare` script in package.json runs on install.
 #
+# Then run each executable file in .githooks/pre-commit.d/, in name order, and
+# fail on the first failure. Put the repo's own checks there. Setup never
+# touches that folder.
+#
 # To commit past a known failure: git commit --no-verify
 
-if ! command -v node >/dev/null 2>&1; then
+if command -v node >/dev/null 2>&1; then
+  node scripts/lint-docs.ts || {
+    echo ""
+    echo "pre-commit: the docs check failed. Fix the pages above."
+    echo "  After a merge or rebase, node scripts/resolve-docs.ts fixes the mechanical conflicts."
+    exit 1
+  }
+else
   echo "pre-commit: node not found, skipping the docs check" >&2
-  exit 0
 fi
 
-node scripts/lint-docs.ts || {
-  echo ""
-  echo "pre-commit: the docs check failed. Fix the pages above."
-  echo "  After a merge or rebase, node scripts/resolve-docs.ts fixes the mechanical conflicts."
-  exit 1
-}
+for check in .githooks/pre-commit.d/*; do
+  [ -f "$check" ] && [ -x "$check" ] || continue
+  "$check" "$@" || {
+    echo "pre-commit: $check failed" >&2
+    exit 1
+  }
+done
+
+# Example for .githooks/pre-commit.d/10-tests. Git exports GIT_DIR and its
+# siblings to a hook, so a test that runs git in a temporary repo would commit
+# into this one. The subshell unsets them for the tests only.
+#
+#   #!/bin/sh
+#   (
+#     unset GIT_DIR
+#     unset GIT_WORK_TREE
+#     unset GIT_INDEX_FILE
+#     unset GIT_PREFIX
+#     unset GIT_COMMON_DIR
+#     npm test
+#   )

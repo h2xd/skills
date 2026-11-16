@@ -73,8 +73,9 @@ Done when the user confirms.
 
 1. **Config.** Write `agents.config.json` from
    [`templates/agents.config.json`](../../templates/agents.config.json) with the
-   answers. Set `docs.root` and `docs.decisions` from B, and
-   `docs.glossaries` with each path and its `requiredFields` from C. Set
+   answers. Set `version` to the plugin's own version, from its
+   `.claude-plugin/plugin.json`. Set `docs.root` and `docs.decisions` from B,
+   and `docs.glossaries` with each path and its `requiredFields` from C. Set
    `decisionIssueRequiredFrom` to the next free record number, or `null` when F
    was no. Set `commits` from E, `pullRequests.closingKeyword` from G,
    `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.
@@ -95,7 +96,8 @@ Done when the user confirms.
    script. Then chain the command or ask.
 4. **Hooks and CI**, per section G. Copy `templates/githooks/*`, executable,
    to `.githooks/` and `templates/workflows/*.yml` to `.github/workflows/`. Run
-   `git config core.hooksPath .githooks` once.
+   `git config core.hooksPath .githooks` once. Never touch the `.d` folders in
+   `.githooks/`. They hold the repo's own checks.
 5. **Docs bundle.** For a new bundle, copy `templates/docs/`. Replace
    `{{DATE}}` with today in `YYYY-MM-DD` form. Replace `{{ACTOR}}` with
    `<cli>/<your model id>`, such as `claude-code/claude-opus-5-5`. For an
@@ -106,10 +108,8 @@ Done when the user confirms.
    [local](issue-tracker-local.md). Write `docs/agents/knowledge-base.md` from
    [`knowledge-base.md`](knowledge-base.md). Fill every `{{...}}`. List both in
    `docs/index.md` under `## Agent config`.
-7. **Labels.** Create each missing label with `gh label create` or
-   `glab label create`: `adr` described as "Opened for a decision record",
-   `spec`, `idea` described as "Not a request yet", and the triage labels from
-   section K. Skip this step for a local tracker.
+7. **Labels.** Create each missing label from the end of section K with
+   `gh label create` or `glab label create`. Skip this step for a local tracker.
 8. **Instructions file.** Edit the one that exists, or ask which to create.
    Write the [blocks](instructions-block.md) into it.
 9. **Optional skills.** They are user-only, so read and follow each by path:

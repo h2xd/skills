@@ -162,6 +162,9 @@ shows a label for a role, such as `type: bug`, propose that label instead, so
 triage creates no duplicates. External PRs stay out of triage. The user can
 turn them on in the tracker page.
 
+Labels to create when missing: `adr` described as "Opened for a decision
+record", `spec`, `idea` described as "Not a request yet", and the triage labels.
+
 ## L. Module boundaries
 
 Only when the repo has a `tsconfig.json`. `h2xd:lang-ts-deep-modules` installs
