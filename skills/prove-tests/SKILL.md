@@ -38,12 +38,11 @@ branch, `main` by default, with the working tree and untracked files:
 Keep added or changed lines in source files. Drop test files, generated code,
 type-only files, config, docs, and paths that match a `mutation.exclude` glob.
 
-Count the **logic lines**, the lines that compute, branch, call or return. The
+Count the **logic lines**, the lines that compute, branch, call or return.
+Also count each data line that a criterion names, such as a config value. The
 budget is `ceil(logic lines / linesPerMutant)`, clamped to
 `minMutants`..`maxMutants`. One file gets at most `ceil(budget × maxFileShare)`.
-
-**Test-only change.** When there are no logic lines but new or changed tests,
-mutate the code those tests exercise. Plant two mutants per new test.
+A test-only change has its own rule in [`mutants.md`](mutants.md).
 
 Done when you can list each file with its changed line ranges and the budget.
 
@@ -98,7 +97,8 @@ Done when every mutant has a status.
 
 For each survivor, name an input where the original and the mutant behave
 differently. That input starts the missing test. When no such input exists, the
-mutant is equivalent. Drop it and count it.
+mutant is equivalent. Drop it and count it. Check a percentage boundary
+against the float-rounding survivor in [`mutants.md`](mutants.md) first.
 
 Then check the tests that ran on the changed code for the smells in
 [`mutants.md`](mutants.md).

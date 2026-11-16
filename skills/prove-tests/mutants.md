@@ -17,6 +17,21 @@ Pick one plausible bug per place, the kind a person could have written.
 
 Skip mutants that cannot compile, and mutants of logging or messages.
 
+## Test-only change
+
+When there are no logic lines but new or changed tests, mutate the code those
+tests exercise. Plant two mutants per new test.
+
+## Float-rounding survivor
+
+A boundary mutant on a percentage can survive when the test sits exactly on
+the boundary. Then the mutant and the original differ only by float rounding.
+Example: `0.1 + 0.2` is not `0.3`, so `>=` and `>` agree at that value.
+
+Fix to suggest: test with a real percentage margin, such as 5 percent past the
+boundary on each side, not the exact boundary. Use an exact boundary only when
+the values are integers.
+
 ## Test smells
 
 Flag these in the tests that ran against the changed code:
