@@ -57,7 +57,7 @@ export type Review = {
   comments: ReviewComment[]
 }
 
-export type DroppedFinding = { id: string; subject: string; url?: string }
+export type DroppedFinding = { id: string; subject: string }
 
 export type MergeStats = {
   merged: number
@@ -295,7 +295,10 @@ export function existingThreads(threads: ReviewThread[]): ExistingThread[] {
       ? [
           {
             path: thread.path,
-            startLine: thread.startLine,
+            startLine:
+              thread.startDiffSide && thread.startDiffSide !== thread.diffSide
+                ? null
+                : thread.startLine,
             line: thread.line,
             url: thread.comments.nodes[0].url,
           },
@@ -321,7 +324,7 @@ function inHunk(hunks: Hunks, file: string, [start, end]: Range): boolean {
   )
 }
 
-type Tagged = Finding & { reviewer: string }
+type Tagged = Finding & { reviewer: string; thread?: string }
 
 type Group = { members: Tagged[] }
 
@@ -352,6 +355,7 @@ type Joined = {
   suggestion?: string
   options?: string[]
   models: string[]
+  thread?: string
 }
 
 function unique<T>(values: T[]): T[] {
@@ -385,6 +389,7 @@ function join(group: Group): Joined {
     suggestion: fix?.suggestion,
     options: fix?.options,
     models: unique(ranked.flatMap((member) => member["found-by"])),
+    thread: ranked.find((member) => member.thread)?.thread,
   }
 }
 
@@ -427,10 +432,15 @@ function commentBody(joined: Joined): string {
       ? undefined
       : suggestionBlock(joined.suggestion),
     joined.options ? formatOptions(joined.options) : undefined,
+    joined.thread ? threadLink(joined.thread) : undefined,
     coAuthors(joined.models),
   ]
     .filter((part) => part !== undefined)
     .join("\n\n")
+}
+
+function threadLink(url: string): string {
+  return `Earlier thread on these lines: ${url}`
 }
 
 function location(joined: Joined): string {
@@ -476,6 +486,7 @@ function outsideItem(joined: Joined): string {
   if (joined.options !== undefined) {
     lines.push(...optionLines(joined.options).map((line) => `    ${line}`))
   }
+  if (joined.thread !== undefined) lines.push(`    ${threadLink(joined.thread)}`)
   return lines.join("\n")
 }
 
@@ -536,16 +547,12 @@ export function mergeFindings(
   const dropped: DroppedFinding[] = all
     .filter(isKeptNote)
     .map(({ id, subject }) => ({ id, subject }))
-  const kept: Tagged[] = []
-  for (const finding of all.filter((item) => !isKeptNote(item))) {
-    const thread =
-      finding.severity === "red" ? undefined : threadHolding(finding, threads)
-    if (thread) {
-      dropped.push({ id: finding.id, subject: finding.subject, url: thread.url })
-    } else {
-      kept.push(finding)
-    }
-  }
+  const kept: Tagged[] = all
+    .filter((item) => !isKeptNote(item))
+    .map((finding) => ({
+      ...finding,
+      thread: threadHolding(finding, threads)?.url,
+    }))
   const groups = groupFindings(kept)
   const joined = groups.map(join).sort(byWorst)
   const hunks = newSideHunks(diff)
@@ -620,7 +627,7 @@ export function formatPreview(
     ...(comments.length > 0 ? [`## Comments\n\n${comments.join("\n\n")}`] : []),
     ...(dropped.length > 0
       ? [
-          `## Dropped\n\n${dropped.map((item) => `- ${item.id}: ${item.subject}${item.url ? ` (${item.url})` : ""}`).join("\n")}`,
+          `## Dropped\n\n${dropped.map((item) => `- ${item.id}: ${item.subject}`).join("\n")}`,
         ]
       : []),
   ].join("\n\n") + "\n"
