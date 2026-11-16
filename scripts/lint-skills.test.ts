@@ -7,6 +7,10 @@ import {
   EXEMPT,
   MAX_LINES,
   MAX_LINE_LENGTH,
+  GUARD_EXCEPTIONS_PATH,
+  GUARD_HOOK_PATH,
+  guardPatterns,
+  lintBlockedGit,
   lintCatalog,
   lintLinks,
   lintLongLines,
@@ -270,4 +274,86 @@ describe("lintLinks", () => {
       ".claude/skills/demo: a folder, needs a link to ../../skills/demo",
     ])
   })
+})
+
+describe("lintBlockedGit", () => {
+  const repo = join(import.meta.dirname, "..")
+  const patterns = guardPatterns(readFileSync(join(repo, GUARD_HOOK_PATH), "utf8"))
+  const path = "skills/demo/SKILL.md"
+
+  // The cleanup step of skills/code-implement/parallel.md at commit b14aabf.
+  const parallelAtB14aabf = [
+    "For each build worker whose commits are on the ticket branch:",
+    "",
+    "```sh",
+    "git worktree remove <path>",
+    "git branch -D <ticket branch>-w<id>",
+    "```",
+    "",
+  ].join("\n")
+
+  test("reads every check of the hook", () => {
+    expect(patterns.map((p) => p.reason)).toEqual([
+      "force push or remote delete",
+      "git push",
+      "git reset --hard",
+      "git clean -f",
+      "git branch -D",
+      "git checkout .",
+      "git restore .",
+    ])
+  })
+
+  test("fails the parallel.md of commit b14aabf, with file, line and pattern", () => {
+    expect(lintBlockedGit("skills/code-implement/parallel.md", parallelAtB14aabf, patterns)).toEqual([
+      `skills/code-implement/parallel.md: line 5: names a blocked command: git branch -D. Use another command, or add a reason to ${GUARD_EXCEPTIONS_PATH}`,
+    ])
+  })
+
+  test("checks inline code", () => {
+    const text = "Run `git reset --hard` to start over.\n"
+    expect(lintBlockedGit(path, text, patterns)).toHaveLength(1)
+  })
+
+  test("ignores prose outside code", () => {
+    expect(lintBlockedGit(path, "Never git reset --hard here.\n", patterns)).toEqual([])
+  })
+
+  test("allows a plain push and a safe command", () => {
+    const text = "```sh\ngit push origin main\ngit worktree remove <path>\n```\n"
+    expect(lintBlockedGit(path, text, patterns)).toEqual([])
+  })
+
+  test("blocks a force push, even behind global options", () => {
+    const text = "```sh\ngit -C dir push --force\n```\n"
+    expect(lintBlockedGit(path, text, patterns)).toHaveLength(1)
+  })
+
+  test("an exception for a line skips that line only", () => {
+    const text = "```sh\ngit branch -D a\ngit reset --hard\n```\n"
+    const exceptions = [{ file: path, line: "git branch -D", reason: "demo" }]
+    expect(lintBlockedGit(path, text, patterns, exceptions)).toHaveLength(1)
+  })
+
+  test("an exception with no line skips the file", () => {
+    const text = "```sh\ngit reset --hard\n```\n"
+    expect(lintBlockedGit(path, text, patterns, [{ file: path, reason: "demo" }])).toEqual([])
+  })
+
+  test("every exception in the data file has a reason", () => {
+    const exceptions = JSON.parse(readFileSync(join(repo, GUARD_EXCEPTIONS_PATH), "utf8"))
+    for (const e of exceptions) expect(typeof e.reason === "string" && e.reason.length > 0).toBe(true)
+  })
+})
+
+describe("the blocked commands in the skills of this repo", () => {
+  const repo = join(import.meta.dirname, "..")
+  const patterns = guardPatterns(readFileSync(join(repo, GUARD_HOOK_PATH), "utf8"))
+  const exceptions = JSON.parse(readFileSync(join(repo, GUARD_EXCEPTIONS_PATH), "utf8"))
+
+  for (const path of markdownFiles(join(repo, "skills"), "skills")) {
+    test(path, () => {
+      expect(lintBlockedGit(path, readFileSync(join(repo, path), "utf8"), patterns, exceptions)).toEqual([])
+    })
+  }
 })

@@ -24,6 +24,19 @@ export const MAX_LINE_LENGTH = 80
 
 export const BASELINE_PATH = "scripts/lint-skills.baseline.json"
 
+export const GUARD_HOOK_PATH = "templates/hooks/block-dangerous-git.sh"
+
+export const GUARD_EXCEPTIONS_PATH = "scripts/lint-skills.git-exceptions.json"
+
+/** `unlessPushAllowed` marks a check the hook skips under --allow-push. */
+export type GuardPattern = { regex: RegExp; reason: string; unlessPushAllowed: boolean }
+
+/**
+ * An exception: a skill line that names a blocked command on purpose. `line`
+ * is text the code line contains. With no `line`, the whole file is exempt.
+ */
+export type GuardException = { file: string; line?: string; reason: string }
+
 export type Baseline = Record<string, string[]>
 
 /** Skills the lint skips. Empty: every skill follows add-skill. */
@@ -115,6 +128,76 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
     if (!folders.includes(row)) problems.push(`skills/next/catalog.md: row h2xd:${row} has no folder in skills/`)
   }
   return problems
+}
+
+/** Turns a POSIX ERE from the hook into a JS regex. */
+function ereToJs(ere: string): RegExp {
+  const source = ere
+    .replace(/\[:alnum:\]/g, "a-zA-Z0-9")
+    .replace(/\[:alpha:\]/g, "a-zA-Z")
+    .replace(/\[:space:\]/g, "\\s")
+  return new RegExp(source)
+}
+
+/**
+ * Reads the G and R variables and the check calls out of the guard hook, so
+ * the hook stays the one source of the blocked commands.
+ */
+export function guardPatterns(hook: string): GuardPattern[] {
+  const variable = (name: string) => hook.match(new RegExp(`^${name}='(.*)'$`, "m"))?.[1]
+  const vars: Record<string, string> = { G: variable("G") ?? "", R: variable("R") ?? "" }
+  if (!vars.G || !vars.R) throw new Error(`${GUARD_HOOK_PATH}: no G or R variable`)
+  const patterns: GuardPattern[] = []
+  for (const call of hook.matchAll(/^(\[ "\$allow_push" = 1 \] \|\| )?check "(.*)" "([^"]*)"$/gm)) {
+    const ere = call[2].replace(/\$\{(G|R)\}/g, (_, name) => vars[name])
+    patterns.push({ regex: ereToJs(ere), reason: call[3], unlessPushAllowed: Boolean(call[1]) })
+  }
+  if (patterns.length === 0) throw new Error(`${GUARD_HOOK_PATH}: no check calls`)
+  return patterns
+}
+
+/** The lines of fenced code and inline code in a markdown file, with line numbers. */
+function codeLines(text: string): { line: number; text: string }[] {
+  const lines = text.replace(/\r\n/g, "\n").split("\n")
+  const found: { line: number; text: string }[] = []
+  let fence: string | null = null
+  lines.forEach((source, index) => {
+    const marker = source.match(/^ *(`{3,}|~{3,})/)?.[1]
+    if (fence) {
+      if (marker && marker[0] === fence[0] && marker.length >= fence.length) fence = null
+      else found.push({ line: index + 1, text: source })
+    } else if (marker) {
+      fence = marker
+    } else {
+      for (const inline of source.matchAll(/`([^`\n]+)`/g)) found.push({ line: index + 1, text: inline[1] })
+    }
+  })
+  return found
+}
+
+/**
+ * Runs the blocked-command patterns of the guard hook over the code in a
+ * skill file. Skills push through the hook's --allow-push mode, so the plain
+ * push check is skipped. A line in `exceptions` for this file is skipped.
+ */
+export function lintBlockedGit(
+  path: string,
+  text: string,
+  patterns: GuardPattern[],
+  exceptions: GuardException[] = [],
+): string[] {
+  const own = exceptions.filter((e) => e.file === path)
+  if (own.some((e) => e.line === undefined)) return []
+  const allowed = own.map((e) => e.line!)
+  return codeLines(text).flatMap((code) => {
+    if (allowed.some((line) => code.text.includes(line))) return []
+    return patterns
+      .filter((pattern) => !pattern.unlessPushAllowed && pattern.regex.test(code.text))
+      .map(
+        (pattern) =>
+          `${path}: line ${code.line}: names a blocked command: ${pattern.reason}. Use another command, or add a reason to ${GUARD_EXCEPTIONS_PATH}`,
+      )
+  })
 }
 
 function longProseLines(rawText: string): { line: number; text: string }[] {
@@ -241,6 +324,14 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(0)
   }
   let failed = false
+  const patterns = guardPatterns(readFileSync(join(repo, GUARD_HOOK_PATH), "utf8"))
+  const exceptions: GuardException[] = JSON.parse(readFileSync(join(repo, GUARD_EXCEPTIONS_PATH), "utf8"))
+  for (const path of markdownFiles(root, "skills")) {
+    for (const problem of lintBlockedGit(path, readFileSync(join(repo, path), "utf8"), patterns, exceptions)) {
+      console.error(problem)
+      failed = true
+    }
+  }
   const baseline: Baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
   for (const path of markdown) {
     for (const problem of lintLongLines(path, readFileSync(join(repo, path), "utf8"), baseline)) {
