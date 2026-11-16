@@ -32,6 +32,7 @@ import {
   threadsCommand,
   worktreeCommand,
 } from "./review/commands.ts"
+import { failStale, isUnknownOption, STALE_COPY } from "./stale.ts"
 
 const COMMANDS: Record<string, (argv: string[]) => void> = {
   worktree: worktreeCommand,
@@ -54,12 +55,14 @@ if (!command) {
   console.error(
     `usage: node scripts/review.ts <${Object.keys(COMMANDS).join("|")}> ...`,
   )
+  if (name !== undefined) console.error(`review: ${STALE_COPY}`)
   process.exit(1)
 }
 
 try {
   command(rest)
 } catch (error) {
+  if (isUnknownOption(error)) failStale("review")
   console.error(
     `review ${name}: ${error instanceof Error ? error.message : error}`,
   )

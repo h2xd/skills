@@ -39,7 +39,10 @@ while [ $# -gt 0 ]; do
     --only) ONLY=$2 ;;
     --out) OUT=$2 ;;
     --timeout-factor) FACTOR=$2 ;;
-    *) usage ;;
+    *)
+      echo "prove-tests: re-run setup, this copy is older than the skill" >&2
+      usage
+      ;;
   esac
   shift 2
 done

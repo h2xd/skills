@@ -11,6 +11,7 @@
  */
 
 import { config } from "./config.ts"
+import { failStale } from "./stale.ts"
 import { readFile } from "node:fs/promises"
 
 const TYPES = config.commits.types
@@ -26,6 +27,7 @@ const SUBJECT = new RegExp(
 const TRAILER = /^(Refs|Closes|Fixes|Co-Authored-By|BREAKING CHANGE):/i
 
 const path = process.argv[2]
+if (path?.startsWith("--")) failStale("lint-commit-message", 2)
 if (!path) {
   console.error("lint-commit-message: no message file given")
   process.exit(2)

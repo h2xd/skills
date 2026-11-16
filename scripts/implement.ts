@@ -18,6 +18,7 @@ import {
   splitCommand,
   worktreeCommand,
 } from "./implement/commands.ts"
+import { failStale, isUnknownOption, STALE_COPY } from "./stale.ts"
 
 const COMMANDS: Record<string, (argv: string[]) => void> = {
   split: splitCommand,
@@ -32,12 +33,14 @@ if (!command) {
   console.error(
     `usage: node scripts/implement.ts <${Object.keys(COMMANDS).join("|")}> ...`,
   )
+  if (name !== undefined) console.error(`implement: ${STALE_COPY}`)
   process.exit(1)
 }
 
 try {
   command(rest)
 } catch (error) {
+  if (isUnknownOption(error)) failStale("implement")
   console.error(
     `implement ${name}: ${error instanceof Error ? error.message : error}`,
   )

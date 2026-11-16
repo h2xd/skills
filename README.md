@@ -69,8 +69,10 @@ Setup shows every draft and writes nothing until you agree. Then it writes
 `agents.config.json`, copies the scripts, git hooks and CI workflows, and adds
 the `package.json` scripts. Each hook runs its own lint, then every
 executable file in `.githooks/pre-commit.d/` or `.githooks/commit-msg.d/`.
-Setup never touches those two folders, so your own checks stay. It also seeds
-`docs/`, creates the issue labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`.
+Setup never touches those two folders, so your own checks stay. It writes the
+plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
+copies that fall behind the plugin. It also seeds `docs/`, creates the issue
+labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`.
 
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
 and 🔴 means something blocks a skill. Run it again to update the scripts or to
