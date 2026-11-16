@@ -54,10 +54,14 @@ const CLI_SPECIFIC = [
 
 const EXAMPLE_MARKER = /(such as|for example)[^.]*$/i
 
+function frontmatterBlock(text: string): RegExpMatchArray | null {
+  return text.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n/)
+}
+
 export function lintSkill(folder: string, rawText: string): string[] {
   const problems: string[] = []
   const text = rawText.replace(/\r\n/g, "\n")
-  const match = text.match(/^---\n([\s\S]*?)\n---\n/)
+  const match = frontmatterBlock(text)
   if (!match) return ["no frontmatter"]
   let frontmatter: Record<string, unknown>
   try {
@@ -127,9 +131,9 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
 }
 
 export function lintAgentModel(path: string, text: string): string[] {
-  const frontmatter = text.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n/)
-  if (!frontmatter) return [`${path}: no frontmatter`]
-  const model = (parseYaml(frontmatter[1]) as Record<string, unknown>).model
+  const match = frontmatterBlock(text)
+  if (!match) return [`${path}: no frontmatter`]
+  const model = (parseYaml(match[1]) as Record<string, unknown>).model
   if (typeof model === "string" && model.trim() !== "") return []
   return [`${path}: no model in the frontmatter. Add a model line, such as model: haiku`]
 }

@@ -10,7 +10,7 @@
  * template and with the earlier template in `templates/githooks-earlier`.
  * Lines that the repo added move to `.githooks/<hook>.d/50-local`.
  * Exit codes: 0 when every hook is done, 1 when a hook needs the user
- * (`50-local` exists, or the extra lines do not parse alone), 2 on a usage error.
+ * (`50-local` exists, or the hook needs a hand merge), 2 on a usage error.
  */
 
 import { spawnSync } from "node:child_process"
@@ -91,7 +91,7 @@ for (const hook of readdirSync(templates).sort()) {
       break
     case "manual":
       needsUser = true
-      console.log(`${hook}: ${plan.lines.length} repo lines do not parse alone, merge them by hand`)
+      console.log(`${hook}: needs a hand merge, ${plan.lines.length} repo lines differ`)
       break
   }
 }

@@ -70,7 +70,7 @@ Setup shows every draft and writes nothing until you agree. Then it writes
 the `package.json` scripts. Each hook runs its own lint, then every
 executable file in `.githooks/pre-commit.d/` or `.githooks/commit-msg.d/`.
 Setup never edits a file in those two folders, so your own checks stay. On a
-re-run, `scripts/hooks.ts` moves the extra lines of an edited hook into
+re-run, the plugin's `scripts/hooks.ts` moves the extra lines of an edited hook into
 `50-local` in the matching folder before it copies the hook. It writes the
 plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
@@ -320,6 +320,7 @@ agents/           comment-reaper, skill-polisher, committee-*
 templates/        what setup copies into a repo
   scripts/        docs lint, find and resolve, commit and PR lint, review and implement helpers, mutation runner
   githooks/       pre-commit, commit-msg
+  githooks-earlier/  the hooks that shipped up to 0.16, for hooks.ts
   hooks/          the agent hook git-guardrails installs
   workflows/      docs.yml, pr.yml
   output-styles/  tone templates, such as asd-ste100.md

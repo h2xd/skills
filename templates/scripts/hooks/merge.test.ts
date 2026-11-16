@@ -20,7 +20,7 @@ function shParses(script: string): boolean {
 }
 
 const plan = (input: Partial<HookInput>) =>
-  planHook({ repoHook: "x\n", template: "#!/bin/sh\nnew\n", earlier: [], localExists: false, parses: () => true, ...input })
+  planHook({ repoHook: "#!/bin/sh\nnew\nx\n", template: "#!/bin/sh\nnew\n", earlier: [], localExists: false, parses: () => true, ...input })
 
 describe("planHook", () => {
   test("copy when the repo has no hook", () => {
@@ -54,7 +54,40 @@ describe("planHook", () => {
   })
 
   test("manual when the extra lines do not parse alone", () => {
-    expect(plan({ repoHook: "if true; then\n", parses: shParses })).toEqual({ kind: "manual", lines: ["if true; then"] })
+    const result = plan({ repoHook: "#!/bin/sh\nnew\nif true; then\n", parses: shParses })
+    expect(result).toEqual({ kind: "manual", lines: ["if true; then"] })
+  })
+
+  test("manual when the repo hook lacks a template line and adds none", () => {
+    const result = plan({ repoHook: "#!/bin/sh\nc\n", template: "#!/bin/sh\na\nx\nc\n" })
+    expect(result).toEqual({ kind: "manual", lines: [] })
+  })
+
+  test("manual when the repo edited a template line, listing the repo line", () => {
+    const result = plan({ repoHook: "#!/bin/sh\na\nx2\nc\n", template: "#!/bin/sh\na\nx\nc\n" })
+    expect(result).toEqual({ kind: "manual", lines: ["x2"] })
+  })
+
+  test("manual lists the repo lines that a tie drops, in order", () => {
+    const result = plan({ repoHook: "#!/bin/sh\na\nb\nc\n", template: "#!/bin/sh\nb\na\n" })
+    expect(result).toEqual({ kind: "manual", lines: ["a", "c"] })
+  })
+
+  test("a duplicate line of the repo is the extra one, the first stays", () => {
+    const result = plan({ repoHook: "#!/bin/sh\na\na\n", template: "#!/bin/sh\na\n" })
+    expect(result).toEqual({ kind: "move", local: "#!/bin/sh\na\n" })
+  })
+
+  test("manual when an inserted line is indented inside a template block", () => {
+    const template = "#!/bin/sh\nif x; then\n  y\nfi\n"
+    const result = plan({ repoHook: "#!/bin/sh\nif x; then\n  echo hi\n  y\nfi\n", template })
+    expect(result).toEqual({ kind: "manual", lines: ["  echo hi"] })
+  })
+
+  test("a block that starts at the top level moves, indented body and all", () => {
+    const block = "if g; then\n  echo hi\nfi"
+    const result = plan({ repoHook: `#!/bin/sh\nnew\n${block}\n` })
+    expect(result).toEqual({ kind: "move", local: `#!/bin/sh\n${block}\n` })
   })
 })
 
@@ -133,6 +166,45 @@ describe("the shipped hooks", () => {
       parses: shParses,
     })
     expect(result).toEqual({ kind: "move", local: "#!/bin/sh\necho done\n" })
+  })
+
+  test("a changed exit in a block of the 0.16 pre-commit needs a hand merge", () => {
+    const template = readFileSync(join(TEMPLATES, "pre-commit"), "utf8")
+    const earlier = readFileSync(join(EARLIER, "pre-commit"), "utf8")
+    const result = planHook({
+      repoHook: earlier.replace("  exit 0", "  exit 1"),
+      template,
+      earlier: [earlier],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "manual", lines: ["  exit 1"] })
+  })
+
+  test("a deleted docs check in the 0.16 pre-commit needs a hand merge", () => {
+    const template = readFileSync(join(TEMPLATES, "pre-commit"), "utf8")
+    const earlier = readFileSync(join(EARLIER, "pre-commit"), "utf8")
+    const result = planHook({
+      repoHook: earlier.slice(0, earlier.indexOf("node scripts/lint-docs.ts")),
+      template,
+      earlier: [earlier],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "manual", lines: [] })
+  })
+
+  test("a changed lint line in the 0.16 commit-msg needs a hand merge", () => {
+    const template = readFileSync(join(TEMPLATES, "commit-msg"), "utf8")
+    const earlier = readFileSync(join(EARLIER, "commit-msg"), "utf8")
+    const result = planHook({
+      repoHook: earlier.replace("scripts/lint-commit-message.ts", "tools/mylint.ts"),
+      template,
+      earlier: [earlier],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result.kind).toBe("manual")
   })
 
   test("extra lines with an unclosed if need a hand merge", () => {
