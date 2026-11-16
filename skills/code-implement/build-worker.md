@@ -12,6 +12,8 @@ gap stops the criterion, not the ticket.
 - `$WORK/worker-<id>.md`: your worktree, your branch, the numbers of your
   criteria, the files the scout found for them, and the path of your `built`
   file.
+- The glossaries, at the paths in `docs.glossaries` of `agents.config.json`.
+  Name each module, type, test and doc line by the heading of its entry.
 - `../code-tdd/SKILL.md`, `../code-rules/SKILL.md` and
   `../code-quality/SKILL.md`, relative to this file. Read all three first.
 
@@ -33,6 +35,11 @@ Follow `h2xd:code-tdd` from its red, green and refactor slices on. The test
 entry points in `ticket.md` are already agreed. Skip its step that asks for
 them, and skip its prove-tests step. The orchestrator runs prove-tests once on
 the whole branch.
+
+A criterion that names a value in a data file, such as a threshold in a config
+file, gets a test that reads that value from the file.
+
+Use the glossary heading, not a synonym, in code, tests and docs.
 
 Done when the criterion has a test that failed first and passes now.
 
