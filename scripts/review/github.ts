@@ -8,7 +8,7 @@ import type { Review, ReviewThread } from "./threads.ts"
 import { run } from "./shell.ts"
 
 const PULL_REQUEST_FIELDS =
-  "number,title,body,author,url,baseRefName,headRefName,headRefOid,closingIssuesReferences"
+  "number,title,body,author,url,baseRefName,headRefName,headRefOid,closingIssuesReferences,mergeable,mergeStateStatus"
 
 const PAGE_INFO = "pageInfo { hasNextPage endCursor }"
 

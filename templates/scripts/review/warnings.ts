@@ -6,6 +6,9 @@ export type LocalState = {
   status: string
   /** Left out by callers that don't care which branch is checked out. */
   currentBranch?: string
+  /** GitHub's `mergeable` and `mergeStateStatus` of the PR. */
+  mergeable?: string
+  mergeStateStatus?: string
 }
 
 /** Conditions the review skills stop and ask about. */
@@ -25,6 +28,15 @@ export function collectWarnings(state: LocalState): string[] {
   ) {
     warnings.push(
       `Wrong branch: the worktree is on "${state.currentBranch}", the PR branch is "${state.headRefName}".`,
+    )
+  }
+  if (state.mergeable === "CONFLICTING" || state.mergeStateStatus === "DIRTY") {
+    warnings.push(
+      "Conflicting: the PR has merge conflicts with the base. Findings may sit on lines the merge changes.",
+    )
+  } else if (state.mergeStateStatus === "BEHIND") {
+    warnings.push(
+      "Head behind base: the base has commits the PR head lacks. Findings may be stale after an update.",
     )
   }
   return warnings

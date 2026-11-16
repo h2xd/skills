@@ -12,6 +12,7 @@
  *   node scripts/review.ts options --validate <review.json>
  *   node scripts/review.ts findings --validate <findings.json>
  *   node scripts/review.ts merge <findings.json>... --out review.json [--pr N] [--worktree PATH] [--pick pick.md] [--bullets FILE] [--preview FILE]
+ *   node scripts/review.ts missing <dir> <letter>...
  *   node scripts/review.ts fleet --base <branch> [--worktree PATH] [--one-way-door] [--out FILE]
  *
  * Output is markdown on stdout, or in the file given by --out. A failure prints
@@ -23,6 +24,7 @@ import {
   findingsCommand,
   fleetCommand,
   mergeCommand,
+  missingCommand,
   optionsCommand,
   replyCommand,
   resolveCommand,
@@ -41,6 +43,7 @@ const COMMANDS: Record<string, (argv: string[]) => void> = {
   options: optionsCommand,
   findings: findingsCommand,
   merge: mergeCommand,
+  missing: missingCommand,
   fleet: fleetCommand,
 }
 

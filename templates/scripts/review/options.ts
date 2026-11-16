@@ -148,3 +148,31 @@ export function validateDraftComments(comments: DraftComment[]): string[] {
     ),
   )
 }
+
+const LOCAL_PATH =
+  /(?<![\w:/.-])(?:\/(?:Users|home|private|tmp|var|root|Volumes)\/[^\s`"'<>)]*|[A-Za-z]:\\+Users\\+[^\s`"'<>)]*)/g
+
+/** The local absolute paths in `text`, without the punctuation that ends a sentence. */
+function localPaths(text: string): string[] {
+  return [...text.matchAll(LOCAL_PATH)].map((match) => match[0].replace(/[.,;:!?]+$/, ""))
+}
+
+/**
+ * One problem per local absolute path in the review body or a comment. Such a
+ * path names the reviewer's machine and means nothing to the reader.
+ */
+export function validateNoLocalPaths(review: {
+  body?: string
+  comments?: DraftComment[]
+}): string[] {
+  return [
+    ...localPaths(review.body ?? "").map(
+      (path) => `review body: local absolute path ${path}`,
+    ),
+    ...(review.comments ?? []).flatMap((comment) =>
+      localPaths(comment.body).map(
+        (path) => `${comment.path}:${comment.line}: local absolute path ${path}`,
+      ),
+    ),
+  ]
+}
