@@ -44,6 +44,11 @@ describe("planHook", () => {
     expect(result).toEqual({ kind: "move", local: "#!/bin/sh\nb\na\n" })
   })
 
+  test("a different shebang in the repo hook is not a moved line", () => {
+    const result = plan({ repoHook: "#!/bin/bash\nnew\nextra\n" })
+    expect(result).toEqual({ kind: "move", local: "#!/bin/sh\nextra\n" })
+  })
+
   test("ask when 50-local exists", () => {
     expect(plan({ localExists: true })).toEqual({ kind: "ask", local: "#!/bin/sh\nx\n" })
   })
@@ -76,6 +81,58 @@ describe("the shipped hooks", () => {
     })
     expect(result).toEqual({ kind: "move", local: "#!/bin/sh\nnpm run lint:extra\n" })
     if (result.kind === "move") expect(shParses(result.local)).toBe(true)
+  })
+
+  test("a CRLF copy of the template is the same hook", () => {
+    const template = readFileSync(join(TEMPLATES, "commit-msg"), "utf8")
+    const result = planHook({
+      repoHook: template.replace(/\n/g, "\r\n"),
+      template,
+      earlier: [],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "same" })
+  })
+
+  test("a CRLF template equals the same hook with LF endings", () => {
+    const template = readFileSync(join(TEMPLATES, "commit-msg"), "utf8")
+    const result = planHook({
+      repoHook: template,
+      template: template.replace(/\n/g, "\r\n"),
+      earlier: [],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "same" })
+  })
+
+  test("a block inserted into the 0.16 hook moves whole, with its own fi and exit", () => {
+    const template = readFileSync(join(TEMPLATES, "commit-msg"), "utf8")
+    const earlier = readFileSync(join(EARLIER, "commit-msg"), "utf8")
+    const block = ['if grep -q WIP "$1"; then', '  echo "no WIP"', "  exit 1", "fi"]
+    const exec = "exec node scripts/lint-commit-message.ts"
+    const result = planHook({
+      repoHook: earlier.replace(exec, `${block.join("\n")}\n\n${exec}`),
+      template,
+      earlier: [earlier],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "move", local: `#!/bin/sh\n${block.join("\n")}\n` })
+    if (result.kind === "move") expect(shParses(result.local)).toBe(true)
+  })
+
+  test("the current template plus one line moves only that line", () => {
+    const template = readFileSync(join(TEMPLATES, "commit-msg"), "utf8")
+    const result = planHook({
+      repoHook: `${template}echo done\n`,
+      template,
+      earlier: [],
+      localExists: false,
+      parses: shParses,
+    })
+    expect(result).toEqual({ kind: "move", local: "#!/bin/sh\necho done\n" })
   })
 
   test("extra lines with an unclosed if need a hand merge", () => {

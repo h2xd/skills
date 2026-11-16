@@ -54,7 +54,7 @@ describe("hooks.ts", () => {
     writeFileSync(hookPath(), `${EARLIER}npm run lint:extra\n`)
     const result = run(plugin, repo)
     expect(result.status).toBe(0)
-    expect(result.out).toBe("pre-commit: moved 1 lines to .githooks/pre-commit.d/50-local")
+    expect(result.out).toBe("pre-commit: moved 1 lines to .githooks/pre-commit.d/50-local\n  npm run lint:extra")
     expect(readFileSync(localPath(), "utf8")).toBe("#!/bin/sh\nnpm run lint:extra\n")
     expect(mode(localPath())).toBe(0o755)
     expect(readFileSync(hookPath(), "utf8")).toBe(TEMPLATE)

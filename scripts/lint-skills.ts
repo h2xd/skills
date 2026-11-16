@@ -126,8 +126,7 @@ export function lintCatalog(folders: string[], catalog: string): string[] {
   return problems
 }
 
-/** An agent without a `model:` line runs on its caller's model, so its cost depends on who starts it. */
-export function lintAgent(path: string, text: string): string[] {
+export function lintAgentModel(path: string, text: string): string[] {
   const frontmatter = text.replace(/\r\n/g, "\n").match(/^---\n([\s\S]*?)\n---\n/)
   if (!frontmatter) return [`${path}: no frontmatter`]
   const model = (parseYaml(frontmatter[1]) as Record<string, unknown>).model
@@ -358,7 +357,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     failed = true
   }
   for (const name of readdirSync(join(repo, "agents")).filter((n) => n.endsWith(".md")).sort()) {
-    for (const problem of lintAgent(`agents/${name}`, readFileSync(join(repo, "agents", name), "utf8"))) {
+    for (const problem of lintAgentModel(`agents/${name}`, readFileSync(join(repo, "agents", name), "utf8"))) {
       console.error(problem)
       failed = true
     }
