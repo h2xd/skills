@@ -9,3 +9,6 @@ verdict. Act on it as follows:
   clickable options, through the CLI's question tool, such as AskUserQuestion.
   The options are accept the split, one build worker, or name the files. For
   named files, put them in `map.md` and run the command again.
+
+A `## Step 5 checks` section in `split.md` lists the criteria that only say
+the checks pass. They get no build worker. Run them in step 5.

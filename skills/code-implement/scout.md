@@ -47,6 +47,10 @@ two lines for one criterion. Then one line per dependency:
 4 needs 2
 ```
 
+Write `<n>: checks` for a criterion that only says the checks pass, such as
+"`npm test` and `npm run typecheck` pass". It gets no build worker. The
+orchestrator checks it in step 5.
+
 Write `unsure` when you cannot name the files from what you read. When the split
 still has more than one build worker, the orchestrator asks the user.
 
