@@ -12,15 +12,16 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
+import { envWithoutGit } from "../../../scripts/test-env.ts"
 
 const SCRIPTS = join(import.meta.dirname, "..")
 const TICKET = "feat/1-x"
-const GIT_ENV = {
-  ...process.env,
+const gitEnv = () => ({
+  ...envWithoutGit(),
   GIT_CONFIG_GLOBAL: "/dev/null",
   GIT_CONFIG_SYSTEM: "/dev/null",
   GIT_CONFIG_NOSYSTEM: "1",
-}
+})
 
 type Result = { status: number; stdout: string; stderr: string }
 
@@ -33,7 +34,7 @@ afterEach(() => {
 })
 
 function exec(file: string, args: string[], cwd: string): Result {
-  const result = spawnSync(file, args, { cwd, env: GIT_ENV, encoding: "utf8" })
+  const result = spawnSync(file, args, { cwd, env: gitEnv(), encoding: "utf8" })
   if (result.error) throw result.error
   return {
     status: result.status ?? 128,
@@ -133,6 +134,24 @@ function undoPickSince(repo: Repo, preSha: string): void {
     repo.mustGit("revert", "--no-edit", `${preSha}..HEAD`)
   }
 }
+
+describe("the git sandbox", () => {
+  test("commits into the sandbox when GIT_DIR names another repo", () => {
+    const other = realpathSync(mkdtempSync(join(tmpdir(), "other-")))
+    sandboxes.push(other)
+    exec("git", ["init", "--initial-branch=main"], other)
+    const saved = process.env.GIT_DIR
+    process.env.GIT_DIR = join(other, ".git")
+    try {
+      const repo = sandbox()
+      expect(repo.mustGit("rev-parse", "--show-toplevel")).toBe(repo.dir)
+      expect(exec("git", ["rev-parse", "--verify", "HEAD"], other).status === 0).toBe(false)
+    } finally {
+      if (saved === undefined) delete process.env.GIT_DIR
+      else process.env.GIT_DIR = saved
+    }
+  })
+})
 
 describe("implement.ts worktree and cleanup", () => {
   test("two build workers land by cherry-pick -x, and cleanup removes both", () => {
