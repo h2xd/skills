@@ -94,10 +94,9 @@ Done when the user confirms.
 
    Leave out `prepare` when the repo uses husky or lefthook, or has a `prepare`
    script. Then chain the command or ask.
-4. **Hooks and CI**, per section G. Copy `templates/githooks/*`, executable,
-   to `.githooks/` and `templates/workflows/*.yml` to `.github/workflows/`. Run
-   `git config core.hooksPath .githooks` once. Never touch the `.d` folders in
-   `.githooks/`. They hold the repo's own checks.
+4. **Hooks and CI**, per section G. Copy `templates/workflows/*.yml` to
+   `.github/workflows/`. Copy the hooks as [`hooks.md`](hooks.md) says. Run
+   `git config core.hooksPath .githooks` once.
 5. **Docs bundle.** For a new bundle, copy `templates/docs/`. Replace
    `{{DATE}}` with today in `YYYY-MM-DD` form. Replace `{{ACTOR}}` with
    `<cli>/<your model id>`, such as `claude-code/claude-opus-5-5`. For an

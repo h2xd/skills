@@ -60,6 +60,6 @@ export function formatDrift(report: DriftReport): string {
   ]
   if (report.changed.length > 0) lines.push(`changed: ${report.changed.join(", ")}`)
   if (report.missing.length > 0) lines.push(`missing: ${report.missing.join(", ")}`)
-  lines.push("run /h2xd:setup")
+  if (report.missing.length > 0) lines.push("run /h2xd:setup")
   return lines.join("\n")
 }

@@ -82,6 +82,12 @@ An entry looks like this:
 - **Code:** [`templates/scripts/implement/split.ts`](../../templates/scripts/implement/split.ts)
 - **Avoid:** Global criterion, check-only criterion
 
+### Drift check
+
+- **Meaning:** The comparison of a repo's vendored copies against the plugin's `templates/`. It reports a version gap, changed copies and missing scripts, and exits 1 only for a missing script. It runs in step 1 of `h2xd:plan-triage` and in the preflight of `h2xd:code-implement`.
+- **Code:** [`templates/scripts/drift.ts`](../../templates/scripts/drift.ts)
+- **Avoid:** Staleness check, version check
+
 ### Fix worker
 
 - **Meaning:** The one subagent on a fast model that repairs a failed cherry-pick or a red test on the ticket branch, once per ticket.

@@ -13,7 +13,7 @@ const args = process.argv.slice(2).join(" ")
 if (args.startsWith("pr view")) {
   console.log(JSON.stringify({
     number: 7, title: "T", body: "", author: { login: "a" }, url: "https://x/7",
-    baseRefName: "main", headRefName: "feat", headRefOid: process.env.FAKE_HEAD,
+    baseRefName: process.env.FAKE_BASE, headRefName: "feat", headRefOid: process.env.FAKE_HEAD,
     closingIssuesReferences: [],
     mergeable: process.env.FAKE_MERGEABLE, mergeStateStatus: process.env.FAKE_STATE,
   }))
@@ -61,29 +61,32 @@ function setup(): { worktree: string; head: string; origin: string } {
   git(worktree, "add", ".")
   git(worktree, "commit", "-m", "init")
   git(worktree, "push", "origin", "main")
+  git(worktree, "push", "origin", "main:develop")
   git(worktree, "checkout", "-b", "feat")
   writeFileSync(join(root, "gh"), FAKE_GH)
   chmodSync(join(root, "gh"), 0o755)
   return { worktree, head: git(worktree, "rev-parse", "HEAD"), origin }
 }
 
-function context(mergeable: string, state: string, options: { baseAhead?: number } = {}): string {
+function context(mergeable: string, state: string, options: { baseAhead?: number; base?: string } = {}): string {
   const { worktree, head, origin } = setup()
+  const base = options.base ?? "main"
   for (let n = 0; n < (options.baseAhead ?? 0); n++) {
     const other = join(root, `other-${n}`)
-    git(root, "clone", "--branch", "main", origin, other)
+    git(root, "clone", "--branch", base, origin, other)
     git(other, "config", "user.email", "t@example.com")
     git(other, "config", "user.name", "t")
     writeFileSync(join(other, `b${n}.txt`), "b\n")
     git(other, "add", ".")
     git(other, "commit", "-m", `base ${n}`)
-    git(other, "push", "origin", "main")
+    git(other, "push", "origin", base)
   }
   const result = spawnSync(process.execPath, [REVIEW, "context", "--worktree", worktree], {
     encoding: "utf8",
     env: {
       ...envWithoutGit(),
       PATH: `${root}:${process.env.PATH}`,
+      FAKE_BASE: base,
       FAKE_HEAD: head,
       FAKE_MERGEABLE: mergeable,
       FAKE_STATE: state,
@@ -97,6 +100,12 @@ describe("review.ts context", () => {
   test("warns when the base has a commit the head lacks, with GitHub saying clean", () => {
     expect(context("MERGEABLE", "CLEAN", { baseAhead: 2 })).toContain(
       "Head behind base: the base has 2 commit(s)",
+    )
+  })
+
+  test("counts against the PR's own base branch, not main", () => {
+    expect(context("MERGEABLE", "CLEAN", { baseAhead: 3, base: "develop" })).toContain(
+      "Head behind base: the base has 3 commit(s)",
     )
   })
 

@@ -212,6 +212,21 @@ describe("validateNoLocalPaths", () => {
     expect(check(`${HOME}na/x`)).toEqual([])
   })
 
+  test("accepts a dashed sibling of the home folder", () => {
+    expect(check(`${HOME}-b/x`)).toEqual([])
+  })
+
+  test("matches an extra folder given with a trailing slash", () => {
+    const scratch = abs("srv", "scratch")
+    const problems = validateNoLocalPaths(review(`out in ${scratch}/x`), [`${scratch}/`])
+    expect(problems).toEqual([`review body: local absolute path ${scratch}/x`])
+  })
+
+  test("stops a path at a closing parenthesis", () => {
+    const problems = validateNoLocalPaths(review(`(see ${HOME}/x)`), paths)
+    expect(problems).toEqual([`review body: local absolute path ${HOME}/x`])
+  })
+
   test("rejects a path under this machine's home, in the body", () => {
     const problems = validateNoLocalPaths(review(`Read ${HOME}/work/repo/a.ts first`), paths)
     expect(problems).toEqual([`review body: local absolute path ${HOME}/work/repo/a.ts`])
@@ -244,11 +259,11 @@ describe("validateNoLocalPaths", () => {
 })
 
 describe("localFolders", () => {
-  test("holds the home folder, the temp folder and its real path", () => {
+  test("holds the home folder and no temp folder", () => {
     const paths = localFolders()
     expect(paths).toContain(homedir())
-    expect(paths).toContain(tmpdir())
-    expect(paths).toContain(realpathSync(tmpdir()))
+    expect(paths).not.toContain(tmpdir())
+    expect(paths).not.toContain(realpathSync(tmpdir()))
   })
 
   test("adds the extra folders and drops a bare root", () => {

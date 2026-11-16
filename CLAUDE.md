@@ -24,10 +24,10 @@ the internal skills.
   `Done when` per numbered step, `## Do` and `## Don't`, and tool or model
   names only as examples. It fails a code block or inline code that matches a
   pattern of `templates/hooks/block-dangerous-git.sh`, except the entries of
-  `scripts/lint-skills.git-exceptions.json`. It also fails a new prose line over 80 characters in
-  `skills/` and `agents/`, against the long-line baseline,
-  `scripts/lint-skills.baseline.json`. `--write-baseline` only removes old
-  lines. `npm test` runs it on every skill.
+  `scripts/lint-skills.git-exceptions.json`. It also fails a new prose line
+  over 80 characters in `skills/` and `agents/`, against the long-line
+  baseline, `scripts/lint-skills.baseline.json`. `--write-baseline` only
+  removes old lines. `npm test` runs it on every skill.
 - Skills name each other as `h2xd:<name>`. A skill with
   `disable-model-invocation: true` in its frontmatter is user-only. It is
   read by path, `../<name>/SKILL.md`, never invoked by another skill. Telling
@@ -58,8 +58,9 @@ the internal skills.
 - `prove-tests.sh` is POSIX `sh` so it runs in repos without node. It cannot
   import `config.ts`. The `prove-tests` skill reads the `mutation` settings and
   passes them as flags.
-- Bump `version` in `.claude-plugin/plugin.json` for every release. Claude Code
-  updates an installed plugin only when the version changes.
+- Bump `version` in `.claude-plugin/plugin.json` and in `agents.config.json`
+  for every release. Claude Code updates an installed plugin only when the
+  version changes.
 - The scripts run on Node 22.18 or later with no npm packages. `npm test` and
   `npm run typecheck` must pass. Setup does not copy `*.test.ts`
   into target repos.

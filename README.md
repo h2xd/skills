@@ -69,7 +69,9 @@ Setup shows every draft and writes nothing until you agree. Then it writes
 `agents.config.json`, copies the scripts, git hooks and CI workflows, and adds
 the `package.json` scripts. Each hook runs its own lint, then every
 executable file in `.githooks/pre-commit.d/` or `.githooks/commit-msg.d/`.
-Setup never touches those two folders, so your own checks stay. It writes the
+Setup never edits a file in those two folders, so your own checks stay. On a
+re-run, it moves the extra lines of an edited hook into `50-local` in the
+matching folder before it copies the hook. It writes the
 plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
 labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`.
@@ -364,8 +366,8 @@ docker run --rm -v "$PWD":/src:ro node:26 sh -c \
 
 A new skill follows [`skills/add-skill/SKILL.md`](skills/add-skill/SKILL.md)
 and gets a row in [`skills/next/catalog.md`](skills/next/catalog.md). Bump
-`version` in `.claude-plugin/plugin.json` for every release, because Claude Code
-updates installed plugins by version.
+`version` in `.claude-plugin/plugin.json` and in `agents.config.json` for every
+release, because Claude Code updates installed plugins by version.
 
 </details>
 
