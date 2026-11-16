@@ -34,10 +34,13 @@ Assignee: Ada Lovelace
 | Comment | Append under a `## Comments` heading, newest last, with the date |
 | Label | Edit the `Labels:` line |
 | Assign | Add `<git config user.name>` to the `Assignee:` line under `Labels:`, comma-separated. Make the line when it is missing |
+| Claim | Fails when the `Labels:` line holds `in-progress`. Otherwise add `in-progress` to it. Run it before **Assign** |
+| Unclaim | Remove `in-progress` from the `Labels:` line |
 | Close | Set `Status: closed`. Post the reason with **Comment** first |
 | Link a PR | Name the issue file in the commit footer as `Refs: .scratch/issues/<file>` |
 | Open a PR | None. A local tracker has no PRs. Push the branch and open the PR by hand, if there is a remote |
 | PR status | None. A local tracker has no PRs |
+| Open PRs closing a ticket | None. A local tracker has no PRs |
 
 ## Triage
 
@@ -55,8 +58,9 @@ Assignee: Ada Lovelace
 
 PRs in triage: no. A local tracker has no PRs.
 
-Labels in use: `adr`, `spec` for specs from `h2xd:to-spec`, and `idea` for
-ideas that are not requests yet. Triage leaves `idea` issues alone.
+Labels in use: `adr`, `spec` for specs from `h2xd:to-spec`, `in-progress` for
+an issue under work, and `idea` for ideas that are not requests yet. Triage
+leaves `idea` issues alone.
 
 The `h2xd:review-pr` and `h2xd:review-fix` skills need a GitHub PR and do not
 run against a local tracker.

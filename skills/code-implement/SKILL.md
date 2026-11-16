@@ -10,36 +10,50 @@ A ticket that says "undo restores the last move" should end as a failing test,
 a passing test and a commit that names `#42`. A ticket from `/h2xd:to-tickets`
 or `/h2xd:plan-triage` already says what to build and how to check it.
 
-This skill turns the ticket into a branch, tested commits and a reviewed PR. It
-makes no new decisions. You orchestrate. Build workers on a fast model write
+This skill turns the ticket into a branch, tested commits and a reviewed PR.
+It makes no new decisions. You orchestrate. Build workers on a fast model write
 the code, and reviewers on the strongest model check it. Hand-offs go through
-files in your scratchpad, called `$WORK` below. When the ticket is not clear
-enough to build, it stops and says why.
+files in your scratchpad, called `$WORK` below. An unclear ticket stops it.
 
-A **build worker** builds one **criteria group**, the criteria that share
-files or need each other. Groups run at the same time, each in its own worktree.
+A **build worker** builds one **criteria group**: criteria that share files
+or need each other. Groups run at once, each in its own worktree.
+
+## Before step 1
+
+Run `node scripts/implement.ts` with no arguments. It prints a `usage:` line.
+The line must list `split`, `worktree` and `cleanup`. When the script or one
+of them is missing, stop with one line: "run /h2xd:setup".
 
 ## Steps
 
 ### 1. Read the ticket
 
-Read the ticket and its comments with the **View** operation in
+Read the ticket and its comments with **View** in
 `docs/agents/issue-tracker.md`. Read its parent and the decision records it
-names. Check each blocker in its `## Blocked by` section. When the tracker page
-lists a **Block** operation, also check the blockers it records.
+names. Check each blocker in its `## Blocked by` section, and the ones a
+**Block** operation records, when the tracker page lists it.
 
 - When a blocker is still open, stop and name it.
 - When the ticket has no acceptance criteria, or a criterion you cannot check,
   stop. Offer `h2xd:plan-grill` to settle them, or `/h2xd:plan-triage` to write
   a brief.
 
-When both checks pass and the tracker page lists an **Assign** operation, run
-it to assign the ticket to the user. When the page has no **Assign** operation,
-skip this. When **Assign** fails, go on and add a 🟡 line to the report.
+Then check who holds the ticket. Read its assignees from **View**. Run the
+tracker page's **Open PRs closing a ticket** lookup. Run **Search** for `#<n>`
+and list each open issue that mentions the ticket.
 
-Done when you can list the acceptance criteria, every blocker is closed, and
-the ticket is assigned to the user, the page has no **Assign** operation, or
-the failure is noted for the report.
+- When another person is the assignee, stop and name them.
+- When an open PR closes the ticket, stop and name its number and URL.
+- When the user is the assignee already, look for a branch and an open PR for
+  the ticket. When one exists, stop and name it. Otherwise go on.
+
+When these checks pass, run **Claim** when the tracker page lists it. When it
+fails, stop and name the ticket as claimed. Then run **Assign** when the page
+lists it. When **Assign** fails, go on and add a 🟡 line to the report.
+
+Done when you can list the acceptance criteria, every blocker is closed, no
+other person or open PR holds the ticket, and **Claim** and **Assign** ran or
+the page lacks them.
 
 ### 2. Make the branch
 
@@ -62,40 +76,26 @@ Done when `git branch --show-current` prints the new branch.
    criteria in the ticket's order, numbered from 1.
 2. Agree the test entry points with the user once, per step 3 of
    `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
-3. When the ticket has fewer than 3 criteria, or `implement.maxWorkers` in
-   `agents.config.json` is 1, plan one build worker with all of them. Then go
-   to [step 4, Build](#4-build).
-4. When `scripts/implement.ts` is missing, the repo has not run `h2xd:setup`
-   since this version. Plan one build worker with every criterion, go to
-   [step 4, Build](#4-build), and add
-   `🟡 scripts/implement.ts: missing, run /h2xd:setup` to the report.
-5. Start one scout on the cheapest model, such as Haiku, through the CLI's
-   subagent tool, such as Agent. Give it the paths to `ticket.md` and
-   [`scout.md`](scout.md). It writes `$WORK/map.md`.
-6. Group the criteria:
-
-   ```sh
-   node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md
-   ```
-
-The command writes `split.md` and prints its verdict. Act on it per
-[`planning.md`](planning.md).
+   Skip the question when the ticket already names them. Copy them instead.
+3. Skip the scout and the split when the ticket has fewer than 3 criteria, or
+   `implement.maxWorkers` in `agents.config.json` is 1. Plan one build worker
+   with all of them, go to [step 4, Build](#4-build), and add a 🟡 line.
+4. Start one scout and group the criteria, per
+   [`planning.md`](planning.md). It ends with `$WORK/split.md`.
 
 Done when every criterion belongs to exactly one build worker.
 
 ### 4. Build
 
 For one build worker, write `$WORK/worker-1.md` per
-[`parallel.md`](parallel.md): the repo root as its worktree, the ticket branch,
-`criteria:` with every criterion, `files: unknown` without a scout, and
-`built: $WORK/built-1.md`. Start one subagent on a fast model, such as Sonnet.
-Give it the paths to `ticket.md`, `worker-1.md` and
-[`build-worker.md`](build-worker.md).
+[`parallel.md`](parallel.md): the repo root, the ticket branch, every
+criterion, `files: unknown` without a scout, and `built: $WORK/built-1.md`.
+Start one subagent on a fast model, such as Sonnet. Give it the paths to
+`ticket.md`, `worker-1.md` and [`build-worker.md`](build-worker.md).
 
-For more than one, follow [`parallel.md`](parallel.md). It makes the
-worktrees, starts the build workers together and cherry-picks their commits.
+For more than one, follow [`parallel.md`](parallel.md).
 
-Then read every `$WORK/built-<id>.md` and `git log --oneline origin/HEAD..HEAD`. A
+Then read every `$WORK/built-<id>.md` and the commits since `origin/HEAD`. A
 criterion marked `not built` goes to the report.
 
 Done when every criterion has a passing test and a commit on the ticket
@@ -104,35 +104,33 @@ branch, or a reason in a `built` file.
 ### 5. Check the whole change
 
 1. Run the lint, typecheck and test commands from the agent instructions file.
-2. Run `h2xd:prove-tests` on the branch diff.
-3. Run `h2xd:review-code-comments` on the branch diff.
+   Never skip them.
+2. Run `h2xd:prove-tests` on the branch diff. Skip it when the diff has no
+   logic lines, such as skill prose or docs only. Add a 🟡 line.
+3. Run `h2xd:review-code-comments` on the branch diff. Skip it when the diff
+   adds no code comment. Add a 🟡 line.
 
 Done when every check passes, and each surviving mutant has a test or a
 reason.
 
 ### 6. Open, review and fix
 
-Run each skill in order, without asking between them:
-
-1. `h2xd:git-pr-body` for ticket `#<n>`. It pushes and opens the PR.
-2. `h2xd:review-pr` on that PR. It posts the review.
-3. `h2xd:review-fix` when the review left threads. It pushes the fixes.
-4. `h2xd:review-pr` once more when step 3 pushed.
-5. `h2xd:review-fix` once more when the second review left threads. Then stop.
-
-Stop the chain early when a check fails, or when the PR opened as a draft. A
-draft means `h2xd:git-pr-body` rated the change a one-way door, one that is
-hard to undo. Report the draft and let the user decide.
+Never skip this chain. Follow [`chain.md`](chain.md). It runs the PR body,
+the review and the fixes in order, without asking between them.
 
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
 
 ### 7. Report
 
+When no PR opened, run **Unclaim** first, when the tracker page lists it.
+After a PR, the label stays until the issue closes.
+
 Give the user the report in chat, in the layout of [`report.md`](report.md).
 Its first line says if the PR can merge. 🔴 blocks the merge and 🟡 does not.
 
-Done when every acceptance criterion has its line and the counts match.
+Done when every acceptance criterion has its line, the counts match, and a
+stop before a PR ran **Unclaim**.
 
 ## Do
 
