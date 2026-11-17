@@ -106,12 +106,12 @@ Done when the user chose an option for every lesson.
 - **Level 5.** Write the edit with `h2xd:add-skill`. Keep it to the rule an
   agent breaks without it, plus one example of the failure.
 - **Facts.** Run `h2xd:docs-wiki`, `h2xd:docs-glossary` or `h2xd:docs-adr`.
-- **Issues.** File each with the Create operation in
-  `docs/agents/issue-tracker.md`, in the shape of `../setup-tone/github-text.md`.
-  The body holds the rule, the evidence and the proposed level.
-- **Plugin issues.** A lesson about an h2xd skill gets a draft for the
-  plugin's tracker. Follow [`plugin-issue.md`](plugin-issue.md): show the
-  draft. The user copies it there by hand.
+- **Issues.** Except a lesson about an h2xd skill, file each with the Create
+  operation in `docs/agents/issue-tracker.md`, in the shape of
+  `../setup-tone/github-text.md`. The body holds the rule, the evidence and
+  the proposed level.
+- **Plugin issues.** Show a draft of the lesson, per
+  [`plugin-issue.md`](plugin-issue.md).
 
 Done when every approved check fails on the reintroduced mistake and passes on
 the fixed code, every commit passes its hooks, every filed issue has a URL,

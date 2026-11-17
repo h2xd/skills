@@ -236,7 +236,6 @@
     "- Don't keep a secret in the document. Replace it with `<redacted: what it was>`."
   ],
   "skills/session-reflect/SKILL.md": [
-    "  `docs/agents/issue-tracker.md`, in the shape of `../setup-tone/github-text.md`.",
     "- Route every lesson from the top of the ladder down. Say why each higher level fails.",
     "- Don't write a rule in prose when a type, lint or test can hold it. Build the check.",
     "- Don't keep a lesson from a one-off or a drifting fact. Drop it with the reason."
