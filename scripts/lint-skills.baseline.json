@@ -239,11 +239,7 @@
     "  `docs/agents/issue-tracker.md`, in the shape of `../setup-tone/github-text.md`.",
     "- Route every lesson from the top of the ladder down. Say why each higher level fails.",
     "- Don't write a rule in prose when a type, lint or test can hold it. Build the check.",
-    "- Don't send a plugin issue without a yes, or with the user's repo, code or links in it.",
     "- Don't keep a lesson from a one-off or a drifting fact. Drop it with the reason."
-  ],
-  "skills/session-reflect/plugin-issue.md": [
-    "Done when the user saw the draft and chose send, edit or drop. On edit, change the draft, check it again and show it again. On"
   ],
   "skills/setup/SKILL.md": [
     "   `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.",
