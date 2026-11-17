@@ -8,7 +8,7 @@
   clickable options, through the CLI's question tool, such as AskUserQuestion:
   done, edit, or drop. A step 4 answer of "file as an issue" means "show the
   draft".
-- **Hide the repo.** The issue never names the user's repo, its owner, its
+- **Hide the repo.** The draft never names the user's repo, its owner, its
   product, its people, or its domain words.
 - **No code.** No code, diffs, file paths, commands from the session, logs,
   error output or config values from the user's repo.
