@@ -1,15 +1,19 @@
 # Plugin issue
 
-Step 5 of [`SKILL.md`](SKILL.md) sends a lesson about an h2xd skill to the
+Step 5 of [`SKILL.md`](SKILL.md) drafts a lesson about an h2xd skill for the
 plugin's tracker, `h2xd/skills`. That tracker is public. The user's repo is
-often private. The issue carries the idea, never the repo it came from.
+often private. The draft carries the idea, never the repo it came from.
+
+The skill never creates the issue. An issue there is a message to the
+maintainer in the user's name. The user sends it.
 
 ## Rules
 
+- **Never create it.** Run no command that creates, sends or files an issue
+  in `h2xd/skills`. Show the draft only.
 - **Ask every time.** Show the full title and body first. Then ask with
   clickable options, through the CLI's question tool, such as AskUserQuestion:
-  send, edit, or drop. Send only after "send". A step 4 answer of "file as an
-  issue" is not this yes.
+  edit, or drop. A step 4 answer of "file as an issue" means "show the draft".
 - **Hide the repo.** The issue never names the user's repo, its owner, its
   product, its people, or its domain words.
 - **No code.** No code, diffs, file paths, commands from the session, logs,
@@ -46,5 +50,11 @@ Write the draft from the lesson of step 2 and the fix of step 3. Read nothing
 else for it. State only facts about the h2xd skill: what it says, what an
 agent did, and what the skill could say instead.
 
-Done when the user saw the draft and chose send, edit or drop. On edit, change the draft, check it again and show it again. On
-send, the issue has a URL.
+## Show the draft
+
+Show the title and the body in one block the user can copy. Name the
+tracker to paste it into: `h2xd/skills`, a new issue.
+
+Done when the user saw the draft with its title and body, and chose edit or
+drop, or copied it. On edit, change the draft, check it again and show it
+again.
