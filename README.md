@@ -62,6 +62,7 @@ you accept with one click.
 - the triage labels, and the `in-progress` label
 - module boundaries, for TypeScript repos
 - the writing tone of the agent
+- the extra tools your subagents must use, such as a code-graph server, for the four role pages
 
 </details>
 
@@ -74,7 +75,9 @@ re-run, the plugin's `scripts/hooks.ts` moves the extra lines of an edited hook 
 `50-local` in the matching folder before it copies the hook. It writes the
 plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
-labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`.
+labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`. It also writes one
+page per subagent role in `docs/agents/subagents/`. The skills that start a
+subagent pass its path, so the subagent uses the tools your repo has.
 
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
 and 🔴 means something blocks a skill. Run it again to update the scripts or to
