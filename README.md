@@ -75,10 +75,11 @@ re-run, the plugin's `scripts/hooks.ts` moves the extra lines of an edited hook 
 `50-local` in the matching folder before it copies the hook. It writes the
 plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
-labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`. It also writes one
+labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`. Last, it writes one
 page per subagent role in `docs/agents/subagents/`. The skills that start a
 subagent pass its path, so the subagent uses the tools your repo has. A re-run
-reads those pages first and keeps their lines, also the ones you added by hand.
+reads those pages first, asks to keep, change or drop each known tool, and
+keeps the lines you added by hand.
 
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
 and 🔴 means something blocks a skill. Run it again to update the scripts or to

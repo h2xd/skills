@@ -71,7 +71,7 @@ Done when `$WORK/pick.md` exists.
 Start the picked reviewers in one message, as background subagents, through
 the CLI's subagent tool, such as Agent. Each prompt holds the paths to
 `context.md`, [`reviewer-brief.md`](reviewer-brief.md) and
-`$WORKTREE/docs/agents/subagents/reviewer.md`, and its worktree, lens, model
+`$WORK/reviewer-tools.md`, and its worktree, lens, model
 and findings file from [`reviewers.md`](reviewers.md), which covers a missing
 role page. Reviewer D runs in its own worktree of the head SHA. Reviewer B
 also gets [`reviewer-b.md`](reviewer-b.md).

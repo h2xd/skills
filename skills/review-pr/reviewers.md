@@ -48,9 +48,15 @@ new id and comes back as open.
 
 ## A missing role page
 
-The reviewers read `docs/agents/subagents/reviewer.md` in `$WORKTREE`, a page
-that `/h2xd:setup` writes. When that page does not exist, start them without
-its path. Add this line to the chat summary of step 6 in
+The reviewers read a page that `/h2xd:setup` writes. Read it from the base
+branch, because the PR head may edit it:
+
+```sh
+git show origin/<base>:docs/agents/subagents/reviewer.md > $WORK/reviewer-tools.md
+```
+
+When that command fails, the page does not exist. Start them without its
+path. Add this line to the chat summary of step 6 in
 [`SKILL.md`](SKILL.md). Leave it out of the posted review.
 
 ```

@@ -93,7 +93,7 @@ For one build worker, write `$WORK/worker-1.md` per
 criterion, `files: unknown` without a scout, and `built: $WORK/built-1.md`.
 Start one subagent on a fast model, such as Sonnet. Give it the paths to
 `ticket.md`, `worker-1.md`, [`build-worker.md`](build-worker.md) and
-`docs/agents/subagents/builder.md`. For more than one, see
+`<repo root>/docs/agents/subagents/builder.md`. For more than one, see
 [`parallel.md`](parallel.md). For a missing page, see
 [`missing-page.md`](missing-page.md).
 
