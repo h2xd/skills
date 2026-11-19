@@ -62,8 +62,23 @@ test("every role block of a tool template uses the load step and the call", () =
 test("a re-run reads the existing pages and keeps the empty slot as written", () => {
   const guide = read("subagents.md")
   assert.match(guide, /On a re-run, read each existing role page first/)
-  assert.match(guide, /Keep everything under `### Other tools` as written/)
+  assert.match(guide, /Keep everything under\s+`### Other tools` as written/)
   assert.match(guide, /A page\s+that exists keeps every line it has/)
+})
+
+test("a re-run asks about a known tool by whether it has a block", () => {
+  const guide = read("subagents.md")
+  assert.match(guide, /Ask about it with keep,\s+change and drop/)
+  assert.match(guide, /Ask only about a known tool\s+that has no block/)
+  assert.match(guide, /A dropped tool loses its block/)
+})
+
+test("the guide keeps the empty slot when no unknown tool applies", () => {
+  assert.match(read("subagents.md"), /Keep the empty slot when no\s+unknown tool applies/)
+})
+
+test("the code-graph template reaches the fixer", () => {
+  assert.match(read("tool-code-graph.md"), /\*\*Applies to:\*\*[^\n]*`fixer\.md`/)
 })
 
 test("setup asks the tool question", () => {

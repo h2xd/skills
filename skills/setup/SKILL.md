@@ -130,8 +130,8 @@ One line per item, worst first:
 🟢 <item>: <what was written, and which skill reads it>
 ```
 
-Close with one sentence: the user may edit `agents.config.json` and
-`docs/agents/*.md` directly, and a re-run updates scripts or switches trackers.
+Close with one sentence: edit `agents.config.json`, `docs/agents/*.md` and
+`docs/agents/subagents/*.md` directly, or re-run to update or switch trackers.
 
 Done when every written file and follow-up has its line.
 

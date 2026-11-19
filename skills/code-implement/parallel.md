@@ -44,8 +44,9 @@ Done when `git worktree list` shows one worktree per build worker.
 Start all build workers in one message, so they run at the same time. Use a
 fast model, such as Sonnet, through the CLI's subagent tool, such as Agent.
 Give each one the paths to `ticket.md`, its `worker-<id>.md`,
-[`build-worker.md`](build-worker.md) and `docs/agents/subagents/builder.md`.
-For a missing page, see [`missing-page.md`](missing-page.md).
+[`build-worker.md`](build-worker.md) and
+`<repo root>/docs/agents/subagents/builder.md`. For a missing page, see
+[`missing-page.md`](missing-page.md).
 
 When the tests use a fixed port, a shared database or another resource outside
 the worktree, the build workers can fail each other's tests. Set
@@ -106,7 +107,7 @@ A ticket gets one fix worker, once.
    conflict, add the output of `git status` and `git diff`.
 2. Start one subagent on a fast model, such as Sonnet. Give it the paths to
    `ticket.md`, `fix.md`, [`fix-worker.md`](fix-worker.md) and
-   `docs/agents/subagents/builder.md`. For a missing page, see
+   `<repo root>/docs/agents/subagents/builder.md`. For a missing page, see
    [`missing-page.md`](missing-page.md).
 3. Read `$WORK/fixed.md`.
 

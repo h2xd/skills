@@ -71,8 +71,8 @@ answer.
 
 Start one subagent on a fast model, such as Sonnet, through the CLI's subagent
 tool, such as Agent. Give it the paths to `threads.md`, `plan.md`, `$WORKTREE`,
-[`fixer.md`](fixer.md) and `$WORKTREE/docs/agents/subagents/fixer.md`. Read
-[launch.md](launch.md) first when that page is missing.
+[`fixer.md`](fixer.md) and `$WORK/fixer-tools.md`. Read
+[launch.md](launch.md) first, to make that copy and for a missing page.
 
 Then read `changes.md` and `git diff`. Check each fix row against the diff, not
 only the suggestion. A `not applied` fix goes back to triage. A row on code
