@@ -32,14 +32,19 @@ to this folder to make the tool known.
 
 ## Steps
 
-1. Ask per known tool whether the repo uses it. Ask with clickable options.
+1. On a re-run, read each existing role page first. A `###` block of a known
+   tool is that tool's answer to P, with its values. Ask only about a tool
+   that has no block. Keep everything under `### Other tools` as written.
+2. Ask per known tool whether the repo uses it. Ask with clickable options.
    Recommend yes only when the repo already names the tool in `CLAUDE.md`,
    `AGENTS.md`, `.mcp.json` or `.claude/settings.json`.
-2. For each tool with a yes, ask for the values its template names, such as
+3. For each tool with a yes, ask for the values its template names, such as
    the load step. Propose them from the repo's own rule.
-3. Write each role page from the page template below. Put the lines of each
+4. Write each role page from the page template below. Put the lines of each
    tool into the pages of its `Applies to` roles only, in the order of the
-   known tools table. Keep the empty slot when no unknown tool applies.
+   known tools table. Keep the empty slot when no unknown tool applies. A page
+   that exists keeps every line it has, and changes a tool's lines only when
+   the user changed that tool's values.
 
 Done when four pages exist, each has at most 40 lines, and `node
 scripts/lint-docs.ts` exits 0.

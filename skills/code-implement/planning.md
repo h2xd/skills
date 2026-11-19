@@ -3,9 +3,8 @@
 Start one scout on the cheapest model, such as Haiku, through the CLI's
 subagent tool, such as Agent. Give it the paths to `ticket.md` and
 [`scout.md`](scout.md), and the path `docs/agents/subagents/scout.md`. It
-writes `$WORK/map.md`. When that page is missing, skip it and add
-`🟡 docs/agents/subagents/scout.md: missing, run /h2xd:setup` to the report.
-Then group the criteria:
+writes `$WORK/map.md`. For a missing page, see
+[`missing-page.md`](missing-page.md). Then group the criteria:
 
 ```sh
 node scripts/implement.ts split $WORK/map.md --criteria <count> --out $WORK/split.md

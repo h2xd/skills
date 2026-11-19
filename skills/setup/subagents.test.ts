@@ -40,6 +40,32 @@ test("every known tool has one template that names its roles and lines", () => {
   }
 })
 
+test("every tool template asks a question and names the values", () => {
+  for (const file of toolTemplates) {
+    const text = read(file)
+    assert.match(text, /\*\*Ask:\*\* \S/, `${file} has Ask`)
+    assert.match(text, /\*\*Values:\*\* \S/, `${file} has Values`)
+  }
+})
+
+test("every role block of a tool template uses the load step and the call", () => {
+  for (const file of toolTemplates) {
+    const blocks = [...read(file).matchAll(/`(\w+)\.md`:\n\n```markdown\n([\s\S]*?)```/g)]
+    assert.ok(blocks.length >= 1, `${file} has role blocks`)
+    for (const [, role, body] of blocks) {
+      assert.match(body, /\{\{LOAD\}\}/, `${file} ${role} uses LOAD`)
+      assert.match(body, /\{\{CALL\}\}/, `${file} ${role} uses CALL`)
+    }
+  }
+})
+
+test("a re-run reads the existing pages and keeps the empty slot as written", () => {
+  const guide = read("subagents.md")
+  assert.match(guide, /On a re-run, read each existing role page first/)
+  assert.match(guide, /Keep everything under `### Other tools` as written/)
+  assert.match(guide, /A page\s+that exists keeps every line it has/)
+})
+
 test("setup asks the tool question", () => {
   assert.match(read("questions.md"), /## P\. Subagent tools/)
 })

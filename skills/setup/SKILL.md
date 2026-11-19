@@ -35,10 +35,9 @@ Read what exists. Assume nothing.
   `index.md`, a `log.md`, a decisions directory such as `decisions/`, `adr/`
   or `docs/adr/`, and the record format, MADR or Nygard.
 - Glossaries: `GLOSSARY.md`, `CONTEXT.md`, `docs/**/glossary*.md`.
-- Runtime: run `node --version`. When node is missing or older than 22.18,
-  stop and say so, and suggest proto, nvm or the nodejs.org installer. The lint
-  commands need it, and the hooks skip their checks without it. A repo without
-  `package.json` gets a minimal one.
+- Runtime: run `node --version`. When it is missing or below 22.18, stop and
+  suggest proto, nvm or the nodejs.org installer. The lint commands need it,
+  and the hooks skip without it. Add a minimal `package.json` when absent.
 - Tests and stack: the test, typecheck and build commands, and any installed
   mutation tool, such as Stryker, mutmut, cargo-mutants, PIT or gremlins.
 - Hooks: `git config core.hooksPath`, `.husky/`, `.githooks/`, `lefthook.yml`
@@ -107,8 +106,8 @@ Done when the user confirms.
    [github](issue-tracker-github.md), [gitlab](issue-tracker-gitlab.md) or
    [local](issue-tracker-local.md). Write `docs/agents/knowledge-base.md` from
    [`knowledge-base.md`](knowledge-base.md). Write the four role pages as
-   [`subagents.md`](subagents.md) says, from P. Fill every `{{...}}`. List all
-   in `docs/index.md` under `## Agent config`.
+   [`subagents.md`](subagents.md) says, from P and the pages already there.
+   Fill every `{{...}}`. List all in `docs/index.md` under `## Agent config`.
 7. **Labels.** Create each missing label from the end of section K with
    `gh label create` or `glab label create`. Skip this step for a local tracker.
 8. **Instructions file.** Edit the one that exists, or ask which to create.
@@ -139,11 +138,12 @@ Done when every written file and follow-up has its line.
 ## Do
 
 - Explore before asking, and recommend what the repo already does.
-- Show every draft first. Keep existing keys, hooks and blocks.
+- Show every draft first, and keep existing keys, hooks and blocks.
 
 ## Don't
 
 - Don't create both `CLAUDE.md` and `AGENTS.md`. Edit the one that exists.
+- Don't copy `*.test.ts` into the repo. Copy only the scripts.
 - Don't switch `core.hooksPath` when husky or lefthook runs the hooks. Add the
   two commands there.
 - Don't migrate a large existing bundle without asking. Offer to adopt it.

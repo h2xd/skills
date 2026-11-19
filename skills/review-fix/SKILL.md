@@ -71,14 +71,15 @@ answer.
 
 Start one subagent on a fast model, such as Sonnet, through the CLI's subagent
 tool, such as Agent. Give it the paths to `threads.md`, `plan.md`, `$WORKTREE`,
-[`fixer.md`](fixer.md) and `docs/agents/subagents/fixer.md`. Read
+[`fixer.md`](fixer.md) and `$WORKTREE/docs/agents/subagents/fixer.md`. Read
 [launch.md](launch.md) first when that page is missing.
 
 Then read `changes.md` and `git diff`. Check each fix row against the diff, not
 only the suggestion. A `not applied` fix goes back to triage. A row on code
 that is not a test goes to the fixer when it lists no pinning tests or reason.
 
-Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`.
+Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`. It
+removes narration such as "per review".
 
 When a check in `changes.md` fails, show it with `git diff --stat`. Ask with
 clickable options: fix it first, or stop with the changes uncommitted.
@@ -104,9 +105,7 @@ Done when `replies.md` has one reply per item.
    node scripts/review.ts reply <pr> $WORK/replies.md --sha <short sha> --threads $WORK/threads.md
    ```
 
-   It fills `<sha>`, replies on each thread, and posts the `S…` items as one PR
-   comment, one section per item id. It posts nothing and exits 1 when a
-   `<sha>` would remain or an id is missing.
+   [`replies.md`](replies.md) says what it posts and when it refuses.
 
 Done when the PR body is true to the pushed head and every item has a reply
 URL.
@@ -126,10 +125,11 @@ Lead with the commit SHA and the PR URL. Then one line per item, worst first:
 ```
 🔴 <id> <path:line>: <fix not applied, or a check still failing>
 🟡 <id> <path:line>: declined or left open, <why> (<reply URL>)
+🟡 docs/agents/subagents/fixer.md: missing, run /h2xd:setup
 🟢 <id> <path:line>: fixed and resolved, <what changed> (<reply URL>)
 ```
 
-Name any failure already on the base branch. Name a worktree you created.
+Name any failure already on the base branch, and a worktree you created.
 `git worktree remove <path>` cleans it up.
 
 Done when every item has its line.

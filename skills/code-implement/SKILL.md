@@ -75,11 +75,11 @@ Done when `git branch --show-current` prints the new branch.
 1. Write `$WORK/ticket.md`: the ticket number, the branch, and the acceptance
    criteria in the ticket's order, numbered from 1.
 2. Agree the test entry points with the user once, per step 3 of
-   `h2xd:code-tdd`. Add them to `ticket.md`. A subagent cannot ask the user.
-   Skip the question when the ticket already names them. Copy them instead.
+   `h2xd:code-tdd`, and add them to `ticket.md`. Copy them when the ticket
+   names them. A subagent cannot ask.
 3. Skip the scout and the split when the ticket has fewer than 3 criteria, or
    `implement.maxWorkers` in `agents.config.json` is 1. Plan one build worker
-   with all of them, go to [step 4, Build](#4-build), and add a 🟡 line.
+   with all of them, go to [step 4](#4-build), and add a 🟡 line.
 4. Start one scout and group the criteria, per
    [`planning.md`](planning.md). It ends with `$WORK/split.md`.
 
@@ -93,9 +93,9 @@ For one build worker, write `$WORK/worker-1.md` per
 criterion, `files: unknown` without a scout, and `built: $WORK/built-1.md`.
 Start one subagent on a fast model, such as Sonnet. Give it the paths to
 `ticket.md`, `worker-1.md`, [`build-worker.md`](build-worker.md) and
-`docs/agents/subagents/builder.md`.
-
-For more than one, or a missing builder page, see [`parallel.md`](parallel.md).
+`docs/agents/subagents/builder.md`. For more than one, see
+[`parallel.md`](parallel.md). For a missing page, see
+[`missing-page.md`](missing-page.md).
 
 Then read every `$WORK/built-<id>.md` and the commits since `origin/HEAD`. A
 criterion marked `not built` goes to the report.

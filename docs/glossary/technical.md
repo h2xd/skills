@@ -105,3 +105,9 @@ An entry looks like this:
 - **Meaning:** The prose lines over 80 characters that already existed when the line limit began. `lint-skills` allows each one, once per copy, and fails any other. `--write-baseline` only drops lines that are gone or short.
 - **Code:** [`scripts/lint-skills.baseline.json`](../../scripts/lint-skills.baseline.json), read by [`scripts/lint-skills.ts`](../../scripts/lint-skills.ts)
 - **Avoid:** Baseline alone, allowlist
+
+### Role page
+
+- **Meaning:** The page `docs/agents/subagents/<role>.md` that lists the extra tools one subagent role must use in this repo, with the load step and the exact call. The roles are scout, builder, fixer and reviewer. `h2xd:setup` writes the pages, and each skill that starts a subagent passes its path in the prompt.
+- **Code:** [`skills/setup/subagents.md`](../../skills/setup/subagents.md)
+- **Avoid:** Tool page, subagent config
