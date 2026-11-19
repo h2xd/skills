@@ -77,7 +77,8 @@ plugin version into `agents.config.json`, so `scripts/drift.ts` can name the
 copies that fall behind the plugin. It also seeds `docs/`, creates the issue
 labels and adds its blocks to `CLAUDE.md` or `AGENTS.md`. It also writes one
 page per subagent role in `docs/agents/subagents/`. The skills that start a
-subagent pass its path, so the subagent uses the tools your repo has.
+subagent pass its path, so the subagent uses the tools your repo has. A re-run
+reads those pages first and keeps their lines, also the ones you added by hand.
 
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
 and 🔴 means something blocks a skill. Run it again to update the scripts or to

@@ -45,8 +45,7 @@ Start all build workers in one message, so they run at the same time. Use a
 fast model, such as Sonnet, through the CLI's subagent tool, such as Agent.
 Give each one the paths to `ticket.md`, its `worker-<id>.md`,
 [`build-worker.md`](build-worker.md) and `docs/agents/subagents/builder.md`.
-When that page is missing, skip it and add
-`🟡 docs/agents/subagents/builder.md: missing, run /h2xd:setup` to the report.
+For a missing page, see [`missing-page.md`](missing-page.md).
 
 When the tests use a fixed port, a shared database or another resource outside
 the worktree, the build workers can fail each other's tests. Set
@@ -106,7 +105,9 @@ A ticket gets one fix worker, once.
 1. Write `$WORK/fix.md`: the command that failed and its output. For a
    conflict, add the output of `git status` and `git diff`.
 2. Start one subagent on a fast model, such as Sonnet. Give it the paths to
-   `ticket.md`, `fix.md` and [`fix-worker.md`](fix-worker.md).
+   `ticket.md`, `fix.md`, [`fix-worker.md`](fix-worker.md) and
+   `docs/agents/subagents/builder.md`. For a missing page, see
+   [`missing-page.md`](missing-page.md).
 3. Read `$WORK/fixed.md`.
 
 Done when `fixed.md` exists. After `fixed`, the **Done when** of the failed step

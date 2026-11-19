@@ -4,6 +4,10 @@ Append-only, newest first. Every change to a page gets one entry, on one line:
 a bold verb, the linked page, and what changed in about 20 words. The details
 belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer entry.
 
+## 2026-11-19
+
+* **Update**: Add Role page to the [technical glossary](/glossary/technical.md), for the per-role subagent tool pages that setup writes.
+
 ## 2026-11-10
 
 * **Decision**: [0004](/decisions/0004-ask-at-four-stops.md) supersedes [0003](/decisions/0003-act-then-report.md), adding input the agent cannot get alone as a fourth stop.

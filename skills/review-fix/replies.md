@@ -10,3 +10,9 @@ in one or two sentences.
 
 End each reply with `Co-Authored-By: <model> <noreply@anthropic.com>`, as in
 `## Commits`. Fixes name the fixer's model. Declines name yours.
+
+## What `reply` posts
+
+`review.ts reply` fills `<sha>`, replies on each thread, and posts the `S…`
+items as one PR comment, one section per item id. It posts nothing and exits 1
+when a `<sha>` would remain or an id is missing.

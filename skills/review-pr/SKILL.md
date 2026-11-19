@@ -20,11 +20,10 @@ the scale.
 
 ## Before step 1
 
-Run `node scripts/review.ts` with no arguments. It prints a `usage:` line. The
-line must list `worktree`, `context`, `fleet`, `merge`, `options`, `missing`,
-`setup` and `findings`. `h2xd:setup` copies them all, `merge` included. When
-one is missing, stop with one line: "run /h2xd:setup". Run one command per
-shell call, never chained with `&&` or `;`.
+Run `node scripts/review.ts` with no arguments. Its `usage:` line must list
+`worktree`, `context`, `fleet`, `merge`, `options`, `missing`, `setup` and
+`findings`. When one is missing, stop with one line: "run /h2xd:setup". Run
+one command per shell call, never chained with `&&` or `;`.
 
 ## Steps
 
@@ -39,10 +38,10 @@ shell call, never chained with `&&` or `;`.
 node scripts/review.ts worktree <headRefName>
 ```
 
-It prints the path. It creates the worktree and runs `worktreeSetup`
-when needed. The shell stays in the session's directory, so run every later
-command against that path, with `git -C <path>`, `node <path>/scripts/review.ts`
-or absolute paths. `$WORKTREE` is that path, or the current directory.
+It prints the path, creating the worktree and running `worktreeSetup` when
+needed. The shell stays in the session's directory, so run every later command
+against that path, with `git -C <path>`, `node <path>/scripts/review.ts` or
+absolute paths. `$WORKTREE` is that path, or the current directory.
 
 ```sh
 node scripts/review.ts context <pr> --worktree $WORKTREE --out $WORK/context.md
@@ -72,10 +71,10 @@ Done when `$WORK/pick.md` exists.
 Start the picked reviewers in one message, as background subagents, through
 the CLI's subagent tool, such as Agent. Each prompt holds the paths to
 `context.md`, [`reviewer-brief.md`](reviewer-brief.md) and
-`docs/agents/subagents/reviewer.md`, and its worktree, lens, model and findings
-file from [`reviewers.md`](reviewers.md), which covers a missing role page.
-Reviewer D runs in its own worktree of the head SHA. Reviewer B also gets
-[`reviewer-b.md`](reviewer-b.md). A later review needs no exclusion list.
+`$WORKTREE/docs/agents/subagents/reviewer.md`, and its worktree, lens, model
+and findings file from [`reviewers.md`](reviewers.md), which covers a missing
+role page. Reviewer D runs in its own worktree of the head SHA. Reviewer B
+also gets [`reviewer-b.md`](reviewer-b.md).
 
 Before step 4, run `node scripts/review.ts missing $WORK <letters>` with the
 letters of the started reviewers. Retry each reviewer it names, as
@@ -126,6 +125,7 @@ one line per finding, worst first. The `wrote` line has the counts:
 
 ```
 <🔴 or 🟡> <path:line>: <action to take>, reviewer <A-E>
+🟡 docs/agents/subagents/reviewer.md: missing, run /h2xd:setup
 🟢 <n> optional comments, <n> merged, <n> dropped, <n> moved out of the diff
 ```
 
