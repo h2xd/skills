@@ -45,3 +45,13 @@ thread holds, open or resolved, and links the thread. The reader of the
 review decides whether the thread already answers it. When a reviewer words
 an answered item again with other lines or another subject, the item gets a
 new id and comes back as open.
+
+## A missing role page
+
+The reviewers read `docs/agents/subagents/reviewer.md`, a page that
+`/h2xd:setup` writes. When that page does not exist, start them without its
+path. Add this line to the summary:
+
+```
+🟡 docs/agents/subagents/reviewer.md: missing, run /h2xd:setup
+```

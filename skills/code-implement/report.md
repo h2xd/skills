@@ -10,6 +10,7 @@ first:
 🔴 <check>: failed, so the chain stopped: <the error>
 🟡 <item>: <a check left open, a follow-up ticket to file>
 🟡 #<n>: not assigned to the user, because <why the Assign operation failed>
+🟡 docs/agents/subagents/<role>.md: missing, run /h2xd:setup
 🟡 <step>: skipped, because <the skip condition that held>
 🟡 <n> non-blocking threads still open: <why each one is open>
 🟡 <worktree path>: kept, because its commits did not land
