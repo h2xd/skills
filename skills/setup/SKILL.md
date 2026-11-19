@@ -12,6 +12,7 @@ the checks that keep them true when no skill runs:
 
 - **`agents.config.json`** at the repo root, with every repo-specific value.
 - **`docs/agents/*.md`**. The skills read the tracker and knowledge base layout.
+- **`docs/agents/subagents/*.md`**: the tools each subagent role must use.
 - **`scripts/`, `.githooks/`, `.github/workflows/`**, copied from
   [`../../templates/`](../../templates/). The checks run in `pre-commit`,
   `commit-msg` and CI, so pages and commit messages cannot rot between runs.
@@ -64,7 +65,7 @@ Before writing anything, show:
 
 - `agents.config.json` in full.
 - The blocks from [`instructions-block.md`](instructions-block.md), filled in.
-- Both `docs/agents/` pages, filled in.
+- The `docs/agents/` pages and four role pages, filled in.
 - The files to copy and the `package.json` scripts to add.
 
 Done when the user confirms.
@@ -105,8 +106,9 @@ Done when the user confirms.
 6. **Agent config pages.** Write `docs/agents/issue-tracker.md` from
    [github](issue-tracker-github.md), [gitlab](issue-tracker-gitlab.md) or
    [local](issue-tracker-local.md). Write `docs/agents/knowledge-base.md` from
-   [`knowledge-base.md`](knowledge-base.md). Fill every `{{...}}`. List both in
-   `docs/index.md` under `## Agent config`.
+   [`knowledge-base.md`](knowledge-base.md). Write the four role pages as
+   [`subagents.md`](subagents.md) says, from P. Fill every `{{...}}`. List all
+   in `docs/index.md` under `## Agent config`.
 7. **Labels.** Create each missing label from the end of section K with
    `gh label create` or `glab label create`. Skip this step for a local tracker.
 8. **Instructions file.** Edit the one that exists, or ask which to create.
@@ -137,12 +139,11 @@ Done when every written file and follow-up has its line.
 ## Do
 
 - Explore before asking, and recommend what the repo already does.
-- Show every draft first, and keep existing keys, hooks and blocks.
+- Show every draft first. Keep existing keys, hooks and blocks.
 
 ## Don't
 
 - Don't create both `CLAUDE.md` and `AGENTS.md`. Edit the one that exists.
-- Don't copy `*.test.ts` into the repo. Copy only the scripts.
 - Don't switch `core.hooksPath` when husky or lefthook runs the hooks. Add the
   two commands there.
 - Don't migrate a large existing bundle without asking. Offer to adopt it.

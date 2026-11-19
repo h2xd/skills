@@ -214,3 +214,17 @@ once.
   it when the tests use a fixed port, a shared database or another resource
   outside the worktree.
 - **Another number**, such as 2 for a machine that runs slow test suites.
+
+## P. Subagent tools
+
+Subagents read their brief from a skill, so they do not know the extra tools a
+repo has. `docs/agents/subagents/` holds one page per role: `scout`,
+`builder`, `fixer` and `reviewer`. Each skill that starts a subagent passes
+the path of its page. [`subagents.md`](subagents.md) lists the known tools.
+
+Ask per known tool whether the repo uses it. Recommended: yes only for a tool
+the repo already names in its agent instructions or MCP config. Then ask for
+the load step and the exact call. Then ask once for a tool setup does not
+know, which gets the empty slot.
+
+Done when each known tool has a yes or no, and each yes has its values.
