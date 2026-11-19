@@ -43,8 +43,10 @@ Done when `git worktree list` shows one worktree per build worker.
 
 Start all build workers in one message, so they run at the same time. Use a
 fast model, such as Sonnet, through the CLI's subagent tool, such as Agent.
-Give each one the paths to `ticket.md`, its `worker-<id>.md` and
-[`build-worker.md`](build-worker.md).
+Give each one the paths to `ticket.md`, its `worker-<id>.md`,
+[`build-worker.md`](build-worker.md) and `docs/agents/subagents/builder.md`.
+When that page is missing, skip it and add
+`🟡 docs/agents/subagents/builder.md: missing, run /h2xd:setup` to the report.
 
 When the tests use a fixed port, a shared database or another resource outside
 the worktree, the build workers can fail each other's tests. Set

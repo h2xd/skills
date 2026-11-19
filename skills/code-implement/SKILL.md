@@ -92,9 +92,10 @@ For one build worker, write `$WORK/worker-1.md` per
 [`parallel.md`](parallel.md): the repo root, the ticket branch, every
 criterion, `files: unknown` without a scout, and `built: $WORK/built-1.md`.
 Start one subagent on a fast model, such as Sonnet. Give it the paths to
-`ticket.md`, `worker-1.md` and [`build-worker.md`](build-worker.md).
+`ticket.md`, `worker-1.md`, [`build-worker.md`](build-worker.md) and
+`docs/agents/subagents/builder.md`.
 
-For more than one, follow [`parallel.md`](parallel.md).
+For more than one, or a missing builder page, see [`parallel.md`](parallel.md).
 
 Then read every `$WORK/built-<id>.md` and the commits since `origin/HEAD`. A
 criterion marked `not built` goes to the report.

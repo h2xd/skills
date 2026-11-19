@@ -70,15 +70,15 @@ answer.
 ### 3. Apply the fixes
 
 Start one subagent on a fast model, such as Sonnet, through the CLI's subagent
-tool, such as Agent. Give it the paths to `threads.md`, `plan.md` and
-[`fixer.md`](fixer.md), which holds its instructions, and `$WORKTREE`.
+tool, such as Agent. Give it the paths to `threads.md`, `plan.md`, `$WORKTREE`,
+[`fixer.md`](fixer.md) and `docs/agents/subagents/fixer.md`. Read
+[launch.md](launch.md) first when that page is missing.
 
 Then read `changes.md` and `git diff`. Check each fix row against the diff, not
 only the suggestion. A `not applied` fix goes back to triage. A row on code
 that is not a test goes to the fixer when it lists no pinning tests or reason.
 
-Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`. It
-removes narration such as "per review".
+Run `h2xd:review-code-comments` on the uncommitted diff in `$WORKTREE`.
 
 When a check in `changes.md` fails, show it with `git diff --stat`. Ask with
 clickable options: fix it first, or stop with the changes uncommitted.
