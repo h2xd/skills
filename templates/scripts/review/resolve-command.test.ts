@@ -32,10 +32,12 @@ function resolve(...args: string[]) {
 }
 
 describe("review.ts resolve", () => {
-  test("refuses a PR number without a threads file, before any gh call", () => {
-    const result = resolve("88")
+  test("prints its usage line for a PR number, before any gh call", () => {
+    const result = resolve("104")
     expect(result.status).toBe(1)
-    expect(result.err).toContain("88 is neither a thread id")
+    expect(result.err).toContain(
+      "usage: node scripts/review.ts resolve [--threads <threads.md>]",
+    )
     expect(existsSync(join(root, "called"))).toBe(false)
   })
 

@@ -9,6 +9,7 @@
  *   node scripts/review.ts threads [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
  *   node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...
+ *   node scripts/review.ts tally --threads <threads.md> --verdicts <dir> <T label>...
  *   node scripts/review.ts options --validate <review.json> [--local-path <dir>]...
  *   node scripts/review.ts findings --validate <findings.json>
  *   node scripts/review.ts merge <findings.json>... --out review.json [--pr N] [--worktree PATH] [--pick pick.md] [--bullets FILE] [--preview FILE]
@@ -29,6 +30,7 @@ import {
   replyCommand,
   resolveCommand,
   setupCommand,
+  tallyCommand,
   threadsCommand,
   worktreeCommand,
 } from "./review/commands.ts"
@@ -41,6 +43,7 @@ const COMMANDS: Record<string, (argv: string[]) => void> = {
   threads: threadsCommand,
   reply: replyCommand,
   resolve: resolveCommand,
+  tally: tallyCommand,
   options: optionsCommand,
   findings: findingsCommand,
   merge: mergeCommand,
