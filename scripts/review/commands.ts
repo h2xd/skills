@@ -34,6 +34,7 @@ import {
 import { planReplies, postReplies } from "./reply.ts"
 import { resolveThreads, threadNodeIds } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
+import { tallyThreads } from "./tally.ts"
 import { formatThreadsDocument, unrepliedSummaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
 import {
@@ -279,16 +280,42 @@ export function resolveCommand(argv: string[]): void {
     allowPositionals: true,
     options: { threads: { type: "string" } },
   })
-  if (positionals.length === 0) {
-    throw new Error(
-      "usage: node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...",
-    )
+  const usage =
+    "usage: node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>..."
+  if (positionals.length === 0 || positionals.some((a) => /^\d+$/.test(a))) {
+    throw new Error(usage)
   }
   const threadIds = threadNodeIds(
     positionals,
     values.threads ? readFileSync(values.threads, "utf8") : "",
   )
   const outcome = resolveThreads(threadIds, resolveThread)
+  for (const line of outcome.lines) console.log(line)
+  if (outcome.failed) process.exit(1)
+}
+
+export function tallyCommand(argv: string[]): void {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { threads: { type: "string" }, verdicts: { type: "string" } },
+  })
+  const usage =
+    "tally --threads <threads.md> --verdicts <dir> <T label>..."
+  const threadsFile = requireArgument(values.threads, usage)
+  const directory = requireArgument(values.verdicts, usage)
+  if (positionals.length === 0) requireArgument(undefined, usage)
+  const outcome = tallyThreads(
+    positionals,
+    readFileSync(threadsFile, "utf8"),
+    directory,
+    {
+      readVerdictFile: (path) =>
+        existsSync(path) ? readFileSync(path, "utf8") : undefined,
+      replyToThread,
+      resolveThread,
+    },
+  )
   for (const line of outcome.lines) console.log(line)
   if (outcome.failed) process.exit(1)
 }
