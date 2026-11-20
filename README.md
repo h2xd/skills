@@ -264,6 +264,7 @@ Most names start with their group. Open a group to see its skills. The
 |---|---|---|---|
 | `review-pr` | Picks up to five reviewers from the diff, then posts one review without asking | A PR is ready | auto |
 | `review-fix` | Fixes the review threads, pushes, replies and resolves them. Asks only when a check fails | A PR has comments to address | auto |
+| `review-gate` | Votes on each open thread, settles disputes with three arbiters, and approves the PR when none stays open | After `review-fix`, before merge | auto |
 | `review-code-comments` | Sends the comment reaper over a diff | Before review, or when the comments in a diff only repeat the code | auto |
 | `review-skills` | Finds skills that overlap and proposes exact fixes | The wrong skill fires, or after adding several | you |
 
