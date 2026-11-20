@@ -1,9 +1,3 @@
-/**
- * Groups the fix items of a review for the h2xd:review-fix fixer workers.
- * Items that name the same file form one group, so no two fixers change the
- * same file.
- */
-
 export type FixItem = { id: string; file: string | undefined }
 
 export type SplitSettings = { fixMaxWorkers: number }
