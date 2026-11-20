@@ -115,10 +115,10 @@ commit on the ticket branch, or a reason in a `built` file.
 Done when every check passes, and each surviving mutant has a test or a
 reason.
 
-### 6. Open, review and fix
+### 6. Open, review, fix and gate
 
 Never skip this chain. Follow [`chain.md`](chain.md). It runs the PR body,
-the review and the fixes in order, without asking between them.
+the review, the fixes and the gate in order, without asking between them.
 
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
@@ -146,5 +146,5 @@ stop before a PR ran **Unclaim**.
 - Don't start on a ticket with an open blocker. Name the blocker.
 - Don't change the acceptance criteria to fit the code. Ask the user.
 - Don't fold an unrelated fix into the branch. File it as its own ticket.
-- Don't start a third review or a third fix. Report the threads still open.
+- Don't start a third review, or a fix round outside `h2xd:review-gate`.
 - Don't ask about a `split` verdict. Split, and name the workers in the report.

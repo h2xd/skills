@@ -41,11 +41,13 @@ Done when `threads.md` lists every open thread with an id.
 
 Start one subagent on the strongest model, such as Opus, through the CLI's
 subagent tool, such as Agent. Give it the paths to [`voter.md`](voter.md),
-`threads.md` and `$WORKTREE`. It writes `$WORK/votes.md`.
+`threads.md`, `$WORK/votes.md` to write, and `$WORKTREE`.
 
 Done when `votes.md` has one `approve` or `disagree` line for every thread.
 
 ### 3. Resolve the approved threads
+
+Skip this step when no thread is `approve`.
 
 ```sh
 node scripts/review.ts resolve --threads $WORK/threads.md <approve labels>
@@ -54,6 +56,8 @@ node scripts/review.ts resolve --threads $WORK/threads.md <approve labels>
 Done when each approve thread printed `resolved`.
 
 ### 4. Judge the disagreements
+
+Skip this step when no thread is `disagree`.
 
 For each `disagree` thread, start three arbiters in one message, in the
 background. One runs on a fast model, such as Sonnet, as `sonnet`. Two run on
@@ -66,6 +70,8 @@ Done when `$WORK/verdicts` holds `<label>-<arbiter>.md` for every disagree
 thread and every arbiter name.
 
 ### 5. Tally
+
+Skip this step when no thread is `disagree`.
 
 ```sh
 node scripts/review.ts tally --threads $WORK/threads.md --verdicts $WORK/verdicts <disagree labels>
@@ -86,12 +92,14 @@ Skip this step when no thread has a `change` majority.
 1. Write `$WORK/plan.md` with one fix row per `change` thread, in the format
    of [`triage.md`](../review-fix/triage.md). The arbiters' reasons are the
    change to make. The fixer never overrules the vote.
-2. Run steps 3 to 6 of [`review-fix`](../review-fix/SKILL.md) on those rows.
+2. Run steps 3 to 5 of [`review-fix`](../review-fix/SKILL.md) on those rows.
    It applies the change, commits, pushes and replies. Do not resolve those
-   threads yet.
-3. Gather the threads again. Start the voter once more, on the changed
-   threads only. Resolve each `approve`. A `disagree` stays open. There is no
-   second vote and no second arbiter round.
+   threads yet. When an ask item or a failing check stops the run, leave the
+   thread open and report it.
+3. Gather the threads again. Copy the sections of the changed labels into
+   `$WORK/recheck.md`. Start the voter once more, on `recheck.md` only, with
+   `$WORK/recheck-votes.md` to write. Resolve each `approve`. A `disagree`
+   stays open. There is no second vote and no second arbiter round.
 
 Done when each changed thread is resolved or listed as open.
 

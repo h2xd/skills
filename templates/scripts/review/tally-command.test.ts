@@ -50,16 +50,22 @@ function verdict(label: string, arbiter: string, kind: string, reason: string) {
   )
 }
 
-function tally(...labels: string[]) {
-  const result = spawnSync(
-    process.execPath,
-    [REVIEW, "tally", "--threads", join(root, "threads.md"), "--verdicts", verdicts, ...labels],
-    {
-      encoding: "utf8",
-      env: { ...envWithoutGit(), PATH: `${root}:${process.env.PATH}` },
-    },
-  )
+function tallyWith(...args: string[]) {
+  const result = spawnSync(process.execPath, [REVIEW, "tally", ...args], {
+    encoding: "utf8",
+    env: { ...envWithoutGit(), PATH: `${root}:${process.env.PATH}` },
+  })
   return { status: result.status, out: result.stdout, err: result.stderr }
+}
+
+function tally(...labels: string[]) {
+  return tallyWith(
+    "--threads",
+    join(root, "threads.md"),
+    "--verdicts",
+    verdicts,
+    ...labels,
+  )
 }
 
 function calls(): { args: string[]; body: string | null }[] {
@@ -76,7 +82,7 @@ describe("review.ts tally", () => {
     const result = tally("T1")
     expect(result.status).toBe(0)
     expect(result.out).toContain("T1 keep 2/3 https://github.test/reply resolved")
-    const [reply, resolve] = calls()
+    const [resolve, reply] = calls()
     expect(reply.args).toContain("threadId=PRRT_one")
     expect(reply.body).toContain("2 of 3 arbiters")
     expect(reply.body).toContain("sonnet: the guard is needed")
@@ -123,5 +129,82 @@ describe("review.ts tally", () => {
     const result = tally("T1")
     expect(result.status).toBe(1)
     expect(result.out).toContain("needs a `verdict: keep|change` line")
+    expect(result.out).toContain("T1-sonnet.md")
+  })
+
+  test("refuses a verdict file without a reason line", () => {
+    writeFileSync(join(verdicts, "T1-sonnet.md"), "verdict: keep\n")
+    verdict("T1", "haiku-1", "keep", "ok")
+    verdict("T1", "haiku-2", "keep", "ok")
+    const result = tally("T1")
+    expect(result.status).toBe(1)
+    expect(result.out).toContain("T1 error:")
+    expect(calls()).toEqual([])
+  })
+
+  test("refuses a verdict file without a verdict line but with a reason", () => {
+    writeFileSync(join(verdicts, "T1-sonnet.md"), "reason: x\n")
+    verdict("T1", "haiku-1", "keep", "ok")
+    verdict("T1", "haiku-2", "keep", "ok")
+    const result = tally("T1")
+    expect(result.status).toBe(1)
+    expect(result.out).toContain("T1 error:")
+    expect(calls()).toEqual([])
+  })
+
+  test("refuses a verdict word that only starts with keep", () => {
+    writeFileSync(join(verdicts, "T1-sonnet.md"), "verdict: keeper\nreason: x\n")
+    verdict("T1", "haiku-1", "keep", "ok")
+    verdict("T1", "haiku-2", "keep", "ok")
+    const result = tally("T1")
+    expect(result.status).toBe(1)
+    expect(result.out).toContain("T1 error:")
+    expect(calls()).toEqual([])
+  })
+
+  test("refuses a label that is not in the threads file, before any gh call", () => {
+    verdict("T9", "sonnet", "keep", "ok")
+    verdict("T9", "haiku-1", "keep", "ok")
+    verdict("T9", "haiku-2", "keep", "ok")
+    const result = tally("T9")
+    expect(result.status).toBe(1)
+    expect(result.out).toContain("T9 error: T9 has no thread id")
+    expect(calls()).toEqual([])
+  })
+
+  test("posts no reply when the resolve fails", () => {
+    writeFileSync(
+      join(root, "gh"),
+      `#!/usr/bin/env node
+require("node:fs").appendFileSync(${JSON.stringify(join(root, "calls"))}, JSON.stringify({ args: process.argv.slice(2), body: null }) + "\\n")
+process.exit(1)
+`,
+    )
+    verdict("T1", "sonnet", "keep", "ok")
+    verdict("T1", "haiku-1", "keep", "ok")
+    verdict("T1", "haiku-2", "keep", "ok")
+    const result = tally("T1")
+    expect(result.status).toBe(1)
+    expect(result.out).toContain("T1 error:")
+    expect(calls().length).toBe(1)
+    expect(calls()[0].args.join(" ")).toContain("resolveReviewThread")
+  })
+
+  test("prints usage when the label is missing", () => {
+    const result = tallyWith("--threads", join(root, "threads.md"), "--verdicts", verdicts)
+    expect(result.status).toBe(1)
+    expect(result.err).toContain("usage: node scripts/review.ts tally")
+  })
+
+  test("prints usage when --verdicts is missing", () => {
+    const result = tallyWith("--threads", join(root, "threads.md"), "T1")
+    expect(result.status).toBe(1)
+    expect(result.err).toContain("usage: node scripts/review.ts tally")
+  })
+
+  test("prints usage when --threads is missing", () => {
+    const result = tallyWith("--verdicts", verdicts, "T1")
+    expect(result.status).toBe(1)
+    expect(result.err).toContain("usage: node scripts/review.ts tally")
   })
 })

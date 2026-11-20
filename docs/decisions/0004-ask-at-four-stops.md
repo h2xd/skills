@@ -60,7 +60,8 @@ Each skill acts and asks as this table says.
 | [`git-pr-body`](../../skills/git-pr-body/SKILL.md) | Commits a dirty tree, creates a missing issue, pushes, opens the PR | Never. A 🔴 one-way door opens as a draft |
 | [`review-pr`](../../skills/review-pr/SKILL.md) | Sizes the diff with `review.ts fleet` and starts only the reviewers it needs, posts every review, 🔴 included | A head mismatch, or a large change |
 | [`review-fix`](../../skills/review-fix/SKILL.md) | Commits, pushes, replies, resolves | An **ask** item in triage, a failing check, a diverged head |
-| [`code-implement`](../../skills/code-implement/SKILL.md) | Runs the three skills above, then one more review and one more fix | The test entry points once, each unsure criterion in a split with more than one build worker, a draft or a failed check |
+| [`review-gate`](../../skills/review-gate/SKILL.md) | Resolves approved and kept threads, replies, sends a `change` majority to the fixer, posts the final approval | A failing check, or a thread the fixer cannot change |
+| [`code-implement`](../../skills/code-implement/SKILL.md) | Runs the three skills above, then one more review and one more fix, then `review-gate` | The test entry points once, each unsure criterion in a split with more than one build worker, a draft or a failed check |
 | [`next`](../../skills/next/SKILL.md) | Starts the next skill when only one fits | Two skills fit, or a help question |
 | [`git-guardrails`](../../skills/git-guardrails/SKILL.md) | Recommends `--allow-push` | Force pushes and remote deletes stay blocked |
 

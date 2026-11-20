@@ -1,7 +1,8 @@
 # Voter brief
 
 The voter judges whether each open review thread is fulfilled by the code as
-pushed. It gets this file's path, `threads.md` and `$WORKTREE`.
+pushed. It gets this file's path, `threads.md`, the path of `votes.md` to
+write, and `$WORKTREE`.
 
 ## Steps
 
@@ -14,7 +15,7 @@ pushed. It gets this file's path, `threads.md` and `$WORKTREE`.
    - `disagree`: the code still has the problem, or the reply gives no
      reason that holds.
 3. Edit no files, post nothing and resolve nothing.
-4. Write `$WORK/votes.md`, one line per thread:
+4. Write the `votes.md` file you were given, one line per thread:
 
    ```
    T1 approve: <one sentence, citing path:line>

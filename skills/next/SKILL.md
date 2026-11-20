@@ -65,8 +65,8 @@ Take the first row that matches:
 | Uncommitted changes | `h2xd:git-commit` |
 | Commits ahead of the base, no PR | `h2xd:git-pr-body` |
 | An open PR without a review | `h2xd:review-pr` |
-| A PR with changes requested or open threads | `h2xd:review-fix` |
 | A PR with fixes pushed and threads still open | `h2xd:review-gate` |
+| A PR with changes requested or open threads | `h2xd:review-fix` |
 | A PR with `mergeStateStatus` `UNSTABLE`, or `BLOCKED` while approved | `h2xd:code-debug` for the failing checks |
 | A PR with `mergeStateStatus` `BLOCKED` and `reviewDecision` `REVIEW_REQUIRED` | Ask a person with write access for a review |
 | A PR with `mergeStateStatus` `DIRTY` or `BEHIND` | Rebase on the base, then `h2xd:next` again |
