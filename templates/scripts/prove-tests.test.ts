@@ -107,6 +107,26 @@ describe("prove-tests.sh", () => {
     expect(run.stdout).toContain("002\tsurvived\t")
   })
 
+  test("snapshots the checkout that --root names, not the current directory", () => {
+    const other = mkdtempSync(join(tmpdir(), "prove-tests-other-"))
+    try {
+      writeFileSync(join(other, "lib.sh"), LIB)
+      writeFileSync(join(other, "test.sh"), "exit 0\n")
+      sh("git init -q && git add -A && git -c user.name=t -c user.email=t@t commit -qm init", other)
+      mutant("001", LIB, LIB.replace("-gt", "-lt"))
+      const run = (...args: string[]) =>
+        spawnSync("sh", [SCRIPT, "--mutants", mutants, "--test", "sh test.sh", ...args], {
+          cwd: other,
+          encoding: "utf8",
+          env: envWithoutGit(),
+        })
+      expect(run().stdout).toStartWith("001\tsurvived")
+      expect(run("--root", repo).stdout).toStartWith("001\tkilled")
+    } finally {
+      rmSync(other, { recursive: true, force: true })
+    }
+  })
+
   test("runs only the listed mutants", () => {
     mutant("001", LIB, LIB.replace("-gt", "-lt"))
     mutant("002", LIB, LIB.replace("-gt", "-ge"))

@@ -76,6 +76,10 @@ describe("planFixSplit", () => {
     expect(planFixSplit([], SETTINGS).workers).toEqual([])
   })
 
+  test("a review without fix items says why", () => {
+    expect(planFixSplit([], SETTINGS).reasons).toEqual(["no fix items"])
+  })
+
   test("a group over 5 items adds a worker while the cap allows one", () => {
     const files = [..."aaaabbbbcc"].map((letter) => `src/${letter}.ts`)
     expect(groupsOf(files).map((group) => group.length)).toEqual([4, 4, 2])
@@ -97,6 +101,25 @@ describe("planFixSplit", () => {
     const split = planFixSplit(parseFixItems(plan, threadsFor(6)), SETTINGS)
     expect(split.workers.map((worker) => worker.items.length)).toEqual([3, 3])
     expect(split.workers.every((worker) => worker.files.length === 0)).toBe(true)
+  })
+
+  test("items inside a worker keep plan order", () => {
+    expect(groupsOf(["src/b.ts", "src/a.ts", "src/a.ts"], { fixMaxWorkers: 1 })).toEqual([
+      ["T1", "T2", "T3"],
+    ])
+  })
+
+  test("workers are numbered by their first item", () => {
+    const files = ["src/x.ts", ...Array.from({ length: 6 }, () => "src/y.ts")]
+    const items = parseFixItems(planFor(files), threadsFor(7))
+    const workers = planFixSplit(items, { fixMaxWorkers: 2 }).workers
+    expect(workers[0].items[0]).toBe("T1")
+    expect(workers[1].id).toBe(2)
+  })
+
+  test("the files of a worker are sorted", () => {
+    const items = parseFixItems(planFor(["src/b.ts", "src/a.ts"]), threadsFor(2))
+    expect(planFixSplit(items, SETTINGS).workers[0].files).toEqual(["src/a.ts", "src/b.ts"])
   })
 
   test("the default cap on workers is 3", () => {
@@ -122,6 +145,10 @@ describe("parseFixItems", () => {
     expect(items.map((item) => item.id)).toEqual(["T1"])
   })
 
+  test("skips a line outside a table", () => {
+    expect(parseFixItems("T1 | fix | a.ts:1 | x", threadsFor(1))).toEqual([])
+  })
+
   test("fails when one item has two rows", () => {
     const plan = "| T1 | fix | a.ts:1 | x |\n| T1 | fix | b.ts:2 | y |"
     expect(() => parseFixItems(plan, threadsFor(1))).toThrow('T1 has two rows')
@@ -145,5 +172,10 @@ describe("formatFixSplit", () => {
     )
     expect(text).toContain("- Fixer workers: 2")
     expect(text).toContain("## Fixer worker 2")
+  })
+
+  test("names the files of a worker without a location unknown", () => {
+    const text = formatFixSplit({ workers: [{ id: 1, items: ["T1"], files: [] }], reasons: [] })
+    expect(text).toContain("- Files: unknown")
   })
 })

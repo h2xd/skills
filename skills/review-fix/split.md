@@ -8,15 +8,19 @@ node scripts/review.ts split $WORK/threads.md $WORK/plan.md --out $WORK/split.md
 
 A group holds at most 5 items, unless one file holds more or the
 `review.fixMaxWorkers` cap forces more. Items share a group only when their
-plan rows name the same file. At most `review.fixMaxWorkers` groups come out.
+plan rows name the same file. The row of a mutation item names its code
+file, so the item stays with the fixes to that code. At most
+`review.fixMaxWorkers` groups come out.
 
 Start one subagent per group in one message, on a fast model, such as Sonnet,
 through the CLI's subagent tool, such as Agent. Give each the paths to
-`threads.md`, its rows of `plan.md`, [`fixer.md`](fixer.md) and
-`$WORK/fixer-tools.md`.
+`threads.md`, its rows of `plan.md`, [`fixer.md`](fixer.md),
+`$WORK/fixer-tools.md`, its group id and its worktree, `<path>` in place of
+`$WORKTREE`. Tell it the patch command below.
 
 - Many groups: create each fixer worktree with
-  `git -C $WORKTREE worktree add --detach <path> HEAD`. The fixer leaves its
+  `git -C $WORKTREE worktree add --detach <path> HEAD`, then run the
+  `worktreeSetup` commands in `<path>`. The fixer leaves its
   changes uncommitted and writes `changes-<id>.md`. It writes a patch that
   holds new files too: `git -C <path> add -A`, then
   `git -C <path> diff --cached --binary > $WORK/<id>.patch`.

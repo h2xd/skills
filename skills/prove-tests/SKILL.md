@@ -72,8 +72,8 @@ Runner `sh`. Leave out `--check` or `--setup` when its setting is `null`:
 sh scripts/prove-tests.sh --mutants $WORK/mutants --test "<testCommand>" --check "<checkCommand>" --setup "<setupCommand>" --timeout-factor <timeoutFactor> --out $WORK/results.tsv
 ```
 
-The script works in a throwaway worktree that copies your uncommitted work.
-Each line of `results.tsv` holds the id, a status and the seconds.
+The script copies your uncommitted work to a throwaway worktree. `--root <dir>`
+names another repo. Each `results.tsv` line holds the id, a status, the seconds.
 
 - `killed` or `timeout`: the tests failed or ran too long. Both count as killed.
 - `survived`: the tests passed, so no test noticed.

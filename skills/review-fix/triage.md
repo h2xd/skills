@@ -29,5 +29,8 @@ Find the decision records for a file with
   differ.
 - A thread that asks for a test of a named behavior is a **mutation item**
   too. Its plan row names the mutant, such as the line to remove.
+- The plan row of a mutation item names the code file, not the test file. A
+  split review groups items by that file, so one fixer holds the item and
+  the other fixes to that code.
 - A mutation item that comes back `not applied` is an **ask** item. Give the
   surviving mutant and the test the fixer wrote.
