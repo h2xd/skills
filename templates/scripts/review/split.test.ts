@@ -60,6 +60,14 @@ describe("planFixSplit", () => {
     expect(groups.flat().length).toBe(20)
   })
 
+  test("8 items on different files split into two groups of 4", () => {
+    expect(groupsOf(distinct(8)).map((group) => group.length)).toEqual([4, 4])
+  })
+
+  test("fixMaxWorkers 0 still starts one worker with every item", () => {
+    expect(groupsOf(distinct(3), { fixMaxWorkers: 0 })).toEqual([["T1", "T2", "T3"]])
+  })
+
   test("fixMaxWorkers 1 starts one worker", () => {
     expect(groupsOf(distinct(12), { fixMaxWorkers: 1 }).length).toBe(1)
   })
