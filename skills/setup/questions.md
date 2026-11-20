@@ -202,6 +202,15 @@ Then `review.criticalPaths`: path prefixes where any change gets all five
 reviewers. Propose the repo's migrations, auth and payment folders, such as
 `migrations/` or `src/auth/`. Recommended: those that exist, or none.
 
+Then `review.fixMaxWorkers`: `h2xd:review-fix` splits the fix items into groups
+of at most 5 and starts one fixer worker per group. This is the most fixer
+workers that run at once.
+
+- **3**, recommended: the default.
+- **1**: no split. One fixer applies every item. Choose it when the tests use
+  a fixed port, a shared database or another resource outside the worktree.
+- **Another number**, such as 2 for a machine that runs slow test suites.
+
 ## O. Build workers
 
 `h2xd:code-implement` splits a ticket with three or more acceptance criteria

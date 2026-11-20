@@ -14,3 +14,7 @@ its path. Add this line to the chat summary of step 7 in
 ```
 🟡 docs/agents/subagents/fixer.md: missing, run /h2xd:setup
 ```
+
+# More than 5 fix items
+
+Group the items and start one fixer per group, as [`split.md`](split.md) says.

@@ -2,6 +2,8 @@
 
 The fixer applies the planned fixes, and nothing else. It gets this file's
 path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
+With a split review, `plan.md` holds only the rows of its group. It writes
+`changes-<id>.md` and a patch, and leaves the changes uncommitted.
 
 ## Steps
 

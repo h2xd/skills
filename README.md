@@ -56,7 +56,7 @@ you accept with one click.
 - the hooks and CI workflows that enforce the rules
 - the commands a fresh worktree runs before it can typecheck and run the tests
 - mutation testing, and which runner plants the bugs
-- the size limits that decide how many reviewers a PR review starts, and the paths that always get all of them
+- the size limits that decide how many reviewers a PR review starts, the paths that always get all of them, and how many fixer workers may fix one review at the same time
 - how many build workers may build one ticket at the same time
 - a hook that stops the agent from running destructive git commands
 - the triage labels, and the `in-progress` label
