@@ -25,6 +25,7 @@ import {
   parseFindings,
 } from "./findings.ts"
 import { missingReviewFiles } from "./missing.ts"
+import { formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
 import {
   type DraftComment,
   localFolders,
@@ -502,5 +503,27 @@ export function mergeCommand(argv: string[]): void {
   }
   if (!values.bullets) {
     console.log(`bullets:\n${findingsBullets(review.body).join("\n")}`)
+  }
+}
+
+export function splitCommand(argv: string[]): void {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { out: { type: "string" } },
+  })
+  const usage = "split <threads.md> <plan.md> [--out FILE]"
+  const threadsFile = requireArgument(positionals[0], usage)
+  const planFile = requireArgument(positionals[1], usage)
+  const split = planFixSplit(
+    parseFixItems(readFileSync(planFile, "utf8"), readFileSync(threadsFile, "utf8")),
+    config.review,
+  )
+  const text = formatFixSplit(split)
+  if (values.out) {
+    writeFileSync(values.out, text)
+    console.log(`${split.workers.length} fixer workers: wrote ${values.out}`)
+  } else {
+    process.stdout.write(text)
   }
 }

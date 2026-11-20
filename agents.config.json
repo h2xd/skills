@@ -50,7 +50,8 @@
       "files": 20,
       "lines": 1000
     },
-    "criticalPaths": []
+    "criticalPaths": [],
+    "fixMaxWorkers": 3
   },
   "worktreeSetup": [
     [

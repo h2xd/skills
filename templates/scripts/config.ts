@@ -41,7 +41,7 @@ export type Config = {
     /** The keyword every PR body opens with, one line per ticket. */
     closingKeyword: string
   }
-  /** Read by `review.ts fleet`, which picks the h2xd:review-pr reviewers. */
+  /** Read by `review.ts fleet`, which picks the h2xd:review-pr reviewers, and `review.ts split`. */
   review: {
     /** Fewer files and fewer lines than this is a small change: two reviewers. */
     small: { files: number; lines: number }
@@ -49,6 +49,8 @@ export type Config = {
     middle: { files: number; lines: number }
     /** Path prefixes, such as "migrations/", that make any change critical: all five. */
     criticalPaths: string[]
+    /** The most fixer workers `review.ts split` starts for h2xd:review-fix. 1 turns the split off. */
+    fixMaxWorkers: number
   }
   /** Read by `implement.ts split`, which groups a ticket for h2xd:code-implement. */
   implement: {
@@ -108,6 +110,7 @@ export const DEFAULTS: Config = {
     small: { files: 10, lines: 500 },
     middle: { files: 20, lines: 1000 },
     criticalPaths: [],
+    fixMaxWorkers: 3,
   },
   implement: { maxWorkers: 3 },
   worktreeSetup: [["npm", "install"]],
