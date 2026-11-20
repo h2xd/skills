@@ -5,6 +5,7 @@
 #
 #   sh scripts/prove-tests.sh --mutants DIR --test CMD [--check CMD]
 #     [--setup CMD] [--timeout-factor N] [--only ID,ID] [--out FILE]
+#     [--root DIR]
 #   sh scripts/prove-tests.sh --native CMD [--setup CMD]
 #
 # DIR holds one unified diff per mutant, NNN.patch, with or without context
@@ -17,17 +18,20 @@
 # Exit 0 when every mutant ran, 2 on a usage error, 3 when the tests already
 # fail before any mutation.
 #
+# --root DIR names the checkout to snapshot, when the shell is not in it. The
+# default is the repo of the current directory.
+#
 # --native runs CMD (a mutation tool) once in the worktree, keeps the worktree
 # and prints `worktree\t<path>`, so its report can be read before removing it.
 
 set -u
 
 usage() {
-  sed -n '7,9p' "$0" | sed 's/^# //' >&2
+  sed -n '6,9p' "$0" | sed 's/^# //' >&2
   exit 2
 }
 
-MUTANTS="" TEST="" CHECK="" SETUP="" NATIVE="" ONLY="" OUT="" FACTOR=3
+MUTANTS="" ROOT_DIR="." TEST="" CHECK="" SETUP="" NATIVE="" ONLY="" OUT="" FACTOR=3
 while [ $# -gt 0 ]; do
   [ $# -ge 2 ] || usage
   case "$1" in
@@ -38,6 +42,7 @@ while [ $# -gt 0 ]; do
     --native) NATIVE=$2 ;;
     --only) ONLY=$2 ;;
     --out) OUT=$2 ;;
+    --root) ROOT_DIR=$2 ;;
     --timeout-factor) FACTOR=$2 ;;
     *)
       echo "prove-tests: re-run setup, this copy is older than the skill" >&2
@@ -52,7 +57,7 @@ if [ -z "$NATIVE" ]; then
 fi
 [ -z "$OUT" ] || : >"$OUT"
 
-ROOT=$(git rev-parse --show-toplevel) || exit 2
+ROOT=$(git -C "$ROOT_DIR" rev-parse --show-toplevel) || exit 2
 WT=$(mktemp -d "${TMPDIR:-/tmp}/prove-tests.XXXXXX") || exit 2
 rmdir "$WT"
 KEEP=""

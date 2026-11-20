@@ -34,9 +34,10 @@ With a split review, `plan.md` holds only the rows of its group. It writes
    - Plant the mutant again. Write it as a unified diff against the working
      tree to `$WORK/mutants/<item id>.patch`.
    - Run the command below, with the `mutation` settings from
-     `agents.config.json`. Add `--check`, `--setup` and `--timeout-factor`
-     when those settings are set, as `h2xd:prove-tests` does. It must report
-     `killed`.
+     `agents.config.json`. `--root $WORKTREE` makes it snapshot your
+     worktree, not the shell's directory. Add `--check`, `--setup` and
+     `--timeout-factor` when those settings are set, as `h2xd:prove-tests`
+     does. It must report `killed`.
    - When it does not, the test does not pin the behavior yet. Change the test
      and run again, at most two more times.
    - When `mutation.enabled` is `false`, skip the command. Plant the mutant
@@ -48,7 +49,7 @@ With a split review, `plan.md` holds only the rows of its group. It writes
      fixed.
 
    ```sh
-   sh scripts/prove-tests.sh --mutants $WORK/mutants --only <item id> --test "<testCommand>" --check "<checkCommand>" --setup "<setupCommand>" --timeout-factor <timeoutFactor>
+   sh scripts/prove-tests.sh --root $WORKTREE --mutants $WORK/mutants --only <item id> --test "<testCommand>" --check "<checkCommand>" --setup "<setupCommand>" --timeout-factor <timeoutFactor>
    ```
 
 4. Run the lint, typecheck and test commands the agent instructions file names.
