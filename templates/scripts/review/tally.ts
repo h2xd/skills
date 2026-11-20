@@ -57,8 +57,8 @@ function tallyThread(
   })
   const keeps = verdicts.filter((v) => v.verdict === "keep")
   if (keeps.length * 2 > verdicts.length) {
-    const url = gateway.replyToThread(threadId, keepReply(keeps, verdicts.length))
     gateway.resolveThread(threadId)
+    const url = gateway.replyToThread(threadId, keepReply(keeps, verdicts.length))
     return `${label} keep ${keeps.length}/${verdicts.length} ${url} resolved`
   }
   const changes = verdicts.filter((v) => v.verdict === "change")

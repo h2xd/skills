@@ -41,6 +41,20 @@ describe("review.ts resolve", () => {
     expect(existsSync(join(root, "called"))).toBe(false)
   })
 
+  test("accepts a thread id that ends in digits", () => {
+    const result = resolve("PRRT_abc1")
+    expect(result.status).toBe(0)
+    expect(result.err).not.toContain("usage:")
+    expect(existsSync(join(root, "called"))).toBe(true)
+  })
+
+  test("refuses a PR number among thread ids, before any gh call", () => {
+    const result = resolve("104", "PRRT_one")
+    expect(result.status).toBe(1)
+    expect(result.err).toContain("usage: node scripts/review.ts resolve")
+    expect(existsSync(join(root, "called"))).toBe(false)
+  })
+
   test("sends a thread id to gh", () => {
     const result = resolve("PRRT_kwDOVdbSc8636k-a")
     expect(result.status).toBe(0)
