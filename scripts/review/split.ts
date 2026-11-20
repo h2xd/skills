@@ -61,17 +61,27 @@ export function planFixSplit(items: FixItem[], settings: SplitSettings): FixSpli
   const order = new Map(items.map((item, index) => [item.id, index]))
   const groups = sameFileGroups(items)
   const cap = Math.max(settings.fixMaxWorkers, 1)
-  const wanted = Math.min(Math.ceil(items.length / MAX_ITEMS), cap, groups.length)
-
-  const bins: FixItem[][] = Array.from({ length: wanted }, () => [])
+  const limit = Math.min(cap, groups.length)
   const bySize = [...groups].sort(
     (a, b) => b.length - a.length || order.get(a[0].id)! - order.get(b[0].id)!,
   )
-  for (const group of bySize) {
-    const fits = bins.filter((bin) => bin.length + group.length <= MAX_ITEMS)
-    const candidates = fits.length > 0 ? fits : bins
-    const target = candidates.reduce((best, bin) => (bin.length < best.length ? bin : best))
-    target.push(...group)
+
+  const pack = (binCount: number): FixItem[][] => {
+    const packed: FixItem[][] = Array.from({ length: binCount }, () => [])
+    for (const group of bySize) {
+      const fits = packed.filter((bin) => bin.length + group.length <= MAX_ITEMS)
+      const candidates = fits.length > 0 ? fits : packed
+      const target = candidates.reduce((best, bin) => (bin.length < best.length ? bin : best))
+      target.push(...group)
+    }
+    return packed
+  }
+
+  let wanted = Math.min(Math.ceil(items.length / MAX_ITEMS), limit)
+  let bins = pack(wanted)
+  while (wanted < limit && bins.some((bin) => bin.length > MAX_ITEMS)) {
+    wanted += 1
+    bins = pack(wanted)
   }
 
   const workers = bins

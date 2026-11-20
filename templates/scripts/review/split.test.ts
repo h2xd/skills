@@ -76,6 +76,29 @@ describe("planFixSplit", () => {
     expect(planFixSplit([], SETTINGS).workers).toEqual([])
   })
 
+  test("a group over 5 items adds a worker while the cap allows one", () => {
+    const files = [..."aaaabbbbcc"].map((letter) => `src/${letter}.ts`)
+    expect(groupsOf(files).map((group) => group.length)).toEqual([4, 4, 2])
+  })
+
+  test("largest groups are packed first", () => {
+    const files = [..."aaaabbbcc"].map((letter) => `src/${letter}.ts`)
+    const groups = groupsOf(files, { fixMaxWorkers: 2 })
+    expect(groups.map((group) => group.length)).toEqual([4, 5])
+  })
+
+  test("reasons name no oversize group when every worker holds 5 or fewer", () => {
+    const items = parseFixItems(planFor(distinct(5)), threadsFor(5))
+    expect(planFixSplit(items, SETTINGS).reasons.length).toBe(1)
+  })
+
+  test("items with a - location are independent and stay within 5", () => {
+    const plan = Array.from({ length: 6 }, (_, i) => `| T${i + 1} | fix | - | x |`).join("\n")
+    const split = planFixSplit(parseFixItems(plan, threadsFor(6)), SETTINGS)
+    expect(split.workers.map((worker) => worker.items.length)).toEqual([3, 3])
+    expect(split.workers.every((worker) => worker.files.length === 0)).toBe(true)
+  })
+
   test("the default cap on workers is 3", () => {
     expect(DEFAULTS.review.fixMaxWorkers).toBe(3)
   })
@@ -92,6 +115,22 @@ describe("parseFixItems", () => {
       { id: "T1", file: "src/a.ts" },
       { id: "S1", file: "src/c.ts" },
     ])
+  })
+
+  test("reads a bucket in any letter case", () => {
+    const items = parseFixItems("| T1 | Fix | a.ts:1 | x |", threadsFor(1))
+    expect(items.map((item) => item.id)).toEqual(["T1"])
+  })
+
+  test("fails when one item has two rows", () => {
+    const plan = "| T1 | fix | a.ts:1 | x |\n| T1 | fix | b.ts:2 | y |"
+    expect(() => parseFixItems(plan, threadsFor(1))).toThrow('T1 has two rows')
+  })
+
+  test("strips a leading ./ so both spellings share a file", () => {
+    const plan = "| T1 | fix | ./src/a.ts:3 | x |\n| T2 | fix | src/a.ts:9 | y |"
+    const files = parseFixItems(plan, threadsFor(2)).map((item) => item.file)
+    expect(files).toEqual(["src/a.ts", "src/a.ts"])
   })
 
   test("fails on a fix row that threads.md does not list", () => {
