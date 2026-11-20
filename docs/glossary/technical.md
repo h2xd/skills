@@ -94,6 +94,12 @@ An entry looks like this:
 - **Code:** [`skills/code-implement/fix-worker.md`](../../skills/code-implement/fix-worker.md)
 - **Avoid:** Repair agent, merge worker
 
+### Fixer worker
+
+- **Meaning:** One subagent on a fast model that applies the fix rows of one group of a split review. It works in its own worktree and writes `changes-<id>.md` and a patch. `h2xd:review-fix` starts one per group.
+- **Code:** [`skills/review-fix/split.md`](../../skills/review-fix/split.md)
+- **Avoid:** Fix worker
+
 ### Scout
 
 - **Meaning:** The read-only subagent on the cheapest model that maps each acceptance criterion of a ticket to the files it touches. It marks a criterion `unsure` when it cannot name them, and `checks` when the criterion only says the checks pass.

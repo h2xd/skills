@@ -59,7 +59,7 @@ With a split review, `plan.md` holds only the rows of its group. It writes
    - After merging the base branch, run the `worktreeSetup` commands
      first. Otherwise new dependencies fail the typecheck.
 5. Leave the changes uncommitted.
-6. Write `$WORK/changes.md`:
+6. Write `$WORK/changes.md`, or `$WORK/changes-<id>.md` in a split review:
    - Per item id, the files touched and one sentence on what changed.
    - For a row on code that is not a test, the names of the tests that pin
      its behaviors, new or existing, and that they passed before and after
@@ -71,5 +71,5 @@ With a split review, `plan.md` holds only the rows of its group. It writes
    - `not applied: <reason>` when a fix turned out wrong or impossible.
    - The checks, with their exit codes.
 
-Done when `changes.md` accounts for every fix item and records the exit code of
-each check.
+Done when `changes.md`, or `changes-<id>.md`, accounts for every fix item
+and records the exit code of each check.
