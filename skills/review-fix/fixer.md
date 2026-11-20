@@ -16,6 +16,8 @@ path, `threads.md`, `plan.md`, and `$WORKTREE` as the directory to work in.
      code around it or the row asks for more. Then make the change the row
      names, and say so in `changes.md`.
    - Leave **decline** items untouched.
+   - A plan from `h2xd:review-gate` holds only fix rows. Each row's change
+     is the arbiters' majority reason. Apply it as written.
 2. Follow the agent instructions file and `../code-quality/SKILL.md`.
    - Write no comment that explains the code. Rename or restructure instead.
    - When a fix changes what a page says about the file, update the page in the

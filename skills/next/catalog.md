@@ -12,7 +12,7 @@ table below as `h2xd:<name>`. A new skill gets a row in the same change.
 Most work runs along this path. Each arrow is the usual next step, not a rule.
 
 ```
-plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → session-reflect
+plan-grill → to-spec → to-tickets → code-implement → review-pr → review-fix → review-gate → session-reflect
 ```
 
 1. `h2xd:plan-grill` turns an idea into settled decisions. It records terms with
@@ -27,12 +27,14 @@ plan-grill → to-spec → to-tickets → code-implement → review-pr → revie
 4. `h2xd:code-implement` works one ticket: branch, then build workers
    that run `h2xd:code-tdd` on criteria groups in parallel, and
    `h2xd:git-commit`. Then it runs `h2xd:git-pr-body`,
-   `h2xd:review-pr` and `h2xd:review-fix` without stopping.
+   `h2xd:review-pr`, `h2xd:review-fix` and `h2xd:review-gate` without
+   stopping.
    `h2xd:code-quality` and `h2xd:lang-ts-base` set the bar while writing.
 5. `h2xd:git-commit` writes each commit message.
    `h2xd:review-code-comments` cleans comments before review.
 6. `h2xd:git-pr-body` writes the PR body. `h2xd:review-pr` reviews the PR, and
-   `h2xd:review-fix` acts on the review threads.
+   `h2xd:review-fix` acts on the review threads. `h2xd:review-gate` votes
+   on what is left and approves.
 7. `h2xd:session-reflect` turns what went wrong into lints, types, tests or
    skill edits.
 
@@ -168,6 +170,7 @@ design-variants → ask-committee
 | Write a PR body | `h2xd:git-pr-body` |
 | Review a PR | `h2xd:review-pr` |
 | Address review comments on a PR | `h2xd:review-fix` |
+| Approve a PR once every thread is settled | `h2xd:review-gate` |
 | Remove useless comments before review | `h2xd:review-code-comments` |
 | Find skills that overlap and tidy the set | `h2xd:review-skills` |
 | Check that the tests catch wrong changes | `h2xd:prove-tests` |

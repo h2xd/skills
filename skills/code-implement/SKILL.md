@@ -1,6 +1,6 @@
 ---
 name: code-implement
-description: "Work one ticket from start to PR: read its acceptance criteria, branch, build them test-first with parallel build workers, and commit after each. Then open the PR with h2xd:git-pr-body, review it with h2xd:review-pr and fix the threads with h2xd:review-fix, without stopping between them. Use when the user names a ticket to work on, says implement, or picks the next ticket."
+description: "Work one ticket from start to PR: read its acceptance criteria, branch, build them test-first with parallel build workers, and commit after each. Then open the PR with h2xd:git-pr-body, review it with h2xd:review-pr and fix the threads with h2xd:review-fix and close them with h2xd:review-gate, without stopping between them. Use when the user names a ticket to work on, says implement, or picks the next ticket."
 argument-hint: "[ticket number]"
 ---
 
