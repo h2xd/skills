@@ -60,6 +60,9 @@ export function planFixSplit(items: FixItem[], settings: SplitSettings): FixSpli
   if (items.length === 0) return { workers: [], reasons: ["no fix items"] }
   const order = new Map(items.map((item, index) => [item.id, index]))
   const groups = sameFileGroups(items)
+  if (!Number.isInteger(settings.fixMaxWorkers)) {
+    throw new Error(`review.fixMaxWorkers must be a whole number, not ${JSON.stringify(settings.fixMaxWorkers)}`)
+  }
   const cap = Math.max(settings.fixMaxWorkers, 1)
   const limit = Math.min(cap, groups.length)
   const bySize = [...groups].sort(

@@ -64,6 +64,14 @@ describe("planFixSplit", () => {
     expect(groupsOf(distinct(8)).map((group) => group.length)).toEqual([4, 4])
   })
 
+  test("a fixMaxWorkers that is not a whole number fails with its name", () => {
+    for (const bad of [Number.NaN, 2.5]) {
+      expect(() => groupsOf(distinct(3), { fixMaxWorkers: bad })).toThrow(
+        "review.fixMaxWorkers must be a whole number",
+      )
+    }
+  })
+
   test("fixMaxWorkers 0 still starts one worker with every item", () => {
     expect(groupsOf(distinct(3), { fixMaxWorkers: 0 })).toEqual([["T1", "T2", "T3"]])
   })
