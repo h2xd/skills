@@ -1,5 +1,3 @@
-/** Counts the arbiters' verdict files of the review gate and acts on the majority. */
-
 import { join } from "node:path"
 import { parseThreadIds } from "./reply.ts"
 
@@ -27,7 +25,6 @@ export function verdictPath(
   return join(directory, `${label}-${arbiter}.md`)
 }
 
-/** A verdict file is `verdict: keep|change` on line 1 and `reason: <text>` on line 2. */
 export function parseVerdict(arbiter: string, text: string): Verdict {
   const verdict = text.match(/^verdict:[ \t]*(keep|change)[ \t]*$/m)?.[1]
   const reason = text.match(/^reason:[ \t]*(\S.*?)[ \t]*$/m)?.[1]
@@ -69,11 +66,6 @@ function tallyThread(
   return `${label} change ${changes.length}/${verdicts.length} ${reasons}`
 }
 
-/**
- * A `keep` majority gets a reply with the count and the reasons, then is
- * resolved. A `change` majority is only printed, for the fixer. A thread with
- * a missing or malformed verdict file stays open and reports an error.
- */
 export function tallyThreads(
   labels: string[],
   threadsMarkdown: string,
