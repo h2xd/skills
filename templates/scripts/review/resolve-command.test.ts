@@ -41,6 +41,15 @@ describe("review.ts resolve", () => {
     expect(existsSync(join(root, "called"))).toBe(false)
   })
 
+  test("prints its usage line for a one or two digit PR number", () => {
+    for (const number of ["88", "7"]) {
+      const result = resolve(number)
+      expect(result.status).toBe(1)
+      expect(result.err).toContain("usage: node scripts/review.ts resolve")
+      expect(existsSync(join(root, "called"))).toBe(false)
+    }
+  })
+
   test("accepts a thread id that ends in digits", () => {
     const result = resolve("PRRT_abc1")
     expect(result.status).toBe(0)

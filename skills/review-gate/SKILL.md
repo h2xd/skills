@@ -96,10 +96,12 @@ Skip this step when no thread has a `change` majority.
    It applies the change, commits, pushes and replies. Do not resolve those
    threads yet. When an ask item or a failing check stops the run, leave the
    thread open and report it.
-3. Gather the threads again. Copy the sections of the changed labels into
-   `$WORK/recheck.md`. Start the voter once more, on `recheck.md` only, with
-   `$WORK/recheck-votes.md` to write. Resolve each `approve`. A `disagree`
-   stays open. There is no second vote and no second arbiter round.
+3. Gather the threads again into `$WORK/threads-2.md`. The labels are
+   numbered again, so match the changed threads by their `Thread id`. Copy
+   those sections into `$WORK/recheck.md`. Start the voter once more, on
+   `recheck.md` only, with `$WORK/recheck-votes.md` to write. Resolve each
+   `approve` with `--threads $WORK/recheck.md`. A `disagree` stays open.
+   There is no second vote and no second arbiter round.
 
 Done when each changed thread is resolved or listed as open.
 

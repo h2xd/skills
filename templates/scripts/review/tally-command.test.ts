@@ -84,12 +84,29 @@ describe("review.ts tally", () => {
     expect(result.out).toContain("T1 keep 2/3 https://github.test/reply resolved")
     const [resolve, reply] = calls()
     expect(reply.args).toContain("threadId=PRRT_one")
-    expect(reply.body).toContain("2 of 3 arbiters")
+    expect(reply.body?.startsWith("🟢 Kept: 2 of 3")).toBe(true)
+    expect(reply.body).toContain(
+      "keep the code as it is.\n\n- sonnet: the guard is needed",
+    )
     expect(reply.body).toContain("sonnet: the guard is needed")
     expect(reply.body).toContain("haiku-1: the caller checks it")
     expect(reply.body).not.toContain("rename it")
     expect(resolve.args).toContain("threadId=PRRT_one")
     expect(resolve.args.join(" ")).toContain("resolveReviewThread")
+  })
+
+  test("ignores trailing spaces on the verdict and reason lines", () => {
+    for (const arbiter of ["sonnet", "haiku-1", "haiku-2"]) {
+      writeFileSync(
+        join(verdicts, `T1-${arbiter}.md`),
+        "verdict: keep  \nreason: ok  \n",
+      )
+    }
+    const result = tally("T1")
+    expect(result.status).toBe(0)
+    const [, reply] = calls()
+    expect(reply.body).toContain("- sonnet: ok\n")
+    expect(reply.body).not.toContain("ok ")
   })
 
   test("prints a change majority for the fixer and posts nothing", () => {
@@ -98,7 +115,9 @@ describe("review.ts tally", () => {
     verdict("T2", "haiku-2", "keep", "fine as is")
     const result = tally("T2")
     expect(result.status).toBe(0)
-    expect(result.out).toContain("T2 change 2/3 sonnet: extract the helper | haiku-1: same")
+    expect(result.out.split("\n")[0]).toBe(
+      "T2 change 2/3 sonnet: extract the helper | haiku-1: same",
+    )
     expect(calls()).toEqual([])
   })
 

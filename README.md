@@ -1,6 +1,6 @@
 # h2xd skills
 
-56 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
+57 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
 
 An agent forgets everything when a session ends. A repo does not have to.
 
@@ -104,7 +104,8 @@ flowchart TD
   subgraph ship [Review and learn]
     review[review-pr] -->|open threads| fix[review-fix]
     fix -.->|one more review| review
-    fix -->|merged| reflect[session-reflect]
+    fix -->|threads left| gate[review-gate]
+    gate -->|merged| reflect[session-reflect]
   end
   idea -->|questions until nothing is open| grill
   tickets -->|one ticket| impl
