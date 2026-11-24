@@ -369,11 +369,11 @@ function join(group: Group): Joined {
     (a, b) => RANK.indexOf(a.severity) - RANK.indexOf(b.severity),
   )
   const primary = ranked[0]
-  const fix = ranked.find(
-    (member) =>
-      member.severity === primary.severity &&
-      (member.suggestion !== undefined || member.options !== undefined),
-  )
+  const hasFix = (member: Tagged) =>
+    member.suggestion !== undefined || member.options !== undefined
+  const fix =
+    ranked.find((member) => member.severity === primary.severity && hasFix(member)) ??
+    (primary.severity === "red" ? undefined : ranked.find(hasFix))
   const peers = ranked.filter((member) => member.severity === primary.severity)
   const range: Range = fix?.suggestion !== undefined
     ? span(fix)

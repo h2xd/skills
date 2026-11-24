@@ -23,8 +23,9 @@ attention, 🟢 is fine as is, ⚪ is optional.
 Run `node scripts/review.ts` with no arguments. Its `usage:` line must list
 `worktree`, `context`, `fleet`, `merge`, `options`, `missing`, `setup` and
 `findings`. When one is missing, stop with one line: "run /h2xd:setup". Then
-run the drift check, per [`drift.md`](../plan-triage/drift.md). Run one
-command per shell call, never chained with `&&` or `;`.
+run the drift check, per [`drift.md`](../plan-triage/drift.md). When it lists
+a `changed:` file under `scripts/review/`, stop with "run /h2xd:setup" too.
+Run one command per shell call, never chained with `&&` or `;`.
 
 ## Steps
 

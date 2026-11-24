@@ -317,6 +317,19 @@ describe("mergeFindings", () => {
     expect(review.comments[0].body.startsWith("⚪ suggestion (non-blocking): opt")).toBe(true)
   })
 
+  test("starts a white thought with the white marker", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ id: "B-1", severity: "white", label: "thought", lines: [11, 11], subject: "idea" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments[0].body.startsWith("⚪ thought: idea")).toBe(true)
+  })
+
   test("leaves a yellow comment without a marker", () => {
     const { review } = mergeFindings([file("B", [finding()])], DIFF, CONTEXT)
     expect(review.comments[0].body.startsWith("suggestion (non-blocking):")).toBe(true)
@@ -357,6 +370,31 @@ describe("mergeFindings", () => {
     )
     expect(review.comments).toHaveLength(1)
     expect(review.comments[0].body).toContain("suggestion (non-blocking)")
+    expect(review.comments[0].body).toContain("```suggestion\nconst index = 0\n```")
+  })
+
+  test("keeps the suggestion of a white finding that overlaps a yellow issue", () => {
+    const { review } = mergeFindings(
+      [
+        file("A", [
+          finding({ id: "A-1", severity: "yellow", label: "issue", lines: [11, 12], subject: "off by one" }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "white",
+            label: "suggestion",
+            lines: [12, 12],
+            subject: "name it",
+            suggestion: "const index = 0",
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body.startsWith("issue (non-blocking): off by one")).toBe(true)
     expect(review.comments[0].body).toContain("```suggestion\nconst index = 0\n```")
   })
 

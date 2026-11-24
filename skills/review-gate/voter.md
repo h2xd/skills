@@ -12,6 +12,8 @@ write, and `$WORKTREE`.
 2. Vote on each thread:
    - `approve`: the code does what the comment asks, or a reply gave a reason
      for leaving it that the code supports.
+   - `approve` also fits a thread whose first line starts with ⚪ when a
+     reply declined it as optional.
    - `disagree`: the code still has the problem, or the reply gives no
      reason that holds.
 3. Edit no files, post nothing and resolve nothing.
