@@ -24,7 +24,7 @@ read this file, because an output style does not reach them.
 
    A list of work items, such as tickets, uses the work-state markers in place
    of 🟢. 🟪 is blocked, or waits on another item or an answer. 🟧 is ready
-   for a person. 🟩 is ready for an agent.
+   for a person. 🟦 is ready for an agent.
 
 3. **Short sections.** Bullets, not paragraphs. At most three sentences in a
    paragraph when prose is needed.

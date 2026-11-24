@@ -88,7 +88,7 @@ Done when you have one skill, or a flow of at most three for a help question.
 Next: <skill>, <why, in one line>.
 ```
 
-For a ticket, use 🟪 blocked, 🟧 ready for a person, 🟩 ready for an agent.
+For a ticket, use 🟪 blocked, 🟧 ready for a person, 🟦 ready for an agent.
 
 Then give one prompt in a code block, with the user's real nouns. "Grill the
 CSV export idea" beats "grill your idea".
