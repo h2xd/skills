@@ -239,10 +239,6 @@
     "- Don't write a rule in prose when a type, lint or test can hold it. Build the check.",
     "- Don't keep a lesson from a one-off or a drifting fact. Drop it with the reason."
   ],
-  "skills/setup/SKILL.md": [
-    "   `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.",
-    "   `../lang-ts-deep-modules/SKILL.md` when L was yes, `../setup-tone/SKILL.md` per M."
-  ],
   "skills/setup/issue-tracker-github.md": [
     "**PRs in triage: {{TRIAGE_PRS}}.** Set to `yes` to triage external PRs like issues."
   ],

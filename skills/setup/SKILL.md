@@ -44,6 +44,8 @@ Read what exists. Assume nothing.
 - Hooks: `git config core.hooksPath`, `.husky/`, `.githooks/`, `lefthook.yml`
   and `PreToolUse` hooks in `.claude/settings.json`. Also the workflows under
   `.github/workflows/` and the labels from `gh label list`.
+- Technologies: the dependency manifests, the config files and the decision
+  records. The plugin's seeds are in `templates/seeds/`.
 - History: `git log -30 --format=%s`. Which types and scopes appear? Top-level
   directories hint at scopes.
 
@@ -67,6 +69,7 @@ Before writing anything, show:
 - The blocks from [`instructions-block.md`](instructions-block.md), filled in.
 - The `docs/agents/` pages and four role pages, filled in.
 - The files to copy and the `package.json` scripts to add.
+- The Technology skills to write, one line each, or "none".
 
 Done when the user confirms.
 
@@ -79,7 +82,8 @@ Done when the user confirms.
    and `docs.glossaries` with each path and its `requiredFields` from C. Set
    `decisionIssueRequiredFrom` to the next free record number, or `null` when F
    was no. Set `commits` from E, `pullRequests.closingKeyword` from G,
-   `worktreeSetup` from H, `mutation` from I, `review` from N, `implement` from O.
+   `worktreeSetup` from H, `mutation` from I, `review` from N,
+   `implement` from O, `skills` from R.
 2. **Scripts.** Copy `templates/scripts/` to `scripts/`, including
    `package.json`, which marks the folder as ES modules. Leave out `*.test.ts`,
    which assume the default config. Keep `prove-tests.sh` executable. On a
@@ -113,9 +117,13 @@ Done when the user confirms.
    `gh label create` or `glab label create`. Skip this step for a local tracker.
 8. **Instructions file.** Edit the one that exists, or ask which to create.
    Write the [blocks](instructions-block.md) into it.
-9. **Optional skills.** They are user-only, so read and follow each by path:
-   `../git-guardrails/SKILL.md` per J in project scope,
-   `../lang-ts-deep-modules/SKILL.md` when L was yes, `../setup-tone/SKILL.md` per M.
+9. **Technology skills.** For each yes in Q, write the skill and its row as Q
+   says. List the Skills page in `docs/index.md` under `## Agent config`. For
+   a no in every technology, write neither.
+10. **Optional skills.** They are user-only, so read and follow each by path:
+    `../git-guardrails/SKILL.md` per J in project scope,
+    `../lang-ts-deep-modules/SKILL.md` when L was yes,
+    `../setup-tone/SKILL.md` per M.
 
 Done when every file from step 3 exists, `node scripts/lint-docs.ts` exits 0,
 and `node scripts/lint-commit-message.ts <file>` exits 1 on a file that holds
