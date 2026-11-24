@@ -17,6 +17,10 @@ missing page. Without a page, read every record. List the records with
 `node scripts/find-docs.ts --type Decision`, and keep those whose `date` is
 after the last run.
 
+A technology with no rules an agent can get wrong gets no proposal. One small
+library with one obvious call is an example. Drop it as "no rules", with the
+reason.
+
 ## Add a Technology skill
 
 A technology that counts and has no skill in `.claude/skills/` gets one
@@ -34,3 +38,31 @@ proposal. After a yes:
 
 Done when the folder holds a `SKILL.md` that `node scripts/lint-skills.ts`
 accepts, and the Skills page has its row with the technology.
+
+## Remove a Technology skill
+
+A record or the user can say that a technology goes. The skill of that
+technology then holds dead rules, and agents follow them. Find the skill by
+the Technology cell of its row on the Skills page. A plugin skill has no row.
+Never propose its removal.
+
+After a yes:
+
+1. Delete the folder in `.claude/skills/`.
+2. Run `node scripts/skills.ts due`. It drops the row of the deleted skill.
+3. Run `grep -rn "<name>" .` and remove each pointer to the skill that is left.
+
+Done when the folder and its row are gone and the search finds no pointer.
+
+## The proposal line
+
+Each add or remove is one line of the approval block in step 4, such as:
+
+```
+🟡 Add tech-zod: <the rules an agent gets wrong>, per <record or turn>.
+🟡 Remove tech-redux: Redux goes, per <record or turn>.
+```
+
+The line has the same options as any lesson: apply now, file as an issue,
+change the routing, or drop. It adds no second question and no second gate.
+Nothing changes before a yes.
