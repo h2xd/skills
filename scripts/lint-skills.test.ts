@@ -92,6 +92,15 @@ describe("lintSkill", () => {
     expect(lintSkill("demo", text)[0]).toStartWith(`${GOOD.split("\n").length - 1 + MAX_LINES} lines`)
   })
 
+  test("passes a skill of 180 lines and fails one of 181", () => {
+    const base = GOOD.endsWith("\n") ? GOOD : GOOD + "\n"
+    const baseLines = base.split("\n").length - 1
+    const at180 = base + "\n".repeat(180 - baseLines)
+    const at181 = base + "\n".repeat(181 - baseLines)
+    expect(lintSkill("demo", at180)).toEqual([])
+    expect(lintSkill("demo", at181)[0]).toStartWith("181 lines, over 180")
+  })
+
   test("tells the writer to move text to a sibling file, not to cut a rule", () => {
     const text = GOOD + "\n".repeat(MAX_LINES)
     expect(lintSkill("demo", text)[0]).toContain("sibling file")

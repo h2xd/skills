@@ -89,8 +89,9 @@ Next: <skill>, <why, in one line>.
 ```
 
 For a ticket, use 🟪 blocked, 🟧 ready for a person or 🟦 ready for an agent,
-in place of 🟢. When the tracker page lists **Block**, run its list form on
-the ticket. An open blocker makes it 🟪.
+in place of 🟢. Keep 🟢 for a ticket in none of these states. Read the
+blockers with the **Block** list form when the tracker page has one. Else read
+the ticket's `## Blocked by` section. An open blocker makes it 🟪.
 
 Then give one prompt in a code block, with the user's real nouns. "Grill the
 CSV export idea" beats "grill your idea".

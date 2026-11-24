@@ -13,6 +13,7 @@ first:
 🟡 docs/agents/subagents/<role>.md: missing, run /h2xd:setup
 🟡 <n> non-blocking threads still open: <why each one is open>
 🟡 <worktree path>: kept, because its commits did not land
+🟪 #<n>: not started, blocked by <#m, #m>
 🟢 #<n>: open issues that mention the ticket: <numbers, or none>
 🟢 split: <n> build workers, criteria <numbers per worker>
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>

@@ -371,12 +371,12 @@ function join(group: Group): Joined {
   const primary = ranked[0]
   const hasFix = (member: Tagged) =>
     member.suggestion !== undefined || member.options !== undefined
-  const fix =
-    ranked.find((member) => member.severity === primary.severity && hasFix(member)) ??
-    (primary.severity === "red" ? undefined : ranked.find(hasFix))
   const peers = ranked.filter((member) => member.severity === primary.severity)
-  const range: Range = fix?.suggestion !== undefined
-    ? span(fix)
+  const peerFix = peers.find(hasFix)
+  const fix =
+    peerFix ?? (primary.severity === "red" ? undefined : ranked.find(hasFix))
+  const range: Range = peerFix?.suggestion !== undefined
+    ? span(peerFix)
     : [
         Math.min(...peers.map((member) => span(member)[0])),
         Math.max(...peers.map((member) => span(member)[1])),

@@ -679,6 +679,72 @@ describe("mergeFindings", () => {
     expect(review.comments[0].start_line).toBeUndefined()
   })
 
+  test("keeps a yellow issue inline when a lower finding with a fix spans wider lines", () => {
+    const { review, stats } = mergeFindings(
+      [
+        file("A", [
+          finding({ id: "A-1", severity: "yellow", label: "issue", lines: [11] }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "white",
+            label: "suggestion",
+            lines: [8, 11],
+            suggestion: "const index = 0",
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(stats.outside).toBe(0)
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].line).toBe(11)
+    expect(review.comments[0].start_line).toBeUndefined()
+  })
+
+  test("keeps the lines of a yellow issue when a lower finding with a fix spans fewer", () => {
+    const { review } = mergeFindings(
+      [
+        file("A", [
+          finding({ id: "A-1", severity: "yellow", label: "issue", lines: [11, 13], subject: "off by one" }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "white",
+            label: "suggestion",
+            lines: [12, 12],
+            subject: "name it",
+            suggestion: "const index = 0",
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].start_line).toBe(11)
+    expect(review.comments[0].line).toBe(13)
+  })
+
+  test("adds no white marker to a green note or a green praise", () => {
+    for (const label of ["note", "praise"] as const) {
+      const { review } = mergeFindings(
+        [
+          file("B", [
+            finding({ id: "B-1", severity: "green", label, lines: [11, 11], subject: "covered" }),
+          ]),
+        ],
+        DIFF,
+        CONTEXT,
+      )
+      expect(review.comments[0].body.startsWith(`${label}: covered`)).toBe(true)
+      expect(review.comments[0].body.includes("⚪")).toBe(false)
+    }
+  })
+
   test("fences a suggestion that holds a code fence with a longer fence", () => {
     const suggestion = "text\n```sh\nnpm test\n```\nmore"
     const { review } = mergeFindings(

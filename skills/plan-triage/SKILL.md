@@ -123,14 +123,17 @@ When the user says "move #42 to `<state>`", follow [`moving.md`](moving.md).
 ## Report
 
 After a session, one line per issue, worst first. Show 🟪 for needs-info or
-an open blocker, 🟧 for ready-for-human and 🟦 for ready-for-agent, in place
-of 🟢. When the tracker page lists **Block**, run its list form on each issue
-to find the blockers:
+an open blocker, 🟧 for ready-for-human and 🟦 for ready-for-agent. Read the
+blockers with the **Block** list form when the tracker page has one. Else read
+the ticket's `## Blocked by` section. Keep 🟢 for an issue in none of these
+states:
 
 ```
-🔴 #<n>: <blocked: conflicting states, a failed post, a claim that did not reproduce>
-🟡 #<n>: <needs-info or needs-triage, and what is missing>
-🟢 #<n>: <the new state, and the comment posted>
+🔴 #<n>: <failed: conflicting states, a failed post, a claim that did not reproduce>
+🟡 #<n>: <needs-triage, and what is missing>
+🟪 #<n>: <needs-info or blocked by #<m>, and what it waits on>
+🟧 #<n>: <ready-for-human, and the comment posted>
+🟦 #<n>: <ready-for-agent, and the comment posted>
 ```
 
 ## Do

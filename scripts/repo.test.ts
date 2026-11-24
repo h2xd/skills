@@ -22,6 +22,20 @@ describe("this repo's tone", () => {
     }
   })
 
+  test("names the work-state markers in the skills that list work items", () => {
+    for (const name of ["next", "plan-backlog", "plan-triage"]) {
+      const text = readFileSync(join(ROOT, `skills/${name}/SKILL.md`), "utf8")
+      for (const marker of ["🟪", "🟧", "🟦"]) {
+        expect(text.includes(marker)).toBe(true)
+      }
+    }
+  })
+
+  test("triage says a white item is optional", () => {
+    const text = readFileSync(join(ROOT, "skills/review-fix/triage.md"), "utf8")
+    expect(text.includes("A ⚪ item is optional")).toBe(true)
+  })
+
   test("sets it as the default output style", () => {
     const settings = JSON.parse(readFileSync(join(ROOT, ".claude/settings.json"), "utf8"))
     expect(settings.outputStyle).toBe("ASD-STE100")

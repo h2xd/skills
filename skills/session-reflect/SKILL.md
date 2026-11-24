@@ -96,7 +96,8 @@ The options are apply now, file as an issue, change the routing, or drop.
 A fix too large for this session, or one outside this repo, defaults to file
 as an issue.
 
-For each hit of the status markers lens, ask in the same call, per
+For each hit of the status markers lens, ask in the same call while the call
+holds at most four questions, and in the next call for the rest, per
 [`markers.md`](markers.md).
 
 Done when the user chose an option for every lesson and every hit.

@@ -92,8 +92,9 @@ the user to run.
 ```
 
 Show a ticket as 🟪 blocked, 🟧 ready-for-human or 🟦 ready-for-agent, in
-place of 🟢. When the tracker page lists **Block**, run its list form on
-each ticket. An open blocker makes it 🟪.
+place of 🟢. Keep 🟢 for a ticket in none of these states. Read the
+blockers with the **Block** list form when the tracker page has one. Else read
+the ticket's `## Blocked by` section. An open blocker makes it 🟪.
 
 Done when the user has the report and each 🟡 names a next skill.
 

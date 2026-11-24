@@ -138,9 +138,9 @@ Done when every item has its line.
 ## Do
 
 - Read each thread's code before choosing a bucket.
+- Use the engineer's `Choice` letter when there is one.
 - Prove each mutation fix by planting the mutant again.
 - Check the diff against the plan, not only against the suggestion.
-- Use the engineer's `Choice` letter when there is one.
 
 ## Don't
 
