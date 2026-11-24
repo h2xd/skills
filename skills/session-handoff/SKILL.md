@@ -92,10 +92,11 @@ Done when a search of the file for `key`, `token`, `secret`, `password` and
 
 ### 5. Report
 
-Give the user the path and a one-line prompt to paste into the next session:
+Give the user the path and a one-line prompt to paste into the next session.
+`h2xd:catchup` reads the document and checks its claims against git:
 
 ```
-Read <path> and continue from its Next steps.
+/h2xd:catchup <path>
 ```
 
 Then one line per item, worst first:

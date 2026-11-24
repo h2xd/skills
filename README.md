@@ -153,6 +153,7 @@ Most names start with their group. Open a group to see its skills. The
 | `setup-tone` | Sets the writing tone, such as ASD-STE100, as the repo's default style | You want short, plain, summary-first agent text | you |
 | `setup-wizard` | Writes a shell script that walks a person through steps only they can do | A task needs someone at a browser, such as setting secrets | you |
 | `next` | Reads your branch, changes and PR, and names the one next step | You don't know what comes next | auto |
+| `catchup` | Says what is done and what is open, with two progress bars, and prints the Documentary for a newcomer | You return to a branch, start a fresh session, or are new to the repo | auto |
 | `add-skill` | Writes skills and agent prompts an agent follows without guessing | You create or edit a skill, an agent or an instructions file | auto |
 | `add-soul` | Cuts AI tells and walls of text from prose | Prose should read as a careful person wrote it | you |
 
