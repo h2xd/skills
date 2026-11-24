@@ -91,6 +91,8 @@ the user to run.
 🟢 #<survivor>: <members merged, labels set>
 ```
 
+Show a ticket as 🟪 blocked, 🟧 ready-for-human or 🟩 ready-for-agent.
+
 Done when the user has the report and each 🟡 names a next skill.
 
 ## Do
