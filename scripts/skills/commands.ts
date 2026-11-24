@@ -64,13 +64,13 @@ export function dueCommand(argv: string[]): void {
   console.log([`${due.length} due`, ...due.map((row) => `${row.skill} ${row.due}`)].join("\n"))
 }
 
-const REVIEWED_USAGE = "usage: node scripts/skills.ts reviewed <skill> [--technology NAME]"
+const REVIEWED_USAGE = "usage: node scripts/skills.ts reviewed <skill>"
 
 export function reviewedCommand(argv: string[]): void {
   const { values, positionals } = parseArgs({
     args: argv,
     allowPositionals: true,
-    options: { today: { type: "string" }, technology: { type: "string" } },
+    options: { today: { type: "string" } },
   })
   const [skill] = positionals
   if (!skill || positionals.length > 1) throw new Error(REVIEWED_USAGE)
@@ -84,7 +84,6 @@ export function reviewedCommand(argv: string[]): void {
     skill,
     date,
     config.skills.reviewIntervalDays,
-    values.technology,
   )
   writePage(marked, date, readFileSync(pagePath(), "utf8"))
   console.log(`reviewed ${skill}, next review ${marked.find((row) => row.skill === skill)?.due}`)

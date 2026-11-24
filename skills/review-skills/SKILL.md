@@ -89,9 +89,8 @@ Skip this step when the repo has no `scripts/skills.ts`. Only this step moves
 a review date on the Skills page, so the page shows real reviews.
 
 For each skill of step 1 that has a row on the Skills page, run
-`node scripts/skills.ts reviewed <skill>`. Add
-`--technology <name>` for a Technology skill that has no technology yet. A
-plugin skill has no row, and the script refuses it. Leave it out.
+`node scripts/skills.ts reviewed <skill>`. A plugin skill has no row, and the
+script refuses it. Leave it out.
 
 Done when each repo-local skill of step 1 printed `reviewed <skill>, next
 review <date>`.

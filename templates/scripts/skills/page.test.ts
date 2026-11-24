@@ -72,8 +72,9 @@ describe("markReviewed", () => {
     ])
   })
 
-  test("sets the technology when one is given", () => {
-    expect(markReviewed(rows, "b", TODAY, 10, "Node")[1].technology).toBe("Node")
+  test("keeps the technology of the row", () => {
+    const technology = [{ ...rows[0], technology: "Node" }]
+    expect(markReviewed(technology, "a", TODAY, 10)[0].technology).toBe("Node")
   })
 
   test("refuses a skill that has no row", () => {

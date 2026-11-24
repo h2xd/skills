@@ -47,3 +47,9 @@ An entry looks like this:
 - **Meaning:** The docs page that holds one row for each repo-local skill: its technology, the date of its last review and the date the next review is due. `node scripts/skills.ts` keeps it, and `h2xd:session-reflect` reads it.
 - **Code:** [`templates/scripts/skills/page.ts`](../../templates/scripts/skills/page.ts)
 - **Avoid:** Skill inventory, skill list
+
+### Technology skill
+
+- **Meaning:** A skill in the repo's own skill folder that holds the rules an agent gets wrong in one technology of that repo. `h2xd:session-reflect` proposes it when a record or the user adds the technology, and `h2xd:setup` offers it for each technology it finds. In this repo it is an internal skill.
+- **Code:** [`skills/session-reflect/technology.md`](../../skills/session-reflect/technology.md)
+- **Avoid:** Language skill, stack skill

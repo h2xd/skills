@@ -6,7 +6,7 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 
 ## 2026-11-25
 
-* **Update**: Add Skills page to the [project glossary](/glossary/project.md), for the table of repo-local skills and their review dates.
+* **Update**: Add Technology skill and Skills page to the [project glossary](/glossary/project.md), for the skill of one technology and the table of repo-local skills with their review dates.
 
 ## 2026-11-24
 
