@@ -41,3 +41,9 @@ An entry looks like this:
 
 - **Meaning:** An emoji at the start of a line that shows where a work item stands: 🟪 blocked, 🟧 ready for a person, 🟦 ready for an agent. It replaces 🟢 in a list of tickets and tasks.
 - **Avoid:** Status marker for a ticket, ready icon
+
+### Skills page
+
+- **Meaning:** The docs page that holds one row for each repo-local skill: its technology, the date of its last review and the date the next review is due. `node scripts/skills.ts` keeps it, and `h2xd:session-reflect` reads it.
+- **Code:** [`templates/scripts/skills/page.ts`](../../templates/scripts/skills/page.ts)
+- **Avoid:** Skill inventory, skill list

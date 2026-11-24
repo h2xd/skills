@@ -29,6 +29,12 @@ describe("mergeConfig", () => {
     ])
   })
 
+  test("keeps a default next to a key the repo sets in the skills section", () => {
+    const merged = mergeConfig({ skills: { reviewIntervalDays: 3 } })
+    expect(merged.skills).toEqual({ ...DEFAULTS.skills, reviewIntervalDays: 3 })
+    expect(DEFAULTS.skills.reviewIntervalDays).toBe(10)
+  })
+
   test("the template agents.config.json spells out every default", () => {
     const template = JSON.parse(
       readFileSync(join(import.meta.dirname, "..", "agents.config.json"), "utf8"),

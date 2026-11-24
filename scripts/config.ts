@@ -57,6 +57,13 @@ export type Config = {
     /** The most build workers that run at once. 1 turns the split off. */
     maxWorkers: number
   }
+  /** Read by `skills.ts`, which keeps the Skills page of the repo-local skills. */
+  skills: {
+    /** Repo-relative path of the Skills page. */
+    page: string
+    /** Days from a review to the next one. */
+    reviewIntervalDays: number
+  }
   /**
    * Commands a fresh worktree needs before it can typecheck and run the tests, each as argv.
    * review-pr, review-fix, code-arena and the build workers of code-implement run them.
@@ -113,6 +120,7 @@ export const DEFAULTS: Config = {
     fixMaxWorkers: 3,
   },
   implement: { maxWorkers: 3 },
+  skills: { page: "docs/agents/skills.md", reviewIntervalDays: 10 },
   worktreeSetup: [["npm", "install"]],
   mutation: {
     enabled: true,
@@ -150,6 +158,7 @@ export function mergeConfig(overrides: Overrides): Config {
     pullRequests: { ...DEFAULTS.pullRequests, ...overrides.pullRequests },
     review: { ...DEFAULTS.review, ...overrides.review },
     implement: { ...DEFAULTS.implement, ...overrides.implement },
+    skills: { ...DEFAULTS.skills, ...overrides.skills },
     worktreeSetup: overrides.worktreeSetup ?? DEFAULTS.worktreeSetup,
     mutation: { ...DEFAULTS.mutation, ...overrides.mutation },
   }
