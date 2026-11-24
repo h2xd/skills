@@ -10,7 +10,7 @@ Scan the session once per lens. Each hit is an incident with its evidence.
 | Lens | Look for |
 |---|---|
 | Corrections | The user said no, redid the work, reverted a change, or repeated an instruction |
-| Repeated steps | The same manual command, lookup or edit done twice or more |
+| Repeated steps | The same manual command, lookup or edit done twice or more. Propose a script in the repo, never one that opens a PR |
 | Self-sufficiency | The user pasted context the agent could fetch: an issue, fetched with the View operation in `docs/agents/issue-tracker.md`, a page, found with `node scripts/find-docs.ts`, a log, a PR |
 | Navigation | A long search for a file or fact, or a hidden link between two files |
 | Checks | A mistake a lint, type or test would have caught. A check that exists but is not wired into pre-commit or CI. A repo with no pre-commit hook and no CI job is itself an incident |

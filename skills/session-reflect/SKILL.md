@@ -70,6 +70,9 @@ lesson. Use a lower level only with a reason why each higher one cannot.
 | 4. Test | A behavior test that fails on the mistake. Fix or delete a test that stayed green while the behavior broke | The mistake is wrong behavior, not wrong shape |
 | 5. Words | An edit to an h2xd skill, the agent instructions file, or a `docs/agents/*.md` page | Only a judgment call can catch it |
 
+A manual step done twice is a level 3 lesson. Its fix is a script in the
+repo, with a test. It never opens a PR. PRs stay with `h2xd:git-pr-body`.
+
 A technology with no skill in `.claude/skills/` is a level 5 lesson. Its fix
 is a Technology skill. So is the removal of the skill of a technology that
 goes. See [`technology.md`](technology.md).
@@ -143,6 +146,14 @@ One line per lesson, worst first, in the format of [`report.md`](report.md).
 
 Done when every lesson from step 2, kept or dropped, has its line.
 
+### 7. Offer a handoff
+
+Read [`handoff.md`](handoff.md). Without follow-up work, skip this step. With
+it, ask once whether to start `h2xd:session-handoff`.
+
+Done when you asked once and started the handoff on a yes, or no follow-up
+work existed.
+
 ## Do
 
 - Route every lesson from the top of the ladder down. Say why each higher level fails.
@@ -150,6 +161,7 @@ Done when every lesson from step 2, kept or dropped, has its line.
 - Prove each new check fails on the real past mistake before committing it.
 - Treat a rule that was written down and broken again as a reason to climb.
 - Delete an instruction that changes no agent's behavior.
+- Ask about a handoff once, and only when follow-up work exists.
 
 ## Don't
 
