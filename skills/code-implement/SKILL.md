@@ -1,7 +1,7 @@
 ---
 name: code-implement
 description: "Work one ticket from start to PR: read its acceptance criteria, branch, build them test-first with parallel build workers, and commit after each. Then open the PR with h2xd:git-pr-body, review it with h2xd:review-pr and fix the threads with h2xd:review-fix and close them with h2xd:review-gate, without stopping between them. Use when the user names a ticket to work on, says implement, or picks the next ticket."
-argument-hint: "[ticket number]"
+argument-hint: "[ticket number] [pr-only]"
 ---
 
 # Code implement
@@ -118,7 +118,8 @@ reason.
 ### 6. Open, review, fix and gate
 
 Never skip this chain. Follow [`chain.md`](chain.md). It runs the PR body,
-the review, the fixes and the gate in order, without asking between them.
+the review, the fixes and the gate in order, without asking between them. With
+the argument `pr-only`, it ends after the PR opens.
 
 Done when no step is left whose condition is true, or the chain stopped early
 with a reason.
