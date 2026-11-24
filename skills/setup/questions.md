@@ -292,3 +292,19 @@ with the date of its last review and the date the next review is due.
 - `skills.reviewIntervalDays`, the days from a review to the next one.
   Recommended: 10. Choose a smaller number for a repo whose skills change
   fast, and a larger one for a stable repo.
+
+## S. Nitro goal
+
+`h2xd:nitro` takes a ticket to a reviewed PR and stops at its goal. The goal
+is a share of the review threads that are 🟢, with no 🔴 thread. ⚪ threads do
+not count. Two settings in `nitro` fix when it stops:
+
+- `nitro.goalShare`: the share of 🟢 threads, as a fraction. Recommended:
+  0.9. With fewer than 10 threads, all of them must be 🟢. A review with no
+  thread counts as 100%.
+- `nitro.maxRounds`: the most rounds of fix and review before it stops below
+  its goal. Recommended: 3.
+
+One question covers both. Offer the defaults first, then a stricter goal, such
+as 1 for a repo where every thread must be 🟢, and a larger limit, such as 5
+for a repo with slow reviews.
