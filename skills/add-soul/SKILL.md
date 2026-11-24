@@ -101,7 +101,8 @@ a removed rule leaves a gap.
 
 34. **Walls of text.** At most three sentences per paragraph. Turn a list hidden in a paragraph into bullets.
 35. **Summary first.** Text a person scans starts with the answer, the ask or the result. Background comes after. For GitHub text, follow `../setup-tone/github-text.md`.
-36. **Status markers.** 🔴 🟡 🟢 mark status, one item per line, worst first. They never decorate.
+36. **Status markers.** 🔴 🟡 🟢 ⚪ mark status, one item per line,
+    worst first. They never decorate.
 37. **Short sentences.** An instruction has at most about 20 words. A description has at most about 25. Use the glossary's word for a thing.
 38. **One concrete picture.** Open with a scene the reader remembers, such as "A ticket that says 'export is broken' sits for a week." Not "This skill enhances workflow quality."
 

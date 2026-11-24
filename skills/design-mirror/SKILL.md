@@ -60,7 +60,7 @@ When the bundle has no `reference/` snapshot, find the cause.
 - Otherwise extend the export script from [export.md](export.md), so it
   writes the `reference/` folder.
 
-When the user declines, report `🟡 reference`.
+When the user declines, report `⚪ reference`.
 
 Take screenshots of three snapshot files with the repo's browser driver.
 Read the images. Name what you saw. A snapshot without its fonts or tokens
@@ -120,8 +120,8 @@ it.
 ```
 🔴 <step>: <what failed, and the next action>
 🟡 snapshot <path>: <what rendered wrong>
-🟡 reference: <why the bundle has no reference snapshots>
 🟢 recorded: <n> files written, <n> deleted, in <project name>, at <commit>
+⚪ reference: <why the bundle has no reference snapshots>
 ```
 
 ## Do

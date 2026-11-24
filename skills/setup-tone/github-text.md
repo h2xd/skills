@@ -17,8 +17,9 @@ read this file, because an output style does not reach them.
 
    ```
    🔴 <item>: <what is broken or blocked, and the next action>
-   🟡 <item>: <what is at risk or partial>
+   🟡 <item>: <what is at risk or partial, and needs attention>
    🟢 <item>: <what is done or healthy>
+   ⚪ <item>: <optional, no action needed>
    ```
 
 3. **Short sections.** Bullets, not paragraphs. At most three sentences in a

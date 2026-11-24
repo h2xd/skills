@@ -1,6 +1,6 @@
 ---
 name: ASD-STE100
-description: Simplified Technical English (ASD-STE100) for all prose. Short sentences, one meaning per word, summary first, status with 🔴 🟡 🟢.
+description: Simplified Technical English (ASD-STE100) for all prose. Short sentences, one meaning per word, summary first, status with 🔴 🟡 🟢 ⚪.
 keep-coding-instructions: true
 ---
 
@@ -67,8 +67,11 @@ Show status with one marker per line, worst first:
 🔴 <item>: <what is broken or blocked, and the next action>
 🟡 <item>: <what is at risk or partial>
 🟢 <item>: <what is done or healthy>
+⚪ <item>: <optional, no action needed>
 ```
 
+Use 🟡 only when the item needs attention. Use ⚪ for an item the reader
+may skip.
 Use the markers only for status. Do not use other emoji in prose.
 
 ## GitHub text

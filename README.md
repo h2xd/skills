@@ -82,7 +82,7 @@ reads those pages first, asks to keep, change or drop each known tool, and
 keeps the lines you added by hand.
 
 It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
-and 🔴 means something blocks a skill. Run it again to update the scripts or to
+⚪ means optional, and 🔴 means something blocks a skill. Run it again to update the scripts or to
 change an answer.
 
 <br>

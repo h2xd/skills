@@ -90,8 +90,8 @@ One line per item, worst first, then the touched files:
 ```
 🔴 <path:line>: suppression of <rule>, which protects <what>. MUST KILL <symbol>
 🟡 <path:line>: MUST KILL <symbol>, needs <rename|extraction|type|new shape>
-🟡 <path:line>: kept, <the keep-list reason the hunt proved>
 🟢 <n> comments reaped in <n> files
+⚪ <path:line>: kept, <the keep-list reason the hunt proved>
 ```
 
 ## Do

@@ -15,8 +15,8 @@ post and summarize. Subagents read and write. Every hand-off goes through a
 file in your scratchpad, called `$WORK` below, so dumps stay out of context.
 
 Severity is a finding's status for the merge: 🔴 blocks it, 🟡 needs
-attention, 🟢 is fine to leave. [`reviewer-brief.md`](reviewer-brief.md) has
-the scale.
+attention, 🟢 is fine as is, ⚪ is optional.
+[`reviewer-brief.md`](reviewer-brief.md) has the scale.
 
 ## Before step 1
 
@@ -126,7 +126,7 @@ one line per finding, worst first. The `wrote` line has the counts:
 ```
 <🔴 or 🟡> <path:line>: <action to take>, reviewer <A-E>
 🟡 docs/agents/subagents/reviewer.md: missing, run /h2xd:setup
-🟢 <n> optional comments, <n> merged, <n> dropped, <n> moved out of the diff
+⚪ <n> optional comments, <n> merged, <n> dropped, <n> moved out of the diff
 ```
 
 Name a worktree you created. `git worktree remove <path>` cleans it up.

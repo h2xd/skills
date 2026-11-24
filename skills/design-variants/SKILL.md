@@ -118,11 +118,11 @@ folders are cleaned or kept on purpose.
 
 ```
 🔴 <step>: <what failed, and the next action>
-🟡 dropout: <letter>: <why>
 🟢 variant <letter>, <stance>: <route>: <one-line idea>
 🟢 committee: <verdict in one line>
 🟢 ticket: <link>
 🟢 cost: <n> agents, committee <mode>
+⚪ dropout: <letter>: <why>
 ```
 
 ## Do
