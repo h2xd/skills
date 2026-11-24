@@ -20,8 +20,13 @@ I follow `worker.md`, which the chair gives me with the task copy.
 2. Create a worktree from `HEAD`. Stamp the branch and the worktree with the
    date and time, so a second run never collides. Use this command, with
    the stamp as `<yyyymmdd-hhmm>`:
-   `git worktree add -b spike/<yyyymmdd-hhmm>-<call id> ../<repo>-spike-<yyyymmdd-hhmm>-<call id>`.
-   Run the commands under `worktreeSetup` in `agents.config.json`.
+
+   ```sh
+   node scripts/worktree.ts ../<repo>-spike-<yyyymmdd-hhmm>-<call id> \
+     --branch spike/<yyyymmdd-hhmm>-<call id>
+   ```
+
+   It runs the `worktreeSetup` commands and links the `worktreeLinks` files.
 3. When the task names uncommitted files, such as a variant page, copy them
    into the worktree first.
 4. Build only what the question needs. Run the typecheck and the tests that

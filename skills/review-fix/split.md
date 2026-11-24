@@ -19,8 +19,8 @@ through the CLI's subagent tool, such as Agent. Give each the paths to
 `$WORKTREE`. Tell it the patch command below.
 
 - Many groups: create each fixer worktree with
-  `git -C $WORKTREE worktree add --detach <path> HEAD`, then run the
-  `worktreeSetup` commands in `<path>`. The fixer leaves its
+  `node scripts/worktree.ts <path>`. It runs the `worktreeSetup` commands
+  and links the `worktreeLinks` files. The fixer leaves its
   changes uncommitted and writes `changes-<id>.md`. It writes a patch that
   holds new files too: `git -C <path> add -A`, then
   `git -C <path> diff --cached --binary > $WORK/<id>.patch`.

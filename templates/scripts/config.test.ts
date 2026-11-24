@@ -35,6 +35,11 @@ describe("mergeConfig", () => {
     expect(DEFAULTS.skills.reviewIntervalDays).toBe(10)
   })
 
+  test("lists no file to link by default, and replaces the list whole", () => {
+    expect(mergeConfig({}).worktreeLinks).toEqual([])
+    expect(mergeConfig({ worktreeLinks: [".env.local"] }).worktreeLinks).toEqual([".env.local"])
+  })
+
   test("the template agents.config.json spells out every default", () => {
     const template = JSON.parse(
       readFileSync(join(import.meta.dirname, "..", "agents.config.json"), "utf8"),

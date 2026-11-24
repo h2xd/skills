@@ -70,6 +70,11 @@ export type Config = {
    */
   worktreeSetup: string[][]
   /**
+   * Repo-relative paths of untracked files, such as local settings, that a new worktree links
+   * from the main checkout. `scripts/worktree.ts` links them before it runs `worktreeSetup`.
+   */
+  worktreeLinks: string[]
+  /**
    * Read by the h2xd:prove-tests skill, which passes the commands to
    * `prove-tests.sh`. The shell runner cannot import this file.
    */
@@ -122,6 +127,7 @@ export const DEFAULTS: Config = {
   implement: { maxWorkers: 3 },
   skills: { page: "docs/agents/skills.md", reviewIntervalDays: 10 },
   worktreeSetup: [["npm", "install"]],
+  worktreeLinks: [],
   mutation: {
     enabled: true,
     runner: "sh",
@@ -142,11 +148,12 @@ export const CONFIG_FILE = "agents.config.json"
 
 export const REPO_ROOT = resolve(import.meta.dirname, "..")
 
-type Section = Exclude<keyof Config, "worktreeSetup" | "version">
+type Section = Exclude<keyof Config, "worktreeSetup" | "worktreeLinks" | "version">
 
 /** What agents.config.json may hold: any section, any key within it. */
 type Overrides = { [K in Section]?: Partial<Config[K]> } & {
   worktreeSetup?: string[][]
+  worktreeLinks?: string[]
   version?: string | null
 }
 
@@ -160,6 +167,7 @@ export function mergeConfig(overrides: Overrides): Config {
     implement: { ...DEFAULTS.implement, ...overrides.implement },
     skills: { ...DEFAULTS.skills, ...overrides.skills },
     worktreeSetup: overrides.worktreeSetup ?? DEFAULTS.worktreeSetup,
+    worktreeLinks: overrides.worktreeLinks ?? DEFAULTS.worktreeLinks,
     mutation: { ...DEFAULTS.mutation, ...overrides.mutation },
   }
 }

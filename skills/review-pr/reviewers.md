@@ -16,12 +16,11 @@ Reviewer D plants mutants, so it must not change the files that B and E read.
 Before you start anyone, create its worktree:
 
 ```sh
-git -C $WORKTREE worktree add --detach $WORK/worktree-d <head sha>
-node scripts/review.ts setup $WORK/worktree-d
+node scripts/worktree.ts $WORK/worktree-d --base <head sha>
 ```
 
-The second command runs the `worktreeSetup` commands in the new worktree, so
-the tests find their packages.
+The command runs the `worktreeSetup` commands in the new worktree, so the
+tests find their packages. It links the `worktreeLinks` files too.
 
 Reviewer D's prompt gets `$WORK/worktree-d` in place of `$WORKTREE`. After
 step 4 has merged the findings, remove it:
