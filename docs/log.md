@@ -4,6 +4,10 @@ Append-only, newest first. Every change to a page gets one entry, on one line:
 a bold verb, the linked page, and what changed in about 20 words. The details
 belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer entry.
 
+## 2026-11-25
+
+* **Update**: Add Skills page to the [project glossary](/glossary/project.md), for the table of repo-local skills and their review dates.
+
 ## 2026-11-24
 
 * **Update**: Add Status marker and Work-state marker to the [project glossary](/glossary/project.md), for the two emoji scales.
