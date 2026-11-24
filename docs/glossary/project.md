@@ -53,3 +53,9 @@ An entry looks like this:
 - **Meaning:** A skill in the repo's own skill folder that holds the rules an agent gets wrong in one technology of that repo. `h2xd:session-reflect` proposes it when a record or the user adds the technology, and `h2xd:setup` offers it for each technology it finds. In this repo it is an internal skill.
 - **Code:** [`skills/session-reflect/technology.md`](../../skills/session-reflect/technology.md)
 - **Avoid:** Language skill, stack skill
+
+### Documentary
+
+- **Meaning:** The report that `h2xd:catchup` prints for a person new to a repo, in the repo scope: the story of how the repo grew, then the map of where things live, with a pointer to `/h2xd:teach`.
+- **Code:** [`skills/catchup/SKILL.md`](../../skills/catchup/SKILL.md)
+- **Avoid:** Overview, tour

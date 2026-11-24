@@ -132,6 +132,8 @@ design-variants → ask-committee
   for a customer or a person outside the team.
 - `h2xd:what` re-says the last message. `h2xd:plan-sharpen` rewrites the
   user's next prompt before it is sent.
+- `h2xd:catchup` says where things stand and names no next step.
+  `h2xd:next` names the next step.
 - `h2xd:session-handoff` writes the session down for another session or agent.
   `h2xd:session-reflect` changes the repo so the next session does better.
 
@@ -142,6 +144,7 @@ design-variants → ask-committee
 | Configure a repo for the h2xd skills | `h2xd:setup` |
 | Block destructive git commands before they run | `h2xd:git-guardrails` |
 | Find the next step, or which skill fits a situation | `h2xd:next` |
+| Say where the work stands: what is done and what is open | `h2xd:catchup` |
 | Set the writing tone: short, plain, summary first | `h2xd:setup-tone` |
 | Work one ticket from branch to PR | `h2xd:code-implement` |
 | Stress-test an idea, plan or design by interview | `h2xd:plan-grill` |
