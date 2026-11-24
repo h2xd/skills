@@ -141,6 +141,60 @@ describe("skills.ts due, the list", () => {
   })
 })
 
+describe("skills.ts reviewed", () => {
+  test("moves the review date and the due date of one skill only", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.addSkill("b")
+    repo.writePage([["a", "2026-11-01"], ["b", "2026-11-02"]])
+
+    const result = repo.skills("reviewed", "a")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toBe("reviewed a, next review 2026-12-05")
+    expect(repo.page()).toContain("| a | - | 2026-11-25 | 2026-12-05 |")
+    expect(repo.page()).toContain("| b | - | 2026-01-01 | 2026-11-02 |")
+  })
+
+  test("leaves every review date alone when only due runs", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.writePage([["a", "2026-11-01"]])
+
+    repo.skills("due")
+
+    expect(repo.page()).toContain("| a | - | 2026-01-01 | 2026-11-01 |")
+  })
+
+  test("records the technology of a Technology skill", () => {
+    const repo = sandbox()
+    repo.addSkill("lang-ts-base")
+
+    repo.skills("reviewed", "lang-ts-base", "--technology", "TypeScript")
+
+    expect(repo.page()).toContain("| lang-ts-base | TypeScript | 2026-11-25 | 2026-12-05 |")
+  })
+
+  test("refuses a skill that is not repo-local and writes no row for it", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.writePage([["a", "2026-11-01"]])
+
+    const result = repo.skills("reviewed", "plugin-skill")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("plugin-skill is not a repo-local skill")
+    expect(repo.page()).not.toContain("plugin-skill")
+  })
+
+  test("prints usage when no skill is given", () => {
+    const result = sandbox().skills("reviewed")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("usage: node scripts/skills.ts reviewed <skill>")
+  })
+})
+
 describe("the review interval", () => {
   test("is 10 days in the template config, and sets the due date of a new row", () => {
     const template = JSON.parse(

@@ -83,7 +83,20 @@ has a skill lint, run it.
 
 Done when every approved fix is applied and the lint passes.
 
-### 6. Report
+### 6. Record the review
+
+Skip this step when the repo has no `scripts/skills.ts`. Only this step moves
+a review date on the Skills page, so the page shows real reviews.
+
+For each skill of step 1 that has a row on the Skills page, run
+`node scripts/skills.ts reviewed <skill>`. Add
+`--technology <name>` for a Technology skill that has no technology yet. A
+plugin skill has no row, and the script refuses it. Leave it out.
+
+Done when each repo-local skill of step 1 printed `reviewed <skill>, next
+review <date>`.
+
+### 7. Report
 
 ```
 🔴 <skills>: <a collision left open, and the request both claim>
@@ -99,10 +112,13 @@ Done when every collision has its line.
 - Prefer a sharper description over a merge.
 - Keep the user's own names unless they mislead.
 - Count the model-startable skills before and after.
+- Run `reviewed` only after steps 1 to 5 ran on the skill.
 
 ## Don't
 
 - Don't merge skills on a shared word. Check the jobs first.
 - Don't rewrite a skill's steps to fix a trigger. Change the description.
 - Don't apply a fix without a yes. Show the exact new text first.
+- Don't move a review date by hand, and don't run `reviewed` for a skill you
+  did not read.
 - Don't judge from the table alone. Read both skills before you call it real.
