@@ -29,8 +29,16 @@ holds the table of states and next skills. Nitro loops over that table.
 - A ticket number in the argument is the work.
 - Without an argument, the work in progress is the work. That is a branch
   other than the default branch with commits, or an open PR.
+- With neither, take the oldest ticket that is ready for an agent. Run
+  **List by label** in `docs/agents/issue-tracker.md` with the
+  `ready-for-agent` label of its Triage table. Keep the open tickets, lowest
+  number first. Skip a ticket with an open blocker. `h2xd:code-implement`
+  claims the ticket.
 
-Done when you hold a ticket number or a branch.
+With no work in progress and no ticket ready for an agent, say so in one line
+and stop. Do not start anything.
+
+Done when you hold a ticket number or a branch, or you stopped with that line.
 
 ### 2. Read the state and pick the row
 
@@ -56,7 +64,28 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 
 Done when the skill finished and its report is read.
 
-### 4. Report
+### 4. Stop or go on
+
+Stop when any of these is true, and say which in one line:
+
+- **A one-way door.** A PR opened as a draft, or a skill asks before an act
+  that is hard to undo.
+- **A failed check.** A lint, typecheck or test command fails, or a skill
+  reports 🔴.
+- **A cost jump.** A skill asks before a step that costs far more than the
+  steps before it, such as a large review.
+- **Input it cannot get alone.** A skill asks the user a question, such as
+  the test entry points or an unsure criterion.
+- **A user-only skill.** The row names a skill that starts with `/`. Give the
+  user its prompt.
+- **Two rows fit.** Name both rows.
+
+Otherwise go back to step 2. After a stop, the user runs nitro again, and it
+reads the state and goes on.
+
+Done when you stopped with the reason, or the state calls for the next row.
+
+### 5. Report
 
 ```
 🔴 <what blocks the PR>
@@ -71,9 +100,11 @@ checks.
 
 - Read the state again after every skill. The repo is the truth.
 - Run each skill alone, with its own report.
+- Stop at each of the four kinds of stop, as record 0004 says, and say why.
 
 ## Don't
 
 - Don't start nitro from another skill. Only the user types it.
 - Don't run `h2xd:review-gate`, and don't merge.
 - Don't run a skill that is not in the table of `next`.
+- Don't start on a ticket when none is ready for an agent. Say so and stop.
