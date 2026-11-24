@@ -223,7 +223,6 @@ Most names start with their group. Open a group to see its skills. The
 | `code-architecture` | Finds shallow modules and other weak spots, ranked | You want refactoring targets | you |
 | `code-arena` | Runs several attempts at one change and grafts the best parts | A change deserves competing versions | you |
 | `code-swarm` | Fans a task out to parallel workers and returns one report | A task splits into many independent slices | you |
-| `lang-ts-base` | Type patterns that make the compiler reject bad states | You read or edit `.ts` and `.tsx` files | auto |
 | `lang-ts-deep-modules` | Build rules so modules are imported only through their entry points | A TypeScript repo should enforce module seams | you |
 
 </details>

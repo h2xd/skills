@@ -52,6 +52,14 @@ describe("drift.ts <plugin root> <repo root>", () => {
     expect(run.stdout).toContain("changed: scripts/a.ts")
   })
 
+  test("ignores a seed that the repo copied and changed, because the repo owns it", () => {
+    put(plugin, "templates/seeds/lang-ts-base/SKILL.md", "seed\n")
+    put(repo, ".claude/skills/lang-ts-base/SKILL.md", "adapted to the repo\n")
+    const run = drift()
+    expect(run.stdout.trim()).toBe("ok: the copies match plugin 0.2.0")
+    expect(run.status).toBe(0)
+  })
+
   test("exits 1 and names a script that the repo lacks", () => {
     put(plugin, "templates/scripts/b.ts", "b\n")
     const run = drift()

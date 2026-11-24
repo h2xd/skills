@@ -29,7 +29,8 @@ plan-grill → to-spec → to-tickets → code-implement → review-pr → revie
    `h2xd:git-commit`. Then it runs `h2xd:git-pr-body`,
    `h2xd:review-pr`, `h2xd:review-fix` and `h2xd:review-gate` without
    stopping.
-   `h2xd:code-quality` and `h2xd:lang-ts-base` set the bar while writing.
+   `h2xd:code-quality` and the repo's Technology skills set the bar while
+   writing.
 5. `h2xd:git-commit` writes each commit message.
    `h2xd:review-code-comments` cleans comments before review.
 6. `h2xd:git-pr-body` writes the PR body. `h2xd:review-pr` reviews the PR, and
@@ -156,7 +157,7 @@ design-variants → ask-committee
 | Run several attempts at one task and merge the best | `h2xd:code-arena` |
 | Run parallel workers over slices or a race | `h2xd:code-swarm` |
 | Know the quality and architecture bar | `h2xd:code-quality` |
-| Apply the TypeScript rules to `.ts` or `.tsx` work | `h2xd:lang-ts-base` |
+| Apply the rules of one technology, such as TypeScript | The repo's Technology skill |
 | Enforce deep modules in a TypeScript repo | `h2xd:lang-ts-deep-modules` |
 | Find refactoring targets and deepen modules | `h2xd:code-architecture` |
 | Follow the working rules every session keeps | `h2xd:code-rules` |

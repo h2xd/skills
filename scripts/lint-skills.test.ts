@@ -1,6 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
-import { readdirSync, readFileSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
   BASELINE_PATH,
@@ -15,7 +16,9 @@ import {
   lintCatalog,
   lintLinks,
   lintLongLines,
+  lintSeeds,
   lintSkill,
+  SEEDS_PATH,
   markdownFiles,
   dropStaleBaselineLines,
 } from "./lint-skills.ts"
@@ -232,6 +235,51 @@ describe("the skills in this repo", () => {
   }
 })
 
+describe("lintSeeds", () => {
+  function seedsRoot(seeds: Record<string, string>): string {
+    const root = mkdtempSync(join(tmpdir(), "seeds-"))
+    for (const [folder, text] of Object.entries(seeds)) {
+      mkdirSync(join(root, folder))
+      writeFileSync(join(root, folder, "SKILL.md"), text)
+    }
+    return root
+  }
+
+  test("passes a seed that follows the rules", () => {
+    const root = seedsRoot({ demo: GOOD })
+    try {
+      expect(lintSeeds(root)).toEqual([])
+    } finally {
+      rmSync(root, { recursive: true })
+    }
+  })
+
+  test("names the seed file and the rule it breaks", () => {
+    const root = seedsRoot({ demo: GOOD.replace("## Do\n", "## Done\n") })
+    try {
+      expect(lintSeeds(root)).toEqual([`${SEEDS_PATH}/demo/SKILL.md: no "## Do" section`])
+    } finally {
+      rmSync(root, { recursive: true })
+    }
+  })
+
+  test("treats a missing seeds folder as no seeds", () => {
+    expect(lintSeeds(join(tmpdir(), "no-such-seeds-folder"))).toEqual([])
+  })
+})
+
+describe("the seeds in this repo", () => {
+  test("every seed follows the rules of add-skill", () => {
+    expect(lintSeeds(join(import.meta.dirname, "..", SEEDS_PATH))).toEqual([])
+  })
+
+  test("lang-ts-base is a seed and no longer a shipped skill", () => {
+    const repo = join(import.meta.dirname, "..")
+    expect(readdirSync(join(repo, SEEDS_PATH))).toContain("lang-ts-base")
+    expect(readdirSync(join(repo, "skills"))).not.toContain("lang-ts-base")
+  })
+})
+
 describe("the agents in this repo", () => {
   const root = join(import.meta.dirname, "..", "agents")
 
@@ -246,14 +294,14 @@ describe("the long lines in this repo", () => {
   const repo = join(import.meta.dirname, "..")
   const baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
 
-  for (const path of ["skills", "agents"].flatMap((dir) => markdownFiles(join(repo, dir), dir))) {
+  for (const path of ["skills", "agents", SEEDS_PATH].flatMap((dir) => markdownFiles(join(repo, dir), dir))) {
     test(path, () => {
       expect(lintLongLines(path, readFileSync(join(repo, path), "utf8"), baseline)).toEqual([])
     })
   }
 
   test("the baseline holds no line that is gone or short", () => {
-    const files = ["skills", "agents"]
+    const files = ["skills", "agents", SEEDS_PATH]
       .flatMap((dir) => markdownFiles(join(repo, dir), dir))
       .map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
     expect(dropStaleBaselineLines(baseline, files)).toEqual(baseline)
