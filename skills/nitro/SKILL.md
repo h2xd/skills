@@ -43,13 +43,18 @@ Done when you hold a ticket number or a branch, or you stopped with that line.
 ### 2. Read the state and pick the row
 
 Run the commands of step 1 of `next`. Take the first row of the table in its
-step 2 that matches. When the row is not one of these, stop and report it:
+step 2 that matches. Nitro runs these rows:
 
 - `h2xd:code-implement` for a ticket
 - `h2xd:git-commit` for uncommitted changes
 - `h2xd:git-pr-body` for commits with no PR
 - `h2xd:review-pr` for a PR with no review
 - `h2xd:review-fix` for a PR with open threads
+
+A row for `h2xd:review-gate` means every open thread has a reply after the last
+push. Run `h2xd:review-pr` once more, as the chain of `h2xd:code-implement`
+does, then go to step 4. A merge row goes to step 4. Any other row is a stop
+in step 5.
 
 Done when you can name one row.
 
@@ -62,9 +67,29 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 - Run `h2xd:review-pr` and `h2xd:review-fix` as the table says.
 - Never run `h2xd:review-gate`, and never merge.
 
+After `h2xd:review-fix`, run `h2xd:review-pr` once. That pair is one round.
+Count the rounds in `$WORK/nitro.md`, a file in your scratchpad. After a
+`h2xd:review-pr`, go to step 4.
+
 Done when the skill finished and its report is read.
 
-### 4. Stop or go on
+### 4. Check the goal
+
+The goal is a share of 🟢 review threads, with no 🔴 thread. ⚪ threads do
+not count. A review with no thread counts as 100%. With fewer than 10 threads,
+all must be 🟢. Run `node scripts/review.ts share <pr>`. It prints the counts,
+the share and `reached: yes` or `reached: no`. The share and the round limit
+are `nitro.goalShare` and `nitro.maxRounds` in `agents.config.json`.
+
+- `reached: yes`. Report and stop. The final approval and the merge stay with
+  the user. Never run `h2xd:review-gate`.
+- `reached: no` after `nitro.maxRounds` rounds. Report the share it reached
+  and stop. Do not start a further round.
+- `reached: no` below the limit. Go back to step 2.
+
+Done when the share is printed and you chose to report, to stop or to go on.
+
+### 5. Stop or go on
 
 Stop when any of these is true, and say which in one line:
 
@@ -85,22 +110,26 @@ reads the state and goes on.
 
 Done when you stopped with the reason, or the state calls for the next row.
 
-### 5. Report
+### 6. Report
 
 ```
-🔴 <what blocks the PR>
+🔴 <what blocks the PR, or the share when the limit stopped nitro>
 🟡 <what is open>
-🟢 <what is done>
+🟢 <what is done, or the share when the goal is reached>
 ```
+
+Open with the share and the rounds used. At the goal, say that the final
+approval and the merge are the user's.
 
 Done when the report has one line for each of the PR, the review and the
-checks.
+checks, and the share.
 
 ## Do
 
 - Read the state again after every skill. The repo is the truth.
 - Run each skill alone, with its own report.
-- Stop at each of the four kinds of stop, as record 0004 says, and say why.
+- Stop at the goal, at the round limit and at each of the four kinds of
+  stop that record 0004 names. Say why.
 
 ## Don't
 
