@@ -1,6 +1,6 @@
 ---
 name: setup-tone
-description: Set the writing tone for a repo. Installs a tone template as the repo's default output style, such as ASD-STE100, which is Simplified Technical English, and adds one line to the agent instructions file, so every agent writes short, plain, summary-first text with 🔴 🟡 🟢 status. Use when the user wants clearer, simpler agent output, says tone, style, simple English or ASD-STE100, or when h2xd:setup asks for it.
+description: Set the writing tone for a repo. Installs a tone template as the repo's default output style, such as ASD-STE100, which is Simplified Technical English, and adds one line to the agent instructions file, so every agent writes short, plain, summary-first text with 🔴 🟡 🟢 ⚪ status. Use when the user wants clearer, simpler agent output, says tone, style, simple English or ASD-STE100, or when h2xd:setup asks for it.
 disable-model-invocation: true
 ---
 
@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 An agent left alone posts a forty-line issue body, and the one line you needed
 sits in paragraph six. A tone template sets the rules once for the whole repo:
-short sentences, one meaning per word, summary first, status with 🔴 🟡 🟢.
+short sentences, one meaning per word, summary first, status with 🔴 🟡 🟢 ⚪.
 
 A tone has two parts:
 
@@ -65,7 +65,7 @@ Add one line under `## Agent skills` in the agent instructions file:
 
 ```markdown
 - **Tone**: write prose to `.claude/output-styles/<file>`. Text for GitHub
-  starts with a summary and marks status with 🔴 🟡 🟢.
+  starts with a summary and marks status with 🔴 🟡 🟢 ⚪.
 ```
 
 Replace an existing tone line in place.

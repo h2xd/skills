@@ -111,9 +111,9 @@ Mark each answer as your recommendation or the user's own choice. Then list
 what step 4 wrote, one line each:
 
 ```
-🟡 <idea title>: parked as <issue link>
 🟢 <term>: added to the glossary
 🟢 <decision>: record opened as <issue link>
+⚪ <idea title>: parked as <issue link>
 ```
 
 Ask with the question tool whether the table is right. The options are

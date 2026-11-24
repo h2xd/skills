@@ -127,6 +127,7 @@ Lead with the commit SHA and the PR URL. Then one line per item, worst first:
 🟡 <id> <path:line>: declined or left open, <why> (<reply URL>)
 🟡 docs/agents/subagents/fixer.md: missing, run /h2xd:setup
 🟢 <id> <path:line>: fixed and resolved, <what changed> (<reply URL>)
+⚪ <id> <path:line>: optional, left as is (<reply URL>)
 ```
 
 Name any failure already on the base branch, and a worktree you created.
@@ -137,7 +138,6 @@ Done when every item has its line.
 ## Do
 
 - Read each thread's code before choosing a bucket.
-- Use the engineer's `Choice` letter when there is one.
 - Prove each mutation fix by planting the mutant again.
 - Check the diff against the plan, not only against the suggestion.
 

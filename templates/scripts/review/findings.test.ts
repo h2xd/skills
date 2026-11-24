@@ -276,11 +276,27 @@ describe("mergeFindings", () => {
     expect(dropped).toEqual([{ id: "C-1", subject: "kept, protects a lock order" }])
   })
 
+  test("posts a white finding inline with no summary bullet and no count", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ id: "B-1", severity: "white", label: "nitpick", lines: [11, 11], subject: "nit" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body.includes("nitpick")).toBe(true)
+    expect(review.body.includes("- ⚪")).toBe(false)
+    expect(review.body.includes("🔴 0 · 🟡 0 · 🟢 0\n")).toBe(true)
+  })
+
   test("sorts the comments worst first", () => {
     const { review } = mergeFindings(
       [
         file("B", [
-          finding({ id: "B-1", severity: "green", label: "nitpick", lines: [11, 11], subject: "nit" }),
+          finding({ id: "B-1", severity: "white", label: "nitpick", lines: [11, 11], subject: "nit" }),
           finding({ id: "B-2", severity: "red", label: "issue", lines: [13, 13], subject: "bug" }),
           finding({ id: "B-3", severity: "yellow", lines: [12, 12], subject: "meh" }),
         ]),
@@ -498,7 +514,7 @@ describe("mergeFindings", () => {
         file("C", [
           finding({
             id: "C-1",
-            severity: "green",
+            severity: "white",
             label: "nitpick",
             lines: [11],
             subject: "reap the comment",
@@ -541,7 +557,7 @@ describe("mergeFindings", () => {
         file("C", [
           finding({
             id: "C-1",
-            severity: "green",
+            severity: "white",
             label: "nitpick",
             lines: [8, 11],
           }),

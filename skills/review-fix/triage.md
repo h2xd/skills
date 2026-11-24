@@ -17,6 +17,8 @@ Find the decision records for a file with
 - An item's `Choice` line holds the option the engineer picked, or A when
   nobody replied. A **fix** with a `Choice` letter uses that option, and its
   plan row names the letter.
+- A ⚪ item is optional. Fix it when the fix is cheap, and the fixer decides
+  what cheap means. Otherwise decline with "optional, left as is".
 - `Choice: none` means a reply without a letter. Triage it as usual.
 - A label guides the triage and does not decide it. A `(blocking)` item still
   gets declined when it is wrong. A `nitpick` that takes one line still gets

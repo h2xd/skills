@@ -183,7 +183,7 @@ How agents write: in the chat, in issues, in PRs and in review comments.
 and adds one line to the agent instructions file.
 
 - **ASD-STE100**, recommended: Simplified Technical English. Short sentences,
-  one meaning per word, summary first, status with 🔴 🟡 🟢. Good when people
+  one meaning per word, summary first, status with 🔴 🟡 🟢 ⚪. Good when people
   read a lot of agent text on GitHub.
 - **Keep the default**: no output style. GitHub text still starts with a
   summary, per `h2xd:setup-tone`'s `github-text.md`.

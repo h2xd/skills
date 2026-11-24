@@ -43,12 +43,12 @@ case. This is the shape:
 ```
 
 - `id` is your letter, a dash and a number, such as `B-1`. Each id is used once.
-- `severity` is `red`, `yellow` or `green`. See Severity below.
+- `severity` is `red`, `yellow`, `green` or `white`. See Severity below.
 - `file` is a repo-relative path. It can sit outside the diff.
 - `lines` is `[line]` or `[start, end]`, in the PR head version of the file.
 - `label` is a Conventional Comments label. `red` takes `issue` or `todo`.
-  `yellow` takes `suggestion`, `issue` or `question`. `green` takes `nitpick`,
-  `thought`, `note` or `praise`.
+  `yellow` takes `suggestion`, `issue` or `question`. `green` takes `note` or
+  `praise`. `white` takes `nitpick`, `thought` or `suggestion`.
 - `subject` is one line. `body` is the defect and the concrete failure. Keep a
   proof command and its output in `body`.
 - `suggestion` is optional. Give it only when the fix replaces exactly the
@@ -84,10 +84,12 @@ Severity is the finding's status for the merge:
 |---|---|
 | 🔴 | Blocks the merge: a bug, a security hole, data loss, a broken contract or test, a spec or ADR violation |
 | 🟡 | Needs attention, the merge can go ahead: a standards break, a missing test, a risky pattern, code a reader will misread |
-| 🟢 | Fine to leave: a nit, an idea, or praise worth saying |
+| 🟢 | Fine as is: a kept note, or praise worth saying |
+| ⚪ | Optional, needs no attention: a nit, an idea, or a suggestion with no named cost |
 
 Use 🔴 only for a failure you can describe concretely. Report 🟢 praise only
-when it teaches the author something.
+when it teaches the author something. A `suggestion` is ⚪ by default. Make it
+🟡 only when you name the cost of not acting.
 
 ## End
 

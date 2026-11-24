@@ -4,7 +4,7 @@ import { createHash } from "node:crypto"
 import { expectedNote } from "./options.ts"
 import type { ReviewThread } from "./threads.ts"
 
-export type Severity = "red" | "yellow" | "green"
+export type Severity = "red" | "yellow" | "green" | "white"
 
 export type Finding = {
   id: string
@@ -65,12 +65,13 @@ export type MergeStats = {
   inline: number
 }
 
-const SEVERITIES: Severity[] = ["red", "yellow", "green"]
-const ICON: Record<Severity, string> = { red: "🔴", yellow: "🟡", green: "🟢" }
+const SEVERITIES: Severity[] = ["red", "yellow", "green", "white"]
+const ICON: Record<Severity, string> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
 const LABELS: Record<Severity, string[]> = {
   red: ["issue", "todo"],
   yellow: ["suggestion", "issue", "question"],
-  green: ["nitpick", "thought", "note", "praise"],
+  green: ["note", "praise"],
+  white: ["nitpick", "thought", "suggestion"],
 }
 const UNDECORATED = ["thought", "note", "praise"]
 const REQUIRED_FIELDS = [
@@ -568,7 +569,7 @@ export function mergeFindings(
         ? "REQUEST_CHANGES"
         : "APPROVE"
 
-  const listed = joined.filter((item) => item.severity !== "green")
+  const listed = joined.filter((item) => item.severity !== "green" && item.severity !== "white")
   const bullets = context.rewordedBullets
     ? bulletsByFinding(listed, context.rewordedBullets)
     : listed.map(defaultBullet)

@@ -79,7 +79,7 @@ Done when `git branch --show-current` prints the new branch.
    names them. A subagent cannot ask.
 3. Skip the scout and the split when the ticket has fewer than 3 criteria, or
    `implement.maxWorkers` in `agents.config.json` is 1. Plan one build worker
-   with all of them, go to [step 4](#4-build), and add a 🟡 line.
+   with all of them, go to [step 4](#4-build), and add a ⚪ line.
 4. Start one scout and group the criteria, per
    [`planning.md`](planning.md). It ends with `$WORK/split.md`.
 
@@ -108,9 +108,9 @@ commit on the ticket branch, or a reason in a `built` file.
 1. Run the lint, typecheck and test commands from the agent instructions file.
    Never skip them.
 2. Run `h2xd:prove-tests` on the branch diff. Skip it when the diff has no
-   logic lines, such as skill prose or docs only. Add a 🟡 line.
+   logic lines, such as skill prose or docs only. Add a ⚪ line.
 3. Run `h2xd:review-code-comments` on the branch diff. Skip it when the diff
-   adds no code comment. Add a 🟡 line.
+   adds no code comment. Add a ⚪ line.
 
 Done when every check passes, and each surviving mutant has a test or a
 reason.

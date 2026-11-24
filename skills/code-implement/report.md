@@ -11,12 +11,12 @@ first:
 🟡 <item>: <a check left open, a follow-up ticket to file>
 🟡 #<n>: not assigned to the user, because <why the Assign operation failed>
 🟡 docs/agents/subagents/<role>.md: missing, run /h2xd:setup
-🟡 <step>: skipped, because <the skip condition that held>
 🟡 <n> non-blocking threads still open: <why each one is open>
 🟡 <worktree path>: kept, because its commits did not land
 🟢 #<n>: open issues that mention the ticket: <numbers, or none>
 🟢 split: <n> build workers, criteria <numbers per worker>
 🟢 #<n>: <criteria> criteria built, <commits> commits, <PR URL>, <last review verdict>
+⚪ <step>: skipped, because <the skip condition that held>
 ```
 
 ## The merge state

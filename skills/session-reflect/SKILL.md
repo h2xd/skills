@@ -86,7 +86,7 @@ Show every kept lesson, worst first, one block each:
 ```
 
 Use 🔴 for a mistake that repeated or cost the most time, 🟡 for one caught
-early, and 🟢 for a small cleanup, such as a no-op instruction.
+early, and ⚪ for a small cleanup, such as a no-op instruction.
 
 List the dropped lessons after, one line each with the reason.
 
@@ -96,7 +96,10 @@ The options are apply now, file as an issue, change the routing, or drop.
 A fix too large for this session, or one outside this repo, defaults to file
 as an issue.
 
-Done when the user chose an option for every lesson.
+For each hit of the status markers lens, ask in the same call, per
+[`markers.md`](markers.md).
+
+Done when the user chose an option for every lesson and every hit.
 
 ### 5. Apply what was approved
 
@@ -105,6 +108,7 @@ Done when the user chose an option for every lesson.
   test commands. Commit each lesson on its own with `h2xd:git-commit`.
 - **Level 5.** Write the edit with `h2xd:add-skill`. Keep it to the rule an
   agent breaks without it, plus one example of the failure.
+- **Hide ⚪.** Write the feedback memory of [`markers.md`](markers.md).
 - **Facts.** Run `h2xd:docs-wiki`, `h2xd:docs-glossary` or `h2xd:docs-adr`.
 - **Issues.** File each with the Create operation in
   `docs/agents/issue-tracker.md`, in the shape of
@@ -119,13 +123,7 @@ and the user saw every plugin draft.
 
 ### 6. Report
 
-One line per lesson, worst first:
-
-```
-🔴 <rule>: <a check that could not be proven to fail, or a fix that broke the build, and the next action>
-🟡 <rule>: <filed as <issue URL>, shown as a draft for the user to copy, routed to words with no check behind it, or dropped with the reason>
-🟢 <rule>: <level, what changed, the commit SHA>
-```
+One line per lesson, worst first, in the format of [`report.md`](report.md).
 
 Done when every lesson from step 2, kept or dropped, has its line.
 

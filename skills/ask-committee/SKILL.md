@@ -113,10 +113,10 @@ Done when the user has the verdict and the path of `verdict.md`.
 🔴 block: <member>: <what fails, and what would lift it>
 🔴 missing: <chapter or member>: <why>
 🟡 split: <chapters or members>: <the disagreement in one line>
-🟡 model: <lead>: started again with the model override
-🟡 kept: <variant folder or spike worktree>: the user kept it
 🟢 verdict: <option>, with <n> changes, <mode>, <n> agents
 🟢 evidence: <worker>: <what it built or measured, and the result>
+⚪ model: <lead>: started again with the model override
+⚪ kept: <variant folder or spike worktree>: the user kept it
 ```
 
 ## Do

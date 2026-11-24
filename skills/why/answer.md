@@ -37,8 +37,8 @@ section.
 ### Sources consulted
 
 🔴 <category>: <not reachable, such as no connected tool or failed auth>
-🟡 <category>: <searched, nothing relevant: the queries and the range>
 🟢 <category>: <searched, evidence found: records, issues, PRs, commits, queries>
+⚪ <category>: <searched, nothing relevant: the queries and the range>
 
 ### Confidence
 
@@ -49,7 +49,7 @@ open.>
 List every category in "Sources consulted": decision records and wiki pages,
 the tracker, git history, and each category from `sources.md`. A category with
 no connected tool gets a 🔴 line saying so. A category skipped on purpose
-gets a 🟡 line with the reason.
+gets a ⚪ line with the reason.
 
 ## Before a change
 
