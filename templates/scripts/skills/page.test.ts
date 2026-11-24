@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { dueSkills, formatPage, parsePage, syncRows } from "./page.ts"
+import { dueSkills, formatPage, markReviewed, parsePage, syncRows } from "./page.ts"
 
 const TODAY = "2026-11-25"
 
@@ -56,5 +56,27 @@ describe("dueSkills", () => {
 
   test("lists none when every review lies ahead", () => {
     expect(dueSkills([row("a", "2026-12-01")], TODAY)).toEqual([])
+  })
+})
+
+describe("markReviewed", () => {
+  const rows = [
+    { skill: "a", technology: "-", updated: "2026-01-01", due: "2026-01-11" },
+    { skill: "b", technology: "-", updated: "2026-02-01", due: "2026-02-11" },
+  ]
+
+  test("sets the review date to today and the due date one interval later", () => {
+    expect(markReviewed(rows, "a", TODAY, 10)).toEqual([
+      { skill: "a", technology: "-", updated: TODAY, due: "2026-12-05" },
+      rows[1],
+    ])
+  })
+
+  test("sets the technology when one is given", () => {
+    expect(markReviewed(rows, "b", TODAY, 10, "Node")[1].technology).toBe("Node")
+  })
+
+  test("refuses a skill that has no row", () => {
+    expect(() => markReviewed(rows, "missing", TODAY, 10)).toThrow("no row for missing")
   })
 })

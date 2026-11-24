@@ -3,17 +3,22 @@
  * Keeps the Skills page, one row per repo-local skill, for h2xd:session-reflect.
  *
  *   node scripts/skills.ts due [--today YYYY-MM-DD]
+ *   node scripts/skills.ts reviewed <skill> [--technology NAME] [--today YYYY-MM-DD]
  *
  * `due` creates the page when it is missing, adds a row for each new
- * repo-local skill and lists the skills whose review is due. A failure prints
- * one line to stderr and exits 1. The logic lives in scripts/skills/.
+ * repo-local skill and lists the skills whose review is due, oldest first.
+ * `reviewed` sets the review date of one skill to today and its due date one
+ * interval later. Run it only after h2xd:review-skills ran on that skill. A
+ * failure prints one line to stderr and exits 1. The logic lives in
+ * scripts/skills/.
  */
 
-import { dueCommand } from "./skills/commands.ts"
+import { dueCommand, reviewedCommand } from "./skills/commands.ts"
 import { failStale, isUnknownOption, STALE_COPY } from "./stale.ts"
 
 const COMMANDS: Record<string, (argv: string[]) => void> = {
   due: dueCommand,
+  reviewed: reviewedCommand,
 }
 
 const [name, ...rest] = process.argv.slice(2)
