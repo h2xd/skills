@@ -35,9 +35,8 @@ Read what exists. Assume nothing.
   `index.md`, a `log.md`, a decisions directory such as `decisions/`, `adr/`
   or `docs/adr/`, and the record format, MADR or Nygard.
 - Glossaries: `GLOSSARY.md`, `CONTEXT.md`, `docs/**/glossary*.md`.
-- Runtime: run `node --version`. When it is missing or below 22.18, stop and
-  suggest proto, nvm or the nodejs.org installer. The lint commands need it,
-  and the hooks skip without it. Add a minimal `package.json` when absent.
+- Runtime: `node --version` missing or below 22.18: stop, suggest proto, nvm
+  or nodejs.org. The checks need it. Add a minimal `package.json` when absent.
 - Tests and stack: the test, typecheck and build commands, and any installed
   mutation tool, such as Stryker, mutmut, cargo-mutants, PIT or gremlins.
 - Hooks: `git config core.hooksPath`, `.husky/`, `.githooks/`, `lefthook.yml`
@@ -131,7 +130,8 @@ One line per item, worst first:
 ⚪ <item>: <an optional step that is left out>
 ```
 
-Close: edit `agents.config.json` or `docs/agents/` by hand, or re-run it.
+Close with one sentence: edit `agents.config.json` and `docs/agents/**` by
+hand, or run setup again to update or switch trackers.
 
 Done when every written file and follow-up has its line.
 
