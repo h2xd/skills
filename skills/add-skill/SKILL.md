@@ -50,7 +50,7 @@ one reading, as an instruction to follow or a fact to rely on.
 - **Report.** When the skill reports, give the format from the Reports section.
 - **GitHub text.** Text the skill posts to GitHub follows
   `../setup-tone/github-text.md`.
-- **Length.** At most 150 lines. Move templates, catalogs, briefs for subagents
+- **Length.** At most 180 lines. Move templates, catalogs, briefs for subagents
   and long examples to sibling files, and link them by relative path. Never
   cut a rule to fit. Wrap a prose line at 80 characters. Code fences, tables
   and frontmatter are exempt.

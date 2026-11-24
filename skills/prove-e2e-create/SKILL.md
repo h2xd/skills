@@ -86,7 +86,7 @@ Apply `h2xd:add-skill` to the result. For each generated step:
 - **Helpers** are executable, and the skill body shows each invocation.
 
 Done when `grep -n '{{' <skills dir>/verify-<app>/SKILL.md` prints nothing,
-the file is at most 150 lines, `name` is `verify-<app>`, the description says
+the file is at most 180 lines, `name` is `verify-<app>`, the description says
 "Use when", and every numbered step ends in `Done when`.
 
 ### 5. Seed the feature map

@@ -123,8 +123,9 @@ When the user says "move #42 to `<state>`", follow [`moving.md`](moving.md).
 ## Report
 
 After a session, one line per issue, worst first. Show 🟪 for needs-info or
-an open **Block** edge, 🟧 for ready-for-human and 🟦 for ready-for-agent,
-in place of 🟢:
+an open blocker, 🟧 for ready-for-human and 🟦 for ready-for-agent, in place
+of 🟢. When the tracker page lists **Block**, run its list form on each issue
+to find the blockers:
 
 ```
 🔴 #<n>: <blocked: conflicting states, a failed post, a claim that did not reproduce>
