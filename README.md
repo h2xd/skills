@@ -54,13 +54,16 @@ you accept with one click.
 - the commit types and scopes, and how long a message may be
 - whether a new decision record needs an issue
 - the hooks and CI workflows that enforce the rules
-- the commands a fresh worktree runs before it can typecheck and run the tests
+- the commands a fresh worktree runs before it can typecheck and run the tests, and the untracked files it links from the main checkout, such as local settings
 - mutation testing, and which runner plants the bugs
 - the size limits that decide how many reviewers a PR review starts, the paths that always get all of them, and how many fixer workers may fix one review at the same time
 - how many build workers may build one ticket at the same time
 - a hook that stops the agent from running destructive git commands
 - the triage labels, and the `in-progress` label
 - module boundaries, for TypeScript repos
+- the technologies the repo uses, with a yes or no for a skill that holds the rules of each one
+- where the Skills page lives, and how many days pass between two reviews of a skill
+- the goal and the round limit of `nitro`
 - the writing tone of the agent
 - the extra tools your subagents must use, such as a code-graph server, for the four role pages
 
@@ -81,8 +84,16 @@ subagent pass its path, so the subagent uses the tools your repo has. A re-run
 reads those pages first, asks to keep, change or drop each known tool, and
 keeps the lines you added by hand.
 
+For each technology you say yes to, it writes a Technology skill in
+`.claude/skills/` and its row on the Skills page. It copies a seed from
+`templates/seeds/` when one fits, such as the TypeScript rules in
+`lang-ts-base`, and writes the skill from your manifests, records and code
+when none does. A re-run offers the TypeScript rules again, because the plugin
+no longer ships them.
+
 It ends with one status line per item. 🔴 means something blocks a skill, 🟡
-means a follow-up, 🟢 means written, and ⚪ means optional. Run it again to
+means a follow-up, 🟢 means written, and ⚪ means optional. The
+[Status markers](#status-markers) table lists all seven. Run it again to
 update the scripts or to change an answer.
 
 <br>
@@ -113,7 +124,27 @@ flowchart TD
   reflect -->|lessons become checks| idea
 ```
 
-Not sure where you are in it? `/h2xd:next` knows.
+Not sure where you are in it? `/h2xd:next` knows. To run its steps in a row,
+until the review reaches its goal, type `/h2xd:nitro`. It never merges.
+`/h2xd:catchup` says where the work stands.
+
+<br>
+
+## Status markers
+
+Every report that a skill writes starts each line with one of seven markers.
+Four rate a finding or an item. Three show where a work item stands, and they
+take the place of 🟢 in a list of tickets and tasks.
+
+| Marker | Scale | Means |
+|---|---|---|
+| 🔴 | Status | Blocks. Fix it before you go on |
+| 🟡 | Status | Needs attention, and does not block |
+| 🟢 | Status | Fine, or done |
+| ⚪ | Status | Optional. Leave it out when you like |
+| 🟪 | Work state | Blocked, by another item or by an answer |
+| 🟧 | Work state | Ready for a person |
+| 🟦 | Work state | Ready for an agent |
 
 <br>
 
@@ -295,7 +326,7 @@ Most names start with their group. Open a group to see its skills. The
 | Skill | What it does | Use when | Starts |
 |---|---|---|---|
 | `session-handoff` | Writes a handoff document the next agent picks up | Context runs low, or someone else takes over | auto |
-| `session-reflect` | Turns each lesson into a check, a type, a lint, a test or, last, words | After a session, or when a mistake repeats | auto |
+| `session-reflect` | Turns each lesson into a check, a type, a lint, a test or, last, words. Keeps one Technology skill per technology, and asks once about the skills due for review | After a session, or when a mistake repeats | auto |
 
 </details>
 
