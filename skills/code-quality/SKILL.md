@@ -67,7 +67,7 @@ apply.
 - **Make illegal states unrepresentable.** Brand a string or number that
   carries meaning, so an `OrderId` is not a `string`. Exhaust every variant.
   Derive types from the authoritative schema instead of restating them. In
-  TypeScript, `h2xd:lang-ts-base` gives the patterns.
+  TypeScript, the repo's Technology skill for TypeScript gives the patterns.
 - **Idempotent operations.** Commands, lifecycle steps and loops that can be
   interrupted reach the same end state when you run them again.
 

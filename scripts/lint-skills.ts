@@ -2,9 +2,10 @@
 /**
  * Checks every skill in skills/ and every internal skill in .claude/skills/
  * against the rules of skills/add-skill that a script can check. It also
- * checks every .md under skills/ and agents/ for prose lines over 80
- * characters, and every agent in agents/ for a model line. Lines that already
- * existed are in scripts/lint-skills.baseline.json.
+ * checks every seed in templates/seeds/ like a skill, every .md under skills/,
+ * agents/ and templates/seeds/ for prose lines over 80 characters, and every
+ * agent in agents/ for a model line. Lines that already existed are in
+ * scripts/lint-skills.baseline.json.
  * Prints one line per problem and exits 1 when any exist.
  *
  *   node scripts/lint-skills.ts
@@ -14,7 +15,7 @@
  * never adds a line. Run it after you wrap a long line.
  */
 
-import { lstatSync, readdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs"
+import { existsSync, lstatSync, readdirSync, readFileSync, readlinkSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 import { parseYaml } from "../templates/scripts/yaml.ts"
 import { fileURLToPath } from "node:url"
@@ -24,6 +25,8 @@ export const MAX_LINES = 180
 export const MAX_LINE_LENGTH = 80
 
 export const BASELINE_PATH = "scripts/lint-skills.baseline.json"
+
+export const SEEDS_PATH = "templates/seeds"
 
 export const GUARD_HOOK_PATH = "templates/hooks/block-dangerous-git.sh"
 
@@ -114,6 +117,18 @@ export function lintSkill(folder: string, rawText: string): string[] {
     }
   }
   return problems
+}
+
+/** Every seed of Technology skills follows the rules of add-skill, as a shipped skill does. */
+export function lintSeeds(seedsRoot: string): string[] {
+  if (!existsSync(seedsRoot)) return []
+  return readdirSync(seedsRoot)
+    .sort()
+    .flatMap((folder) =>
+      lintSkill(folder, readFileSync(join(seedsRoot, folder, "SKILL.md"), "utf8")).map(
+        (problem) => `${SEEDS_PATH}/${folder}/SKILL.md: ${problem}`,
+      ),
+    )
 }
 
 /** Every skill folder has exactly one row in the catalog of `next` table, and every row names a folder. */
@@ -312,7 +327,7 @@ function lineOf(body: string, at: number, frontmatter: string): number {
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const repo = resolve(import.meta.dirname, "..")
   const root = resolve(repo, "skills")
-  const markdown = ["skills", "agents"].flatMap((dir) => markdownFiles(join(repo, dir), dir))
+  const markdown = ["skills", "agents", SEEDS_PATH].flatMap((dir) => markdownFiles(join(repo, dir), dir))
   if (process.argv.includes("--write-baseline")) {
     const files = markdown.map((path) => ({ path, text: readFileSync(join(repo, path), "utf8") }))
     const old: Baseline = JSON.parse(readFileSync(join(repo, BASELINE_PATH), "utf8"))
@@ -323,7 +338,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   let failed = false
   const patterns = guardPatterns(readFileSync(join(repo, GUARD_HOOK_PATH), "utf8"))
   const exceptions: GuardException[] = JSON.parse(readFileSync(join(repo, GUARD_EXCEPTIONS_PATH), "utf8"))
-  for (const path of markdownFiles(root, "skills")) {
+  for (const path of [...markdownFiles(root, "skills"), ...markdownFiles(join(repo, SEEDS_PATH), SEEDS_PATH)]) {
     for (const problem of lintBlockedGit(path, readFileSync(join(repo, path), "utf8"), patterns, exceptions)) {
       console.error(problem)
       failed = true
@@ -344,6 +359,10 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       console.error(`skills/${folder}/SKILL.md: ${problem}`)
       failed = true
     }
+  }
+  for (const problem of lintSeeds(join(repo, SEEDS_PATH))) {
+    console.error(problem)
+    failed = true
   }
   const local = resolve(import.meta.dirname, "..", ".claude", "skills")
   const entries = readdirSync(local).sort().map((name) => {

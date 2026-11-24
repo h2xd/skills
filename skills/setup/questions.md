@@ -258,6 +258,12 @@ technology that a decision record names, or that has a seed in
 Each question names the technology, the rules the skill would hold, and the
 seed when one exists.
 
+An earlier plugin version shipped the TypeScript rules as `lang-ts-base`. The
+plugin no longer ships them, so a re-run must offer them. When the repo has a
+`tsconfig.json` or `.ts` files, list TypeScript with the seed `lang-ts-base`,
+recommended yes. Say that the skill no longer comes with the plugin, and that
+a yes keeps the rules in the repo.
+
 After a yes, write the skill and its row in the same run:
 
 1. Copy the seed to `.claude/skills/<name>/` and adapt it to the repo. Without
