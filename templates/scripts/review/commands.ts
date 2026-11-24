@@ -36,6 +36,7 @@ import {
 import { planReplies, postReplies } from "./reply.ts"
 import { resolveThreads, threadNodeIds } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
+import { formatShare, reviewShare, threadMarker } from "./share.ts"
 import { tallyThreads } from "./tally.ts"
 import { formatThreadsDocument, unrepliedSummaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
@@ -230,6 +231,23 @@ export function threadsCommand(argv: string[]): void {
     }),
     values.out,
   )
+}
+
+export function shareCommand(argv: string[]): void {
+  const { values, positionals } = parseArgs({
+    args: argv,
+    allowPositionals: true,
+    options: { worktree: { type: "string" } },
+  })
+  const worktree = values.worktree ? resolve(values.worktree) : undefined
+  const pullRequest = viewPullRequest(positionals[0], worktree)
+  const { owner, name } = repositoryName(worktree)
+  const { threads } = fetchReviewData(owner, name, pullRequest.number, worktree)
+  const share = reviewShare(
+    threads.map((thread) => threadMarker(thread.comments.nodes.map((comment) => comment.body))),
+    config.nitro.goalShare,
+  )
+  emit(formatShare(share, config.nitro.goalShare))
 }
 
 export function replyCommand(argv: string[]): void {

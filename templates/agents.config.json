@@ -23,6 +23,7 @@
     "fixMaxWorkers": 3
   },
   "implement": { "maxWorkers": 3 },
+  "nitro": { "goalShare": 0.9, "maxRounds": 3 },
   "skills": { "page": "docs/agents/skills.md", "reviewIntervalDays": 10 },
   "worktreeSetup": [["npm", "install"]],
   "worktreeLinks": [],

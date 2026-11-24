@@ -40,6 +40,15 @@ describe("mergeConfig", () => {
     expect(mergeConfig({ worktreeLinks: [".env.local"] }).worktreeLinks).toEqual([".env.local"])
   })
 
+  test("sets the nitro goal at 90% and the round limit at 3, as the template file says", () => {
+    const template = JSON.parse(
+      readFileSync(join(import.meta.dirname, "..", "agents.config.json"), "utf8"),
+    )
+    expect(template.nitro).toEqual({ goalShare: 0.9, maxRounds: 3 })
+    expect(mergeConfig({}).nitro).toEqual(template.nitro)
+    expect(mergeConfig({ nitro: { maxRounds: 5 } }).nitro).toEqual({ goalShare: 0.9, maxRounds: 5 })
+  })
+
   test("the template agents.config.json spells out every default", () => {
     const template = JSON.parse(
       readFileSync(join(import.meta.dirname, "..", "agents.config.json"), "utf8"),

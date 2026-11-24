@@ -7,6 +7,7 @@
  *   node scripts/review.ts setup <path>
  *   node scripts/review.ts context [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts threads [pr] [--worktree PATH] [--out FILE]
+ *   node scripts/review.ts share [pr] [--worktree PATH]
  *   node scripts/review.ts reply <pr> <replies.md> --sha SHA --threads <threads.md> [--dry-run]
  *   node scripts/review.ts resolve [--threads <threads.md>] <thread-id or T label>...
  *   node scripts/review.ts tally --threads <threads.md> --verdicts <dir> <T label>...
@@ -31,6 +32,7 @@ import {
   replyCommand,
   resolveCommand,
   setupCommand,
+  shareCommand,
   splitCommand,
   tallyCommand,
   threadsCommand,
@@ -43,6 +45,7 @@ const COMMANDS: Record<string, (argv: string[]) => void> = {
   setup: setupCommand,
   context: contextCommand,
   threads: threadsCommand,
+  share: shareCommand,
   reply: replyCommand,
   resolve: resolveCommand,
   tally: tallyCommand,

@@ -57,6 +57,13 @@ export type Config = {
     /** The most build workers that run at once. 1 turns the split off. */
     maxWorkers: number
   }
+  /** Read by `review.ts share` and the nitro skill, which runs the review loop until the goal. */
+  nitro: {
+    /** The share of review threads that must be 🟢, as a fraction. 0.9 is 90%. */
+    goalShare: number
+    /** The most rounds of fix and review before nitro stops below its goal. */
+    maxRounds: number
+  }
   /** Read by `skills.ts`, which keeps the Skills page of the repo-local skills. */
   skills: {
     /** Repo-relative path of the Skills page. */
@@ -125,6 +132,7 @@ export const DEFAULTS: Config = {
     fixMaxWorkers: 3,
   },
   implement: { maxWorkers: 3 },
+  nitro: { goalShare: 0.9, maxRounds: 3 },
   skills: { page: "docs/agents/skills.md", reviewIntervalDays: 10 },
   worktreeSetup: [["npm", "install"]],
   worktreeLinks: [],
@@ -165,6 +173,7 @@ export function mergeConfig(overrides: Overrides): Config {
     pullRequests: { ...DEFAULTS.pullRequests, ...overrides.pullRequests },
     review: { ...DEFAULTS.review, ...overrides.review },
     implement: { ...DEFAULTS.implement, ...overrides.implement },
+    nitro: { ...DEFAULTS.nitro, ...overrides.nitro },
     skills: { ...DEFAULTS.skills, ...overrides.skills },
     worktreeSetup: overrides.worktreeSetup ?? DEFAULTS.worktreeSetup,
     worktreeLinks: overrides.worktreeLinks ?? DEFAULTS.worktreeLinks,
