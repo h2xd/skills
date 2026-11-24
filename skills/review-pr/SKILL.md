@@ -22,8 +22,9 @@ attention, 🟢 is fine as is, ⚪ is optional.
 
 Run `node scripts/review.ts` with no arguments. Its `usage:` line must list
 `worktree`, `context`, `fleet`, `merge`, `options`, `missing`, `setup` and
-`findings`. When one is missing, stop with one line: "run /h2xd:setup". Run
-one command per shell call, never chained with `&&` or `;`.
+`findings`. When one is missing, stop with one line: "run /h2xd:setup". Then
+run the drift check, per [`drift.md`](../plan-triage/drift.md). Run one
+command per shell call, never chained with `&&` or `;`.
 
 ## Steps
 
@@ -71,10 +72,10 @@ Done when `$WORK/pick.md` exists.
 Start the picked reviewers in one message, as background subagents, through
 the CLI's subagent tool, such as Agent. Each prompt holds the paths to
 `context.md`, [`reviewer-brief.md`](reviewer-brief.md) and
-`$WORK/reviewer-tools.md`, and its worktree, lens, model
-and findings file from [`reviewers.md`](reviewers.md), which covers a missing
-role page. Reviewer D runs in its own worktree of the head SHA. Reviewer B
-also gets [`reviewer-b.md`](reviewer-b.md).
+`$WORK/reviewer-tools.md`, and its worktree, lens, model and findings file
+from [`reviewers.md`](reviewers.md), which covers a missing role page.
+Reviewer D runs in its own worktree of the head SHA. Reviewer B also gets
+[`reviewer-b.md`](reviewer-b.md).
 
 Before step 4, run `node scripts/review.ts missing $WORK <letters>` with the
 letters of the started reviewers. Retry each reviewer it names, as
@@ -83,8 +84,6 @@ letters of the started reviewers. Retry each reviewer it names, as
 Done when the command printed `ok`, or each missing file is named.
 
 ### 4. Merge the findings
-
-A script builds the review. No subagent writes `review.json`.
 
 ```sh
 node scripts/review.ts merge $WORK/review-*.json --worktree $WORKTREE --pick $WORK/pick.md --out $WORK/review.json --preview $WORK/preview.md

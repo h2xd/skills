@@ -128,10 +128,10 @@ One line per item, worst first:
 🔴 <item>: <a check that fails, or a choice that blocks a skill>
 🟡 <item>: <follow-up, such as lint errors on adopted pages, a bundle to migrate, or a tracker the review skills cannot drive>
 🟢 <item>: <what was written, and which skill reads it>
+⚪ <item>: <an optional step that is left out>
 ```
 
-Close with one sentence: edit `agents.config.json`, `docs/agents/*.md` and
-`docs/agents/subagents/*.md` directly, or re-run to update or switch trackers.
+Close: edit `agents.config.json` or `docs/agents/` by hand, or re-run it.
 
 Done when every written file and follow-up has its line.
 
