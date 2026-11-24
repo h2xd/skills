@@ -49,6 +49,13 @@ export function syncRows(
     )
 }
 
+/** The rows whose review is due on `today` or earlier, oldest due date first. */
+export function dueSkills(rows: SkillRow[], today: string): SkillRow[] {
+  return rows
+    .filter((row) => row.due <= today)
+    .toSorted((a, b) => a.due.localeCompare(b.due) || a.skill.localeCompare(b.skill))
+}
+
 function defaultPage(today: string): string {
   return [
     "---",

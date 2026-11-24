@@ -28,6 +28,7 @@ type Repo = {
   skills(...args: string[]): { status: number; stdout: string; stderr: string }
   page(): string
   addSkill(name: string): void
+  writePage(rows: [string, string][]): void
 }
 
 function sandbox(config: object = {}): Repo {
@@ -54,6 +55,14 @@ function sandbox(config: object = {}): Repo {
       }
     },
     page: () => readFileSync(join(dir, "docs/agents/skills.md"), "utf8"),
+    writePage(rows) {
+      mkdirSync(join(dir, "docs/agents"), { recursive: true })
+      const lines = rows.map(([skill, due]) => `| ${skill} | - | 2026-01-01 | ${due} |`)
+      writeFileSync(
+        join(dir, "docs/agents/skills.md"),
+        ["# Skills", "", "| Skill | Technology | Updated | Review due |", "|---|---|---|---|", ...lines, ""].join("\n"),
+      )
+    },
     addSkill(name) {
       const folder = join(dir, ".claude/skills", name)
       mkdirSync(folder, { recursive: true })
@@ -97,6 +106,38 @@ describe("skills.ts due", () => {
     repo.skills("due")
 
     expect(repo.page()).toContain("| linked | - |")
+  })
+})
+
+describe("skills.ts due, the list", () => {
+  test("prints all due skills, oldest first, in one list", () => {
+    const repo = sandbox()
+    for (const name of ["a", "b", "c", "d"]) repo.addSkill(name)
+    repo.writePage([["a", "2026-11-20"], ["b", "2026-10-01"], ["c", "2026-12-30"], ["d", "2026-11-25"]])
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toBe("3 due\nb 2026-10-01\na 2026-11-20\nd 2026-11-25")
+  })
+
+  test("prints none when no review is due", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.writePage([["a", "2026-12-30"]])
+
+    expect(repo.skills("due").stdout).toBe("0 due")
+  })
+
+  test("adds a row for a skill that is new and counts it as not due", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.addSkill("fresh")
+    repo.writePage([["a", "2026-11-01"]])
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toBe("1 due\na 2026-11-01")
+    expect(repo.page()).toContain("| fresh | - | 2026-11-25 | 2026-12-05 |")
   })
 })
 

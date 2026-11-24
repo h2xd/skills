@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import { dirname, join } from "node:path"
 import { parseArgs } from "node:util"
 import { config, REPO_ROOT } from "../config.ts"
-import { formatPage, parsePage, type SkillRow, syncRows } from "./page.ts"
+import { dueSkills, formatPage, parsePage, type SkillRow, syncRows } from "./page.ts"
 
 const SKILL_FOLDERS = ".claude/skills"
 const DATE = /^\d{4}-\d{2}-\d{2}$/
@@ -44,6 +44,9 @@ function syncedPage(date: string): Synced {
 
 export function dueCommand(argv: string[]): void {
   const { values } = parseArgs({ args: argv, options: { today: { type: "string" } } })
-  const { rows, created } = syncedPage(today(values.today))
+  const date = today(values.today)
+  const { rows, created } = syncedPage(date)
   if (created) console.log(`created ${config.skills.page} with ${rows.length} rows`)
+  const due = dueSkills(rows, date)
+  console.log([`${due.length} due`, ...due.map((row) => `${row.skill} ${row.due}`)].join("\n"))
 }

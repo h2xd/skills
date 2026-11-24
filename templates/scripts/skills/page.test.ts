@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { formatPage, parsePage, syncRows } from "./page.ts"
+import { dueSkills, formatPage, parsePage, syncRows } from "./page.ts"
 
 const TODAY = "2026-11-25"
 
@@ -38,5 +38,23 @@ describe("the page text", () => {
     const again = formatPage(syncRows([], ["a", "b"], TODAY, 10), TODAY, edited)
     expect(again).toContain("A note from a person.")
     expect(parsePage(again).map((row) => row.skill)).toEqual(["a", "b"])
+  })
+})
+
+describe("dueSkills", () => {
+  const row = (skill: string, due: string) => ({
+    skill,
+    technology: "-",
+    updated: "2026-01-01",
+    due,
+  })
+
+  test("lists the skills due on or before today, oldest first", () => {
+    const rows = [row("c", "2026-11-25"), row("a", "2026-10-01"), row("future", "2026-11-26"), row("b", "2026-10-01")]
+    expect(dueSkills(rows, TODAY).map((due) => due.skill)).toEqual(["a", "b", "c"])
+  })
+
+  test("lists none when every review lies ahead", () => {
+    expect(dueSkills([row("a", "2026-12-01")], TODAY)).toEqual([])
   })
 })
