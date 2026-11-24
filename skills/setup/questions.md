@@ -237,3 +237,45 @@ the load step and the exact call. Then ask once for a tool setup does not
 know, which gets the empty slot.
 
 Done when each known tool has a yes or no, and each yes has its values.
+
+## Q. Technologies
+
+A Technology skill holds the rules an agent gets wrong in one technology of
+the repo. Setup finds the technologies and asks per technology. It runs no
+parser script. Read the files yourself:
+
+- the dependency manifests, such as `package.json`, `Cargo.toml`,
+  `pyproject.toml` or `go.mod`
+- the config files, such as `tsconfig.json`, a `Dockerfile` or a CI workflow
+- the decision records in the bundle
+
+List only a technology that has rules an agent can get wrong. A small library
+with one obvious call stays off the list.
+
+Ask one question per technology, at most four per call. Recommended: yes for a
+technology that a decision record names, or that has a seed in
+`templates/seeds/`, relative to the plugin root. Recommended: no for the rest.
+Each question names the technology, the rules the skill would hold, and the
+seed when one exists.
+
+After a yes, write the skill and its row in the same run:
+
+1. Copy the seed to `.claude/skills/<name>/` and adapt it to the repo. Without
+   a seed, write the skill from the manifests, the records and the code. Do
+   not search the web.
+2. Run `node scripts/skills.ts due`. It creates the Skills page when it is
+   missing and adds the row. Write the technology in the Technology cell.
+
+When the answer is no for every technology, write no skill and no row.
+Do not create the Skills page for that run.
+
+## R. Skills page
+
+`h2xd:session-reflect` keeps one row per repo-local skill on the Skills page,
+with the date of its last review and the date the next review is due.
+
+- `skills.page`, the repo-relative path of the page. Recommended:
+  `docs/agents/skills.md`, in the bundle, so the docs lint checks it.
+- `skills.reviewIntervalDays`, the days from a review to the next one.
+  Recommended: 10. Choose a smaller number for a repo whose skills change
+  fast, and a larger one for a stable repo.
