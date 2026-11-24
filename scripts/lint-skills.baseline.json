@@ -112,9 +112,6 @@
     "`origin/`, unless the user named one. Run `git log --format='%h %s%n%b' <base>..HEAD`,",
     "- Don't pass the body with `--body`. Shell quoting breaks backticks. Use `--body-file`."
   ],
-  "templates/seeds/lang-ts-base/SKILL.md": [
-    "  uses, such as `kind`, `type` or `tag`. A type with a `boolean` flag and optional"
-  ],
   "skills/lang-ts-deep-modules/SKILL.md": [
     "- **Docs**: the pages `node scripts/find-docs.ts --links-to <modules root>` lists.",
     "Done when `.dependency-cruiser.cjs` holds the five rules with the confirmed root.",
@@ -284,7 +281,7 @@
   "skills/what/SKILL.md": [
     "Done when the message is sent, and a reader who skipped the work could act on it."
   ],
-  "agents/committee-engineering-spike-builder.md": [
-    "   `git worktree add -b spike/<yyyymmdd-hhmm>-<call id> ../<repo>-spike-<yyyymmdd-hhmm>-<call id>`."
+  "templates/seeds/lang-ts-base/SKILL.md": [
+    "  uses, such as `kind`, `type` or `tag`. A type with a `boolean` flag and optional"
   ]
 }

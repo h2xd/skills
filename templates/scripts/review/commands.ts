@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { resolve } from "node:path"
 import { parseArgs } from "node:util"
 import { config } from "../config.ts"
+import { createWorktree } from "../worktree/create.ts"
 import { type ContextData, formatContext } from "./context.ts"
 import { formatFleet, parseNumstat, parseRaw, pickFleet } from "./fleet.ts"
 import {
@@ -71,32 +72,19 @@ function updateExistingWorktree(path: string): void {
   run(["git", "-C", path, "pull", "--ff-only"])
 }
 
-function createWorktree(mainWorktree: string, branch: string): string {
+function createReviewWorktree(mainWorktree: string, branch: string): string {
   const path = newWorktreePath(mainWorktree, branch)
   run(["git", "fetch", "origin", branch])
-  const localBranchExists =
-    runAllowingFailure([
-      "git",
-      "show-ref",
-      "--verify",
-      "--quiet",
-      `refs/heads/${branch}`,
-    ]).exitCode === 0
-  run(
-    localBranchExists
-      ? ["git", "worktree", "add", path, branch]
-      : [
-          "git",
-          "worktree",
-          "add",
-          "--track",
-          "-b",
-          branch,
-          path,
-          `origin/${branch}`,
-        ],
-  )
-  for (const command of config.worktreeSetup) run(command, path)
+  const { skipped } = createWorktree({
+    mainWorktree,
+    path,
+    branch,
+    base: `origin/${branch}`,
+    track: true,
+    setup: config.worktreeSetup,
+    links: config.worktreeLinks,
+  })
+  for (const note of skipped) console.error(`review: ${note}`)
   return path
 }
 
@@ -116,7 +104,7 @@ export function worktreeCommand(argv: string[]): void {
     console.log(existing.path)
     return
   }
-  console.log(createWorktree(entries[0].path, branch))
+  console.log(createReviewWorktree(entries[0].path, branch))
 }
 
 function docsRecordsFor(worktree: string, file: string): string[] {

@@ -3,6 +3,7 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { parseArgs } from "node:util"
 import { config } from "../config.ts"
+import { createWorktree } from "../worktree/create.ts"
 import { run, runAllowingFailure } from "../review/shell.ts"
 import {
   newWorktreePath,
@@ -96,14 +97,15 @@ export function worktreeCommand(argv: string[]): void {
     worktrees,
   })
   if (blocker) throw new Error(blocker)
-  run(["git", "worktree", "add", "-b", workerBranch, path, "HEAD"])
-  try {
-    for (const command of config.worktreeSetup) run(command, path)
-  } catch (error) {
-    run(["git", "worktree", "remove", "--force", path])
-    removeWorkerBranch(workerBranch)
-    throw error
-  }
+  const { skipped } = createWorktree({
+    mainWorktree: worktrees[0].path,
+    path,
+    branch: workerBranch,
+    base: "HEAD",
+    setup: config.worktreeSetup,
+    links: config.worktreeLinks,
+  })
+  for (const note of skipped) console.error(`implement: ${note}`)
   console.log(path)
 }
 

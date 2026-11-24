@@ -25,6 +25,7 @@
   "implement": { "maxWorkers": 3 },
   "skills": { "page": "docs/agents/skills.md", "reviewIntervalDays": 10 },
   "worktreeSetup": [["npm", "install"]],
+  "worktreeLinks": [],
   "mutation": {
     "enabled": true,
     "runner": "sh",

@@ -108,6 +108,13 @@ as argv lists, in `worktreeSetup`. `h2xd:review-pr`, `h2xd:review-fix`,
 `h2xd:code-arena` and the build workers of `h2xd:code-implement` run them. Recommended: the install the lockfile implies, for example
 `[["npm", "install"]]`, plus any build step the typecheck needs.
 
+Then `worktreeLinks`: the untracked files a new worktree needs from the main
+checkout, such as `.env.local` or `.claude/settings.local.json`. A worktree
+has only the tracked files, so an agent in it cannot reach these. Propose the
+untracked, ignored files that `git status --ignored` lists and the repo reads.
+Recommended: those, or none. `scripts/worktree.ts` links each listed file
+before it runs `worktreeSetup`, and skips a file the main checkout lacks.
+
 ## I. Mutation testing
 
 `h2xd:prove-tests` plants plausible bugs in changed lines and reports the ones

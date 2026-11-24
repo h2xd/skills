@@ -41,10 +41,14 @@ Done when `task.md` and `rubric.md` exist and `N` is set.
 
 ### 2. Create the worktrees
 
-For each candidate `n` from 1 to `N`, run
-`git worktree add -b arena/<slug>-<n> ../<repo>-arena-<slug>-<n> $BASE`.
-In each, run every command that
-`jq -c '.worktreeSetup[]' agents.config.json` lists.
+For each candidate `n` from 1 to `N`, run:
+
+```sh
+node scripts/worktree.ts ../<repo>-arena-<slug>-<n> \
+  --branch arena/<slug>-<n> --base $BASE
+```
+
+It runs the `worktreeSetup` commands and links the `worktreeLinks` files.
 
 Done when `git worktree list` shows `N` arena worktrees at `$BASE`.
 
