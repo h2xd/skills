@@ -130,6 +130,8 @@ After a session, one line per issue, worst first:
 🟢 #<n>: <the new state, and the comment posted>
 ```
 
+Show 🟪 for needs-info, 🟧 for ready-for-human, 🟩 for ready-for-agent.
+
 ## Do
 
 - Read earlier triage notes before you ask anything.
