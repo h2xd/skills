@@ -35,8 +35,10 @@ Read what exists. Assume nothing.
   `index.md`, a `log.md`, a decisions directory such as `decisions/`, `adr/`
   or `docs/adr/`, and the record format, MADR or Nygard.
 - Glossaries: `GLOSSARY.md`, `CONTEXT.md`, `docs/**/glossary*.md`.
-- Runtime: `node --version` missing or below 22.18: stop, suggest proto, nvm
-  or nodejs.org. The checks need it. Add a minimal `package.json` when absent.
+- Runtime: run `node --version`. When node is missing or older than 22.18,
+  stop and say so, and suggest proto, nvm or the nodejs.org installer. The lint
+  commands need it, and the hooks skip their checks without it. A repo without
+  `package.json` gets a minimal one.
 - Tests and stack: the test, typecheck and build commands, and any installed
   mutation tool, such as Stryker, mutmut, cargo-mutants, PIT or gremlins.
 - Hooks: `git config core.hooksPath`, `.husky/`, `.githooks/`, `lefthook.yml`
