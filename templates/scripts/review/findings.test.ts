@@ -58,6 +58,18 @@ function problemsOf(json: unknown): string[] {
 }
 
 describe("parseFindings", () => {
+  test("accepts white suggestion, rejects white question and green nitpick", () => {
+    const check = (severity: string, label: string) =>
+      problemsOf(rawFile("B", [rawFinding({ severity, label })]))
+    expect(check("white", "suggestion")).toEqual([])
+    expect(check("white", "nitpick")).toEqual([])
+    expect(check("white", "thought")).toEqual([])
+    expect(check("white", "question")).toHaveLength(1)
+    const green = check("green", "nitpick")
+    expect(green).toHaveLength(1)
+    expect(green[0]).toContain("note, praise")
+  })
+
   test("returns the typed file for a valid one", () => {
     const result = parseFindings(rawFile("B", [rawFinding({ lines: [12] })]))
     expect(result.ok).toBe(true)
@@ -292,6 +304,62 @@ describe("mergeFindings", () => {
     expect(review.body.includes("🔴 0 · 🟡 0 · 🟢 0\n")).toBe(true)
   })
 
+  test("starts a white comment with the white marker", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ id: "B-1", severity: "white", label: "suggestion", lines: [11, 11], subject: "opt" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments[0].body.startsWith("⚪ suggestion (non-blocking): opt")).toBe(true)
+  })
+
+  test("leaves a yellow comment without a marker", () => {
+    const { review } = mergeFindings([file("B", [finding()])], DIFF, CONTEXT)
+    expect(review.comments[0].body.startsWith("suggestion (non-blocking):")).toBe(true)
+  })
+
+  test("adds no summary bullet for a green note", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ id: "B-1", severity: "green", label: "note", lines: [11, 11], subject: "covered" }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.body.includes("- 🟢")).toBe(false)
+  })
+
+  test("keeps the suggestion of a white finding that overlaps a green one", () => {
+    const { review } = mergeFindings(
+      [
+        file("B", [
+          finding({ id: "B-1", severity: "green", label: "praise", lines: [11, 12], subject: "nice loop" }),
+        ]),
+        file("C", [
+          finding({
+            id: "C-1",
+            severity: "white",
+            label: "suggestion",
+            lines: [12, 12],
+            subject: "name it",
+            suggestion: "const index = 0",
+          }),
+        ]),
+      ],
+      DIFF,
+      CONTEXT,
+    )
+    expect(review.comments).toHaveLength(1)
+    expect(review.comments[0].body).toContain("suggestion (non-blocking)")
+    expect(review.comments[0].body).toContain("```suggestion\nconst index = 0\n```")
+  })
+
   test("sorts the comments worst first", () => {
     const { review } = mergeFindings(
       [
@@ -299,12 +367,13 @@ describe("mergeFindings", () => {
           finding({ id: "B-1", severity: "white", label: "nitpick", lines: [11, 11], subject: "nit" }),
           finding({ id: "B-2", severity: "red", label: "issue", lines: [13, 13], subject: "bug" }),
           finding({ id: "B-3", severity: "yellow", lines: [12, 12], subject: "meh" }),
+          finding({ id: "B-4", severity: "green", label: "note", lines: [10, 10], subject: "ok" }),
         ]),
       ],
       DIFF,
       CONTEXT,
     )
-    expect(review.comments.map((c) => c.line)).toEqual([13, 12, 11])
+    expect(review.comments.map((c) => c.line)).toEqual([13, 12, 11, 10])
   })
 
   test("sets REQUEST_CHANGES with a red, APPROVE without one", () => {

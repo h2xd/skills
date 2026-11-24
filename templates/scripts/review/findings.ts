@@ -66,6 +66,7 @@ export type MergeStats = {
 }
 
 const SEVERITIES: Severity[] = ["red", "yellow", "green", "white"]
+const RANK: Severity[] = ["red", "yellow", "white", "green"]
 const ICON: Record<Severity, string> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
 const LABELS: Record<Severity, string[]> = {
   red: ["issue", "todo"],
@@ -365,7 +366,7 @@ function unique<T>(values: T[]): T[] {
 
 function join(group: Group): Joined {
   const ranked = [...group.members].sort(
-    (a, b) => SEVERITIES.indexOf(a.severity) - SEVERITIES.indexOf(b.severity),
+    (a, b) => RANK.indexOf(a.severity) - RANK.indexOf(b.severity),
   )
   const primary = ranked[0]
   const fix = ranked.find(
@@ -426,8 +427,9 @@ function commentBody(joined: Joined): string {
   const decoration = UNDECORATED.includes(joined.label)
     ? ""
     : ` (${joined.severity === "red" ? "blocking" : "non-blocking"})`
+  const marker = joined.severity === "white" ? `${ICON.white} ` : ""
   return [
-    `${joined.label}${decoration}: ${joined.subject}`,
+    `${marker}${joined.label}${decoration}: ${joined.subject}`,
     joined.body,
     joined.suggestion === undefined
       ? undefined
@@ -493,7 +495,7 @@ function outsideItem(joined: Joined): string {
 
 function byWorst(a: Joined, b: Joined): number {
   return (
-    SEVERITIES.indexOf(a.severity) - SEVERITIES.indexOf(b.severity) ||
+    RANK.indexOf(a.severity) - RANK.indexOf(b.severity) ||
     a.file.localeCompare(b.file) ||
     a.range[0] - b.range[0]
   )

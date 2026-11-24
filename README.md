@@ -81,9 +81,9 @@ subagent pass its path, so the subagent uses the tools your repo has. A re-run
 reads those pages first, asks to keep, change or drop each known tool, and
 keeps the lines you added by hand.
 
-It ends with one status line per item. 🟢 means written, 🟡 means a follow-up,
-⚪ means optional, and 🔴 means something blocks a skill. Run it again to update the scripts or to
-change an answer.
+It ends with one status line per item. 🔴 means something blocks a skill, 🟡
+means a follow-up, 🟢 means written, and ⚪ means optional. Run it again to
+update the scripts or to change an answer.
 
 <br>
 
