@@ -122,15 +122,15 @@ When the user says "move #42 to `<state>`", follow [`moving.md`](moving.md).
 
 ## Report
 
-After a session, one line per issue, worst first:
+After a session, one line per issue, worst first. Show 🟪 for needs-info or
+an open **Block** edge, 🟧 for ready-for-human and 🟦 for ready-for-agent,
+in place of 🟢:
 
 ```
 🔴 #<n>: <blocked: conflicting states, a failed post, a claim that did not reproduce>
 🟡 #<n>: <needs-info or needs-triage, and what is missing>
 🟢 #<n>: <the new state, and the comment posted>
 ```
-
-Show 🟪 for needs-info, 🟧 for ready-for-human, 🟦 for ready-for-agent.
 
 ## Do
 

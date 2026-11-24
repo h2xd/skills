@@ -12,6 +12,16 @@ describe("this repo's tone", () => {
     expect(installed).toBe(template)
   })
 
+  test("lists every status and work-state marker in the tone and the GitHub text", () => {
+    const files = ["templates/output-styles/asd-ste100.md", "skills/setup-tone/github-text.md"]
+    for (const file of files) {
+      const text = readFileSync(join(ROOT, file), "utf8")
+      for (const marker of ["🔴", "🟡", "🟢", "⚪", "🟪", "🟧", "🟦"]) {
+        expect(text.includes(marker)).toBe(true)
+      }
+    }
+  })
+
   test("sets it as the default output style", () => {
     const settings = JSON.parse(readFileSync(join(ROOT, ".claude/settings.json"), "utf8"))
     expect(settings.outputStyle).toBe("ASD-STE100")
