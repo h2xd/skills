@@ -31,3 +31,13 @@ An entry looks like this:
 
 - **Meaning:** One group of committee agents with one lead, its members and its workers. The committee has two: design and engineering.
 - **Avoid:** Team, panel, group
+
+### Status marker
+
+- **Meaning:** An emoji at the start of a line that rates a finding or an item: 🔴 blocks, 🟡 needs attention, 🟢 is fine, ⚪ is optional. A [work-state marker](#work-state-marker) is the other scale.
+- **Avoid:** Severity icon, traffic light
+
+### Work-state marker
+
+- **Meaning:** An emoji at the start of a line that shows where a work item stands: 🟪 blocked, 🟧 ready for a person, 🟦 ready for an agent. It replaces 🟢 in a list of tickets and tasks.
+- **Avoid:** Status marker for a ticket, ready icon

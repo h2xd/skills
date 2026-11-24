@@ -26,7 +26,7 @@ calls pull requests merge requests and comments notes.
 | Claim | Fails when `glab issue view <n> -F json` lists `in-progress` under `labels`. Otherwise `glab issue update <n> --label "in-progress"`. Run it before **Assign** |
 | Unclaim | `glab issue update <n> --unlabel "in-progress"` |
 | Close | `glab issue close <n>`. Post the reason with **Comment** first |
-| Block | `glab api projects/:id/issues/<blocker>/links -X POST -f target_project_id={{PROJECT_PATH_ENCODED}} -f target_issue_iid=<n> -f link_type=blocks`. The `blocks` type needs GitLab Premium. On Free, leave this row out, and tickets keep a `## Blocked by` section. `{{PROJECT_PATH_ENCODED}}` is the project path with `/` written as `%2F`, such as `group%2Fapp` |
+| Block | `glab api projects/:id/issues/<blocker>/links -X POST -f target_project_id={{PROJECT_PATH_ENCODED}} -f target_issue_iid=<n> -f link_type=blocks`. The `blocks` type needs GitLab Premium. On Free, leave this row out, and tickets keep a `## Blocked by` section. `{{PROJECT_PATH_ENCODED}}` is the project path with `/` written as `%2F`, such as `group%2Fapp`. List with `glab api projects/:id/issues/<n>/links`, and read the entries whose `link_type` is `is_blocked_by` |
 | Link a MR | The MR description opens with `Closes #<n>`, one line per issue |
 | Open a PR | `glab mr create --target-branch <base> --title "<title>" --description "$(cat <file>)"`, add `--draft` for a draft. Edit an open MR with `glab mr update <n> --title "<title>" --description "$(cat <file>)"` |
 | PR status | `glab mr view <n> -F json`. Read `draft` and `detailed_merge_status`. Run it once more when `detailed_merge_status` is `checking`, `unchecked`, `preparing` or `approvals_syncing` |

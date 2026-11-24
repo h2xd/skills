@@ -115,7 +115,9 @@ One line per ticket, worst first, in dependency order within each status:
 ```
 🔴 <title>: <the create or link that failed, and the command to retry>
 🟡 <title> #<n>: <edges written as text, or a criterion the user left vague>
-🟢 <title> #<n>: blocked by <#n, #n> or none
+🟪 <title> #<n>: blocked by <#n, #n>
+🟧 <title> #<n>: ready for a person, no open blocker
+🟦 <title> #<n>: ready for an agent, no open blocker
 ```
 
 Then name the **frontier**: the tickets with no open blocker. Remind the user

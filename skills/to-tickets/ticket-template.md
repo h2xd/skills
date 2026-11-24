@@ -11,7 +11,7 @@ summary first, bullets, no walls of text.
 ## Summary
 
 - <What works when this ticket is done, in one line.>
-- Part of #<parent>. 🟢 Can start now | 🔴 Blocked by #<n>
+- Part of #<parent>. 🟪 Blocked by #<n> | 🟧 Ready for a person | 🟦 Ready for an agent
 
 ## What to build
 
