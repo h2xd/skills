@@ -22,9 +22,9 @@ read this file, because an output style does not reach them.
    ⚪ <item>: <optional, no action needed>
    ```
 
-   A list of work items, such as tickets, uses the work-state markers in place
-   of 🟢. 🟪 is blocked, or waits on another item or an answer. 🟧 is ready
-   for a person. 🟦 is ready for an agent.
+   In a list of work items, use 🟪 for blocked, 🟧 for ready for a person,
+   and 🟦 for ready for an agent, in place of 🟢.
+   🟪 also covers a wait on another item or an answer.
 
 3. **Short sections.** Bullets, not paragraphs. At most three sentences in a
    paragraph when prose is needed.

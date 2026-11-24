@@ -73,7 +73,7 @@ Show status with one marker per line, worst first:
 Use 🟡 only when the item needs attention. Use ⚪ for an item the reader
 may skip.
 In a list of work items, use 🟪 for blocked, 🟧 for ready for a person,
-and 🟦 for ready for an agent.
+and 🟦 for ready for an agent, in place of 🟢.
 Use the markers only for status. Do not use other emoji in prose.
 
 ## GitHub text
