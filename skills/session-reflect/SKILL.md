@@ -33,6 +33,7 @@ the unresolved review threads and the agent instructions file.
 
 For the technology lens, read [`technology.md`](technology.md). A technology
 that counts, or one that goes, is a lesson whose fix is a Technology skill.
+For skills due for review, read [`due.md`](due.md).
 
 Done when you hold a list of incidents, each with a short quote or turn from
 the session, or a commit SHA.
@@ -96,7 +97,8 @@ Use 🔴 for a mistake that repeated or cost the most time, 🟡 for one caught
 early, and ⚪ for a small cleanup, such as a no-op instruction.
 
 Each Technology skill to add or remove is one line in this block, with the
-same options. Do not ask a second question for it.
+same options. Do not ask a second question for it. All due skills are one
+line and one question, per [`due.md`](due.md), never one question per skill.
 
 List the dropped lessons after, one line each with the reason.
 
@@ -123,6 +125,7 @@ Done when the user chose an option for every lesson and every hit.
 - **Facts.** Run `h2xd:docs-wiki`, `h2xd:docs-glossary` or `h2xd:docs-adr`.
 - **Technology skills.** Add or remove each as
   [`technology.md`](technology.md) says.
+- **Due skills.** Act on the answer as [`due.md`](due.md) says.
 - **Issues.** File each with the Create operation in
   `docs/agents/issue-tracker.md`, in the shape of
   `../setup-tone/github-text.md`. The body holds the rule, the evidence and
