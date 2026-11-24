@@ -3,7 +3,7 @@
  * Keeps the Skills page, one row per repo-local skill, for h2xd:session-reflect.
  *
  *   node scripts/skills.ts due [--today YYYY-MM-DD]
- *   node scripts/skills.ts reviewed <skill> [--technology NAME] [--today YYYY-MM-DD]
+ *   node scripts/skills.ts reviewed <skill> [--today YYYY-MM-DD]
  *
  * `due` creates the page when it is missing, adds a row for each new
  * repo-local skill and lists the skills whose review is due, oldest first.

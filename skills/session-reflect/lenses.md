@@ -20,6 +20,7 @@ Scan the session once per lens. Each hit is an incident with its evidence.
 | Tool cost | A tool call that returned far more than the agent needed, or a slow loop a script would replace |
 | Information access | A fact the agent could not reach: dev server logs, a third-party service, CI output |
 | Status markers | A 🟡 the user treated as optional, or a ⚪ the user treated as needing attention. Also a request to stop seeing ⚪ items |
+| Technology | A decision record that adds a technology, or a technology the user chose in the session. The rules are in [`technology.md`](technology.md) |
 | No-ops | An instruction in a skill or the instructions file that no agent's behavior depends on |
 
 ## Keep or drop

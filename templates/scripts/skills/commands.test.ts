@@ -166,15 +166,6 @@ describe("skills.ts reviewed", () => {
     expect(repo.page()).toContain("| a | - | 2026-01-01 | 2026-11-01 |")
   })
 
-  test("records the technology of a Technology skill", () => {
-    const repo = sandbox()
-    repo.addSkill("lang-ts-base")
-
-    repo.skills("reviewed", "lang-ts-base", "--technology", "TypeScript")
-
-    expect(repo.page()).toContain("| lang-ts-base | TypeScript | 2026-11-25 | 2026-12-05 |")
-  })
-
   test("refuses a skill that is not repo-local and writes no row for it", () => {
     const repo = sandbox()
     repo.addSkill("a")

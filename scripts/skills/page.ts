@@ -55,14 +55,13 @@ export function markReviewed(
   skill: string,
   today: string,
   intervalDays: number,
-  technology?: string,
 ): SkillRow[] {
   if (!rows.some((row) => row.skill === skill)) throw new Error(`no row for ${skill}`)
   return rows.map((row) =>
     row.skill === skill
       ? {
           skill,
-          technology: technology ?? row.technology,
+          technology: row.technology,
           updated: today,
           due: addDays(today, intervalDays),
         }

@@ -124,6 +124,10 @@ record.
    **Link a PR** operation, which on GitHub is a `Closes #<n>` line. When the
    record ships with the code it decides, the PR body has both closing lines.
 
+4. When the record adds a technology, tell the user that
+   `h2xd:session-reflect` is the next step. It runs all its lenses, and its
+   technology lens proposes the Technology skill.
+
 Done when the record cites the issue, the issue names the record, and the PR
 closes the issue.
 
