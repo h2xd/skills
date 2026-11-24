@@ -19,7 +19,7 @@ import { join, resolve } from "node:path"
 import { parseYaml } from "../templates/scripts/yaml.ts"
 import { fileURLToPath } from "node:url"
 
-export const MAX_LINES = 150
+export const MAX_LINES = 180
 
 export const MAX_LINE_LENGTH = 80
 
