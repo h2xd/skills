@@ -307,6 +307,48 @@ describe("fixerPlans", () => {
     expect(second.text).not.toContain("| T2 |")
   })
 
+  test("keeps the lines below the table in every plan", () => {
+    const noted = `${plan}\n\nNotes: T1 must keep the public API of src/a.ts.\n`
+    const split = planFixSplit(parseFixItems(noted, threadsFor(7)), { fixMaxWorkers: 2 })
+
+    for (const file of fixerPlans(noted, split)) {
+      expect(file.text.endsWith("\n\nNotes: T1 must keep the public API of src/a.ts.\n")).toBe(true)
+    }
+  })
+
+  test("keeps the lines below the table in the order of the plan", () => {
+    const noted = `${plan}\nfirst note\n\nsecond note`
+    const split = planFixSplit(parseFixItems(noted, threadsFor(7)), { fixMaxWorkers: 2 })
+
+    expect(fixerPlans(noted, split)[1].text.endsWith("| T7 | fix | src/g.ts:7 | seventh | two |\nfirst note\n\nsecond note\n")).toBe(true)
+  })
+
+  test("leaves out a row of a later table that holds the id of a row of its fixer", () => {
+    const later = `${plan}\n\n| id | answer |\n|---|---|\n| T1 | keep the API |\n`
+    const split = planFixSplit(parseFixItems(later, threadsFor(7)), { fixMaxWorkers: 2 })
+
+    expect(fixerPlans(later, split)[0].text).not.toContain("keep the API")
+  })
+
+  test("leaves out the later table as a whole, header and separator too", () => {
+    const later = `${plan}\n\n| id | answer |\n|---|---|\n| T1 | keep the API |\n\nend\n`
+    const split = planFixSplit(parseFixItems(later, threadsFor(7)), { fixMaxWorkers: 2 })
+
+    expect(fixerPlans(later, split)[0].text).not.toContain("| answer |")
+    expect(fixerPlans(later, split)[0].text.endsWith("\n\n\nend\n")).toBe(true)
+  })
+
+  test("gives each fixer only its rows when the plan has no table header", () => {
+    const rows = Array.from({ length: 6 }, (_, i) => `| T${i + 1} | fix | src/f${i}.ts:1 | x |`)
+    const bare = rows.join("\n")
+    const split = planFixSplit(parseFixItems(bare, threadsFor(6)), { fixMaxWorkers: 2 })
+
+    expect(split.workers.length).toBe(2)
+    expect(fixerPlans(bare, split).map((file) => file.text)).toEqual(
+      split.workers.map((worker) => `${worker.items.map((id) => rows[Number(id.slice(1)) - 1]).join("\n")}\n`),
+    )
+  })
+
   test("writes a plan with no table header when the plan has none", () => {
     const bare = "| T1 | fix | src/a.ts:1 | x |"
     const split = planFixSplit(parseFixItems(bare, threadsFor(1)), SETTINGS)
@@ -317,6 +359,130 @@ describe("fixerPlans", () => {
 
 describe("parseFixItems with a table header", () => {
   const header = ["| id | bucket | where | change |", "|---|---|---|---|"]
+
+  test("reads the group of a header written in bold or in backticks", () => {
+    for (const cell of ["**Group**", "`Group`", "**`Group`**"]) {
+      const plan = [
+        `| Id | Bucket | Where | Change | ${cell} |`,
+        "|---|---|---|---|---|",
+        "| T1 | fix | src/a.ts:1 | x | topic |",
+      ].join("\n")
+
+      expect(parseFixItems(plan, threadsFor(1))).toEqual([
+        { id: "T1", file: "src/a.ts", group: "topic" },
+      ])
+    }
+  })
+
+  test("reads a group in bold and the same group without asterisks as one group", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | **Cat** |",
+      "| T2 | fix | src/b.ts:1 | x | cat |",
+      "| T3 | fix | src/c.ts:1 | x | **`CAT`** |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(3)).map((item) => item.group)).toEqual(["cat", "cat", "cat"])
+  })
+
+  test("a group column at the fourth cell does not reach a headerless table below a text line", () => {
+    const plan = [
+      "| Id | Bucket | Location | Group |",
+      "|---|---|---|---|",
+      "| T1 | fix | a.ts:1 | alpha |",
+      "",
+      "text",
+      "",
+      "| T2 | fix | b.ts:2 | shared reason |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(2))).toEqual([
+      { id: "T1", file: "a.ts", group: "alpha" },
+      { id: "T2", file: "b.ts" },
+    ])
+  })
+
+  test("a group column at the fourth cell does not reach a headerless table below a blank line", () => {
+    const plan = [
+      "| Id | Bucket | Location | Group |",
+      "|---|---|---|---|",
+      "| T1 | fix | a.ts:1 | alpha |",
+      "",
+      "| T2 | fix | b.ts:2 | shared reason |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(2)).map((item) => item.group)).toEqual(["alpha", undefined])
+  })
+
+  test("reads a logical or in backticks as text and keeps the group after it", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | `a || b` to `a && b` | topic |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([
+      { id: "T1", file: "src/a.ts", group: "topic" },
+    ])
+  })
+
+  test("reads a union type in backticks as text in a table with no header", () => {
+    const plan = "| T1 | fix | src/a.ts:1 | make it `string | null` |"
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([{ id: "T1", file: "src/a.ts" }])
+  })
+
+  test("reads a pipe in each of two code spans of one cell as text", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | `a | b` then `c | d` | topic |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))[0].group).toBe("topic")
+  })
+
+  test("keeps the pipe of a code span in the text of a group cell", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | `a | b` |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))[0].group).toBe("a | b")
+  })
+
+  test("a code span with a pipe in one cell leaves the cells after it apart", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | `a | b` | one |",
+      "| T2 | fix | src/b.ts:1 | `c` | two |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(2)).map((item) => item.group)).toEqual(["one", "two"])
+  })
+
+  test("an odd backtick in a cell with no closing one keeps the split of the pipes", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | a ` b | topic |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))[0].group).toBe("topic")
+  })
+
+  test("an odd backtick with no closing one does not hide a pipe that is too many", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | a ` b | c | topic |",
+    ].join("\n")
+
+    expect(() => parseFixItems(plan, threadsFor(1))).toThrow("T1 has 6 cells, the header has 5")
+  })
 
   test("a change text with an escaped pipe gives no group", () => {
     const plan = [

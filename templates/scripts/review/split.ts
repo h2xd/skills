@@ -15,14 +15,33 @@ const LOCATION = /^(.+?)(?::\d+(?:-\d+)?)?$/
 const GROUP_HEADER = "group"
 const FIFTH_CELL = 4
 
+const backticksIn = (text: string): number => text.split("`").length - 1
+
+function endOfCodeSpan(pieces: string[], start: number): number {
+  let open = 0
+  for (let end = start; end < pieces.length; end++) {
+    open += backticksIn(pieces[end])
+    if (open % 2 === 0) return end
+  }
+  return start
+}
+
 function cells(row: string): string[] {
-  return row
+  const pieces = row
     .trim()
     .replace(/^\|/, "")
     .replace(/\|$/, "")
     .split(/(?<!\\)\|/)
-    .map((cell) => cell.trim())
+  const merged: string[] = []
+  for (let start = 0; start < pieces.length; ) {
+    const end = endOfCodeSpan(pieces, start)
+    merged.push(pieces.slice(start, end + 1).join("|").trim())
+    start = end + 1
+  }
+  return merged
 }
+
+const withoutMarkup = (cell: string): string => cell.replaceAll(/[*`]/g, "")
 
 export function parseFixItems(plan: string, threads: string): FixItem[] {
   const known = new Set(
@@ -43,7 +62,7 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
     const next = lines[index + 1]?.trim() ?? ""
     if (next.startsWith("|") && cells(next).every((cell) => SEPARATOR_CELL.test(cell))) {
       header = row
-      groupColumn = row.findIndex((cell) => cell.toLowerCase() === GROUP_HEADER)
+      groupColumn = row.findIndex((cell) => withoutMarkup(cell).toLowerCase() === GROUP_HEADER)
     }
     if (!ITEM_ID.test(id) || bucket.replaceAll("*", "").toLowerCase() !== "fix") {
       continue
@@ -60,7 +79,7 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
         `${id} has a fifth cell and the table has no header: add a header row with a Group column`,
       )
     }
-    const group = groupColumn < 0 ? undefined : row[groupColumn]?.replaceAll("`", "").toLowerCase()
+    const group = groupColumn < 0 ? undefined : withoutMarkup(row[groupColumn] ?? "").toLowerCase()
     const path = (location ?? "").replaceAll("`", "")
     const file = path === "" || path === "-" ? undefined : LOCATION.exec(path)?.[1]
     items.push({
@@ -177,14 +196,35 @@ function rowId(line: string): string | undefined {
   return ITEM_ID.test(id) ? id : undefined
 }
 
+function endOfTable(lines: string[], start: number): number {
+  const length = lines.slice(start).findIndex((line) => !line.trim().startsWith("|"))
+  return length < 0 ? lines.length : start + length
+}
+
+function withoutItemTables(lines: string[]): string[] {
+  const kept: string[] = []
+  for (let start = 0; start < lines.length; ) {
+    const isTable = lines[start].trim().startsWith("|")
+    const end = isTable ? endOfTable(lines, start) : start + 1
+    const block = lines.slice(start, end)
+    if (!block.some((line) => rowId(line) !== undefined)) kept.push(...block)
+    start = end
+  }
+  return kept
+}
+
 export function fixerPlans(plan: string, split: FixSplit): FixerPlan[] {
   const lines = plan.split("\n")
-  const preamble = lines.slice(0, Math.max(0, lines.findIndex((line) => rowId(line) !== undefined)))
+  const firstRow = Math.max(0, lines.findIndex((line) => rowId(line) !== undefined))
+  const tableEnd = endOfTable(lines, firstRow)
+  const above = lines.slice(0, firstRow)
+  const below = lines.slice(tableEnd)
   return split.workers.map((worker) => ({
     name: `plan-${worker.id}.md`,
     text: `${[
-      ...preamble,
-      ...lines.filter((line) => worker.items.includes(rowId(line) ?? "")),
-    ].join("\n")}\n`,
+      ...above,
+      ...lines.slice(firstRow, tableEnd).filter((line) => worker.items.includes(rowId(line) ?? "")),
+      ...withoutItemTables(below),
+    ].join("\n").trimEnd()}\n`,
   }))
 }
