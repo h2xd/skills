@@ -18,6 +18,7 @@ read this file, because an output style does not reach them.
    ```
    🔴 <item>: <what is broken or blocked, and the next action>
    🟡 <item>: <what is at risk or partial, and needs attention>
+   🟤 <item>: <out of scope for this run, and why>
    🟢 <item>: <what is done or healthy>
    ⚪ <item>: <optional, no action needed>
    ```
@@ -25,6 +26,10 @@ read this file, because an output style does not reach them.
    In a list of work items, use 🟪 for blocked, 🟧 for ready for a person,
    and 🟦 for ready for an agent, in place of 🟢.
    🟪 also covers a wait on another item or an answer.
+
+   A skill fixes a 🟡 item in the run that finds it. It does not end with a
+   follow-up line. 🟤 marks an item that is too big for the run, or outside
+   the task, with the reason.
 
 3. **Short sections.** Bullets, not paragraphs. At most three sentences in a
    paragraph when prose is needed.

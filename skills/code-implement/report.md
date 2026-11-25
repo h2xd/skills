@@ -8,11 +8,12 @@ first:
 🔴 <criterion>: <not built, and why>
 🔴 <n> blocking threads still open: <why each one is open>
 🔴 <check>: failed, so the chain stopped: <the error>
-🟡 <item>: <a check left open, a follow-up ticket to file>
+🟡 <item>: <a check left open that only the user can close>
 🟡 #<n>: not assigned to the user, because <why the Assign operation failed>
 🟡 docs/agents/subagents/<role>.md: missing, run /h2xd:setup
 🟡 <n> non-blocking threads still open: <why each one is open>
 🟡 <worktree path>: kept, because its commits did not land
+🟤 <item>: out of scope, <too big for the run or outside the ticket, and why>
 🟪 #<n>: not started, blocked by <#m, #m>
 🟢 #<n>: open issues that mention the ticket: <numbers, or none>
 🟢 split: <n> build workers, criteria <numbers per worker>
@@ -58,7 +59,7 @@ above. When the PR is open and not a draft, a 🔴 line makes the state
 A report starts like this:
 
 ```
-checks pending: 0 blocking, 1 non-blocking
-🟡 follow-up: file a ticket for the stale page docs/undo.md
+checks pending: 0 blocking, 0 non-blocking
+🟤 docs/undo.md: out of scope, the page is stale and the ticket does not own it
 🟢 #42: 3 criteria built, 4 commits, <PR URL>, approve
 ```
