@@ -68,12 +68,7 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 - Never run `h2xd:review-gate`, and never merge.
 
 After `h2xd:review-fix`, run `h2xd:review-pr` once. That pair is one round.
-Count the rounds from the PR: the reviews of `h2xd:review-pr` that your `gh`
-login posted, after the first. Such a review has the count line
-`🔴 <n> · 🟡 <n> · 🟢 <n>` in its body. A reply to a thread has an empty
-body, and a verdict of `h2xd:review-gate` has no count line, so they do not
-count. Read them with `gh pr view --json reviews`. After a `h2xd:review-pr`,
-go to step 4.
+After a `h2xd:review-pr`, go to step 4.
 
 Done when the skill finished and its report is read.
 
@@ -85,14 +80,15 @@ and 🟢 when it starts with `praise:` or `note:`. Any other open thread is
 🟡. An open ⚪ thread does not count. A review with no thread counts as
 100%. With fewer than 10 threads, all must be 🟢. Run
 `node scripts/review.ts share <pr>`. It prints the counts, the share and
-`reached: yes` or `reached: no`. The share and the round limit are
-`nitro.goalShare` and `nitro.maxRounds` in `agents.config.json`.
+`goal:`. It prints `rounds:` and `round limit:`, and last `reached: yes` or
+`reached: no`. The goal and the limit are `nitro.goalShare` and
+`nitro.maxRounds` in `agents.config.json`.
 
 - `reached: yes`. Report and stop. The final approval and the merge stay with
   the user. Never run `h2xd:review-gate`.
-- `reached: no` after `nitro.maxRounds` rounds. Report the share it reached
-  and stop. Do not start a further round.
-- `reached: no` below the limit. Go back to step 2.
+- `reached: no` and `rounds:` is at least `round limit:`. Report the share it
+  reached and stop. Do not start a further round.
+- `reached: no` and `rounds:` is below `round limit:`. Go back to step 2.
 
 Done when the share is printed and you chose to report, to stop or to go on.
 

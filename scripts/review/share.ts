@@ -1,4 +1,4 @@
-import { commentSeverity, type Severity } from "./findings.ts"
+import { commentSeverity, isReviewBody, type Severity } from "./findings.ts"
 
 export type Marker = "🟢" | "🟡" | "🔴" | "⚪"
 
@@ -37,7 +37,13 @@ export function reviewShare(markers: Marker[], goalShare: number): Share {
   return { green, yellow, red, white: count("⚪"), counted, percent, reached: red === 0 && enough }
 }
 
-export function formatShare(share: Share, goalShare: number): string {
+export function reviewRounds(reviewBodies: string[]): number {
+  return Math.max(0, reviewBodies.filter(isReviewBody).length - 1)
+}
+
+export type ShareReport = { goalShare: number; rounds: number; maxRounds: number }
+
+export function formatShare(share: Share, report: ShareReport): string {
   return [
     `threads: ${share.counted + share.white}`,
     `🟢 ${share.green}`,
@@ -45,7 +51,9 @@ export function formatShare(share: Share, goalShare: number): string {
     `🔴 ${share.red}`,
     `⚪ ${share.white}`,
     `share: ${share.percent}%`,
-    `goal: ${Math.round(goalShare * 100)}%`,
+    `goal: ${Math.round(report.goalShare * 100)}%`,
+    `rounds: ${report.rounds}`,
+    `round limit: ${report.maxRounds}`,
     `reached: ${share.reached ? "yes" : "no"}`,
   ].join("\n")
 }

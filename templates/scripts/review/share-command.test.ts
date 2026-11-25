@@ -20,6 +20,8 @@ if (args.startsWith("pr view")) {
     mergeable: "MERGEABLE", mergeStateStatus: "CLEAN" }))
 } else if (args.startsWith("repo view")) {
   console.log(JSON.stringify({ owner: { login: "o" }, name: "r" }))
+} else if (args.startsWith("api user")) {
+  console.log("me")
 } else if (args.startsWith("api graphql")) {
   const threads = JSON.parse(process.env.FAKE_THREADS)
   console.log(JSON.stringify({ data: { repository: { pullRequest: {
@@ -28,7 +30,8 @@ if (args.startsWith("pr view")) {
       startLine: null, originalLine: 1,
       comments: { ...page, nodes: bodies.map((body) => ({ author: { login: "x" }, body, url: "u", createdAt: "" })) },
     })) },
-    reviews: { ...page, nodes: [] },
+    reviews: { ...page, nodes: JSON.parse(process.env.FAKE_REVIEWS).map(({ login, body }) => ({
+      author: { login }, state: "COMMENTED", body, url: "u", submittedAt: "" })) },
     comments: { ...page, nodes: [] },
   } } } }))
 } else {
@@ -55,13 +58,16 @@ const open = (...bodies: string[]): FakeThread => ({ bodies, resolved: false })
 
 const resolved = (...bodies: string[]): FakeThread => ({ bodies, resolved: true })
 
-function share(threads: FakeThread[], scripts = SCRIPTS, args: string[] = []) {
+type FakeReview = { login: string; body: string }
+
+function share(threads: FakeThread[], scripts = SCRIPTS, args: string[] = [], reviews: FakeReview[] = []) {
   const result = spawnSync(process.execPath, [join(scripts, "review.ts"), "share", ...args], {
     encoding: "utf8",
     env: {
       ...envWithoutGit(),
       PATH: `${root}:${process.env.PATH}`,
       FAKE_THREADS: JSON.stringify(threads),
+      FAKE_REVIEWS: JSON.stringify(reviews),
       FAKE_LOG: join(root, "gh.log"),
     },
   })
@@ -96,6 +102,8 @@ describe("review.ts share", () => {
       "⚪ 1",
       "share: 50%",
       "goal: 90%",
+      "rounds: 0",
+      "round limit: 3",
       "reached: no",
     ])
   })
@@ -136,19 +144,36 @@ describe("review.ts share", () => {
     for (const call of calls) expect(realpathSync(call.cwd)).toBe(realpathSync(worktree))
   })
 
-  test("reads the goal from agents.config.json", () => {
+  test("prints the rounds that the gh login posted and the round limit", () => {
+    const review = "Approve: no blocking finding.\n\n🔴 0 · 🟡 1 · 🟢 0\n\n### Findings"
+    const result = share([], SCRIPTS, [], [
+      { login: "me", body: review },
+      { login: "someone", body: review },
+      { login: "someone", body: review },
+      { login: "me", body: "" },
+      { login: "me", body: review },
+      { login: "me", body: "🟢 Gate: approve. No review thread is open." },
+      { login: "me", body: review },
+    ])
+
+    const lines = result.out.split("\n")
+    expect(lines.slice(-3)).toEqual(["rounds: 2", "round limit: 3", "reached: yes"])
+  })
+
+  test("reads the goal and the round limit from agents.config.json", () => {
     const scripts = join(root, "repo", "scripts")
     cpSync(SCRIPTS, scripts, { recursive: true, filter: (source) => !source.endsWith(".test.ts") })
     writeFileSync(join(root, "repo", "package.json"), '{"type":"module"}\n')
     writeFileSync(
       join(root, "repo", "agents.config.json"),
-      JSON.stringify({ nitro: { goalShare: 0.5 } }),
+      JSON.stringify({ nitro: { goalShare: 0.5, maxRounds: 5 } }),
     )
     const threads = Array.from({ length: 10 }, (_, index) =>
       index < 5 ? resolved("suggestion (non-blocking): ok") : open("suggestion (non-blocking): open"),
     )
 
     expect(share(threads, scripts).out).toContain("goal: 50%")
+    expect(share(threads, scripts).out).toContain("round limit: 5")
     expect(share(threads, scripts).out).toContain("reached: yes")
     expect(share(threads).out).toContain("reached: no")
   })

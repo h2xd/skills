@@ -37,9 +37,9 @@ import {
 import { planReplies, postReplies } from "./reply.ts"
 import { resolveThreads, threadNodeIds } from "./resolve.ts"
 import { run, runAllowingFailure } from "./shell.ts"
-import { formatShare, reviewShare, threadMarker } from "./share.ts"
+import { formatShare, reviewRounds, reviewShare, threadMarker } from "./share.ts"
 import { tallyThreads } from "./tally.ts"
-import { formatThreadsDocument, unrepliedSummaryItems } from "./threads.ts"
+import { formatThreadsDocument, loginOf, unrepliedSummaryItems } from "./threads.ts"
 import { collectWarnings, formatWarnings } from "./warnings.ts"
 import {
   findWorktreeForBranch,
@@ -235,9 +235,19 @@ export function shareCommand(argv: string[]): void {
   const worktree = values.worktree ? resolve(values.worktree) : undefined
   const pullRequest = viewPullRequest(positionals[0], worktree)
   const { owner, name } = repositoryName(worktree)
-  const { threads } = fetchReviewData(owner, name, pullRequest.number, worktree)
+  const { threads, reviews } = fetchReviewData(owner, name, pullRequest.number, worktree)
+  const login = authenticatedLogin(worktree)
   const share = reviewShare(threads.map(threadMarker), config.nitro.goalShare)
-  emit(formatShare(share, config.nitro.goalShare))
+  const rounds = reviewRounds(
+    reviews.filter((review) => loginOf(review.author) === login).map((review) => review.body),
+  )
+  emit(
+    formatShare(share, {
+      goalShare: config.nitro.goalShare,
+      rounds,
+      maxRounds: config.nitro.maxRounds,
+    }),
+  )
 }
 
 export function replyCommand(argv: string[]): void {
