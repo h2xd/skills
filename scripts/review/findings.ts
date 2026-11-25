@@ -77,6 +77,7 @@ const LABELS: Record<Severity, string[]> = {
 const UNDECORATED = ["thought", "note", "praise"]
 const BLOCKING = "blocking"
 const NON_BLOCKING = "non-blocking"
+const COUNT_LINE = /^🔴 \d+ · 🟡 \d+ · 🟢 \d+$/m
 const GREEN_LABEL = new RegExp(`^(?:${LABELS.green.join("|")}):`)
 const DECORATED_LABEL = new RegExp(`^[^\\n(]*\\((${NON_BLOCKING}|${BLOCKING})\\):`)
 const REQUIRED_FIELDS = [
@@ -555,6 +556,14 @@ function verdictLine(
   return `${intended}: ${reason}.`
 }
 
+function countLine(red: number, yellow: number, green: number): string {
+  return `🔴 ${red} · 🟡 ${yellow} · 🟢 ${green}`
+}
+
+export function isReviewBody(body: string): boolean {
+  return COUNT_LINE.test(body)
+}
+
 function bulletKey(joined: Joined): string {
   return `- ${ICON[joined.severity]} \`${location(joined)}\`:`
 }
@@ -622,7 +631,7 @@ export function mergeFindings(
   const models = unique(joined.flatMap((item) => item.models))
   const body = [
     verdictLine(event, intended, reds, context),
-    `🔴 ${count("red")} · 🟡 ${count("yellow")} · 🟢 ${count("green")}`,
+    countLine(count("red"), count("yellow"), count("green")),
     `${FINDINGS_HEADING}\n\n${bullets.length > 0 ? bullets.join("\n") : "None."}`,
     `${OUTSIDE_HEADING}\n\n${outside.length > 0 ? outside.map(outsideItem).join("\n") : "None."}`,
     `${REVIEWERS_HEADING}\n\n${[

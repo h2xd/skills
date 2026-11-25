@@ -1,6 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { formatShare, type Marker, reviewShare, threadMarker } from "./share.ts"
+import { formatShare, type Marker, reviewRounds, reviewShare, threadMarker } from "./share.ts"
+import { mergeFindings } from "./findings.ts"
 
 const many = (green: number, yellow = 0, red = 0, white = 0): Marker[] => [
   ...Array(green).fill("🟢"),
@@ -113,13 +114,86 @@ describe("reviewShare", () => {
 })
 
 describe("formatShare", () => {
-  test("prints each count, the share and whether the goal is reached", () => {
-    expect(formatShare(reviewShare(many(9, 1, 0, 2), 0.9), 0.9)).toBe(
-      ["threads: 12", "🟢 9", "🟡 1", "🔴 0", "⚪ 2", "share: 90%", "goal: 90%", "reached: yes"].join("\n"),
+  const rounds = { rounds: 1, maxRounds: 3 }
+
+  test("prints each count, the share, the rounds and whether the goal is reached", () => {
+    expect(formatShare(reviewShare(many(9, 1, 0, 2), 0.9), { goalShare: 0.9, ...rounds })).toBe(
+      [
+        "threads: 12",
+        "🟢 9",
+        "🟡 1",
+        "🔴 0",
+        "⚪ 2",
+        "share: 90%",
+        "goal: 90%",
+        "rounds: 1",
+        "round limit: 3",
+        "reached: yes",
+      ].join("\n"),
     )
   })
 
   test("says no when the goal is missed", () => {
-    expect(formatShare(reviewShare(many(1, 0, 1), 0.9), 0.9)).toContain("reached: no")
+    expect(formatShare(reviewShare(many(1, 0, 1), 0.9), { goalShare: 0.9, ...rounds })).toContain("reached: no")
+  })
+})
+
+describe("reviewRounds", () => {
+  const written = (reds: number, yellows: number): string =>
+    mergeFindings(
+      [
+        {
+          reviewer: "B",
+          findings: [
+            ...Array.from({ length: reds }, (_, index) => ({
+              id: `B-${index + 1}`,
+              severity: "red" as const,
+              file: "src/a.ts",
+              lines: [index + 1] as [number],
+              label: "issue",
+              subject: "bug",
+              body: "It breaks.",
+              "found-by": ["Claude"],
+            })),
+            ...Array.from({ length: yellows }, (_, index) => ({
+              id: `B-${reds + index + 1}`,
+              severity: "yellow" as const,
+              file: "src/a.ts",
+              lines: [reds + index + 1] as [number],
+              label: "suggestion",
+              subject: "name it",
+              body: "Rename.",
+              "found-by": ["Claude"],
+            })),
+          ],
+        },
+      ],
+      "",
+      { headSha: "abc", reviewerLogin: "bot", author: "dev", pickReasons: [] },
+    ).review.body
+
+  test("counts no round when nothing was reviewed", () => {
+    expect(reviewRounds([])).toBe(0)
+  })
+
+  test("counts no round for the first review of review-pr", () => {
+    expect(reviewRounds([written(1, 2)])).toBe(0)
+  })
+
+  test("counts one round for two reviews of review-pr", () => {
+    expect(reviewRounds([written(1, 2), written(0, 0)])).toBe(1)
+  })
+
+  test("counts a review as the writer of review-pr formats it, with any counts", () => {
+    expect(reviewRounds([written(0, 0), written(3, 0), written(0, 1)])).toBe(2)
+  })
+
+  test("does not count a reply with an empty body or a verdict of the gate", () => {
+    const gate = "🟢 Gate: approve. No review thread is open."
+    expect(reviewRounds([written(1, 0), "", gate, written(0, 0), ""])).toBe(1)
+  })
+
+  test("does not count a body that only mentions a count line inside a sentence", () => {
+    expect(reviewRounds([written(0, 0), "I saw 🔴 1 · 🟡 0 · 🟢 0 in the last review"])).toBe(0)
   })
 })

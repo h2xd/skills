@@ -17,6 +17,9 @@
  *   node scripts/review.ts split <threads.md> <plan.md> --out split.md
  *   node scripts/review.ts fleet --base <branch> [--worktree PATH] [--one-way-door] [--out FILE]
  *
+ * share prints the review threads by marker, the share and goal, then the
+ * rounds of review-pr after the first and the round limit, and last reached.
+ *
  * Output is markdown on stdout, or in the file given by --out. A failure prints
  * one line to stderr and exits 1. The logic lives in scripts/review/.
  */
