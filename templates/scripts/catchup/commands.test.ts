@@ -97,7 +97,6 @@ function sandbox(): Repo {
   }
 }
 
-/** Ada commits on 2 and 4 Nov, Bob on 18 Nov, then Ada works on a ticket branch. */
 function history(): Repo {
   const repo = sandbox()
   repo.commit("README.md", "2026-11-02", "ada", "feat: start")
@@ -216,6 +215,18 @@ describe("catchup.ts facts, the repo scope", () => {
     const result = history().catchup("facts", "--scope", "repo")
 
     expect(result.stdout).toContain("scope: repo")
+  })
+
+  test("takes the default branch from the remote, and gives it the repo scope", () => {
+    const repo = history()
+    repo.git("checkout", "main")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines).toContain("scope: repo")
+    expect(lines).toContain("branch: main")
   })
 
   test("refuses a scope it does not know", () => {
