@@ -315,6 +315,17 @@ describe("catchup.ts facts, the repo scope", () => {
     expect(result.stdout).toContain("commits per week:")
   })
 
+  test("lists at most 10 tags in the Documentary", () => {
+    const repo = history()
+    repo.git("checkout", "main")
+    for (let release = 1; release <= 11; release++) repo.git("tag", `v0.${release}.0`)
+
+    const result = repo.catchup("facts", "--user", "nobody@example.com")
+
+    const tags = result.stdout.split("\n").filter((line) => /^- v0\.\d+\.0 /.test(line))
+    expect(tags).toHaveLength(10)
+  })
+
   test("an argument picks the repo scope on a ticket branch", () => {
     const result = history().catchup("facts", "--scope", "repo")
 
