@@ -68,10 +68,12 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 - Never run `h2xd:review-gate`, and never merge.
 
 After `h2xd:review-fix`, run `h2xd:review-pr` once. That pair is one round.
-Count the rounds from the PR: the reviews with a body that your `gh` login
-posted, after the first. A reply to a thread is a review with an empty body,
-so it does not count. Read them with `gh pr view --json reviews`. After a
-`h2xd:review-pr`, go to step 4.
+Count the rounds from the PR: the reviews of `h2xd:review-pr` that your `gh`
+login posted, after the first. Such a review has the count line
+`🔴 <n> · 🟡 <n> · 🟢 <n>` in its body. A reply to a thread has an empty
+body, and a verdict of `h2xd:review-gate` has no count line, so they do not
+count. Read them with `gh pr view --json reviews`. After a `h2xd:review-pr`,
+go to step 4.
 
 Done when the skill finished and its report is read.
 
