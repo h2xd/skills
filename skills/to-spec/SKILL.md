@@ -104,6 +104,11 @@ One line per item, worst first:
 Close with the next step: run `/h2xd:to-tickets` to split the spec, and
 `h2xd:docs-adr` records each decision listed as `Needs a record`.
 
+When the user builds the spec as one PR, write that in its summary.
+`h2xd:code-implement` then takes the user stories as the acceptance criteria.
+Stories that share a file go to one build worker, so a spec with more than
+one topic builds faster after `/h2xd:to-tickets`.
+
 Done when the issue URL and every open item have their line.
 
 ## Do

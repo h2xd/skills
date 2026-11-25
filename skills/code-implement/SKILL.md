@@ -35,6 +35,10 @@ names. Check each blocker in its `## Blocked by` section, and the ones a
 - When the ticket has no acceptance criteria, or a criterion you cannot check,
   stop. Offer `h2xd:plan-grill` to settle them, or `/h2xd:plan-triage` to write
   a brief.
+- A spec is the one exception. It has the label that the tracker page gives a
+  spec, and it says that the user builds it as one PR. Its user stories are
+  then the acceptance criteria, in their order. Take the test entry points
+  from its testing decisions. Add a ⚪ line that says so.
 
 Then check who holds the ticket. Read its assignees from **View**. Run the
 tracker page's **Open PRs closing a ticket** lookup. Run **Search** for `#<n>`
@@ -82,6 +86,9 @@ Done when `git branch --show-current` prints the new branch.
    with all of them, go to [step 4](#4-build), and add a ⚪ line.
 4. Start one scout and group the criteria, per
    [`planning.md`](planning.md). It ends with `$WORK/split.md`.
+5. For a spec, the verdict is often `single`, because its stories share a
+   settings file or a catalog. Say so in one line before step 4. Name
+   `/h2xd:to-tickets` as the way to more than one build worker. Do not stop.
 
 Done when every criterion belongs to exactly one build worker, or to step 5
 as a checks criterion.
