@@ -18,3 +18,4 @@ its path. Add this line to the chat summary of step 7 in
 # More than 5 fix items
 
 Group the items and start one fixer per group, as [`split.md`](split.md) says.
+Each fixer gets its own `plan-<id>.md`, not the whole `plan.md`.

@@ -1,4 +1,4 @@
-export type FixItem = { id: string; file: string | undefined }
+export type FixItem = { id: string; file: string | undefined; group?: string }
 
 export type SplitSettings = { fixMaxWorkers: number }
 
@@ -27,7 +27,7 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
   const items: FixItem[] = []
   for (const line of plan.split("\n")) {
     if (!line.trim().startsWith("|")) continue
-    const [id, bucket, location] = cells(line)
+    const [id, bucket, location, , group] = cells(line)
     if (!ITEM_ID.test(id) || bucket.replaceAll("*", "").toLowerCase() !== "fix") {
       continue
     }
@@ -35,31 +35,41 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
     if (items.some((item) => item.id === id)) throw new Error(`${id} has two rows`)
     const path = (location ?? "").replaceAll("`", "")
     const file = path === "" || path === "-" ? undefined : LOCATION.exec(path)?.[1]
-    items.push({ id, file: file?.replace(/^\.\//, "") })
+    items.push({
+      id,
+      file: file?.replace(/^\.\//, ""),
+      ...(group === undefined || group === "" || group === "-" ? {} : { group }),
+    })
   }
   return items
 }
 
-function sameFileGroups(items: FixItem[]): FixItem[][] {
-  const groups: FixItem[][] = []
-  const byFile = new Map<string, FixItem[]>()
+function unitKey(item: FixItem): string | undefined {
+  if (item.group !== undefined) return `group:${item.group}`
+  return item.file === undefined ? undefined : `file:${item.file}`
+}
+
+function unitsOf(items: FixItem[]): FixItem[][] {
+  const units: FixItem[][] = []
+  const byKey = new Map<string, FixItem[]>()
   for (const item of items) {
-    const group = item.file === undefined ? undefined : byFile.get(item.file)
-    if (group) {
-      group.push(item)
+    const key = unitKey(item)
+    const unit = key === undefined ? undefined : byKey.get(key)
+    if (unit) {
+      unit.push(item)
       continue
     }
     const created = [item]
-    groups.push(created)
-    if (item.file !== undefined) byFile.set(item.file, created)
+    units.push(created)
+    if (key !== undefined) byKey.set(key, created)
   }
-  return groups
+  return units
 }
 
 export function planFixSplit(items: FixItem[], settings: SplitSettings): FixSplit {
   if (items.length === 0) return { workers: [], reasons: ["no fix items"] }
   const order = new Map(items.map((item, index) => [item.id, index]))
-  const groups = sameFileGroups(items)
+  const groups = unitsOf(items)
   if (!Number.isInteger(settings.fixMaxWorkers)) {
     throw new Error(`review.fixMaxWorkers must be a whole number, not ${JSON.stringify(settings.fixMaxWorkers)}`)
   }
@@ -102,7 +112,7 @@ export function planFixSplit(items: FixItem[], settings: SplitSettings): FixSpli
   const reasons = [`${items.length} fix items, at most ${MAX_ITEMS} per fixer worker`]
   if (workers.some((worker) => worker.items.length > MAX_ITEMS)) {
     reasons.push(
-      `a group holds more than ${MAX_ITEMS} items: the same file or the cap of ${cap} fixer workers`,
+      `a group holds more than ${MAX_ITEMS} items: the same file, one group or the cap of ${cap} fixer workers`,
     )
   }
   return { workers, reasons }
@@ -126,4 +136,24 @@ export function formatFixSplit(split: FixSplit): string {
     ...split.reasons.map((reason) => `- ${reason}`),
     ``,
   ].join("\n")
+}
+
+export type FixerPlan = { name: string; text: string }
+
+function rowId(line: string): string | undefined {
+  if (!line.trim().startsWith("|")) return undefined
+  const id = cells(line)[0]
+  return ITEM_ID.test(id) ? id : undefined
+}
+
+export function fixerPlans(plan: string, split: FixSplit): FixerPlan[] {
+  const lines = plan.split("\n")
+  const preamble = lines.slice(0, Math.max(0, lines.findIndex((line) => rowId(line) !== undefined)))
+  return split.workers.map((worker) => ({
+    name: `plan-${worker.id}.md`,
+    text: `${[
+      ...preamble,
+      ...lines.filter((line) => worker.items.includes(rowId(line) ?? "")),
+    ].join("\n")}\n`,
+  }))
 }

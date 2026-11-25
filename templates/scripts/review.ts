@@ -20,6 +20,8 @@
  * share prints the review threads by marker, the share and goal, then the
  * rounds of review-pr after the first and the round limit, and last reached.
  *
+ * split writes split.md to --out, and plan-<id>.md next to it for each fixer.
+ *
  * Output is markdown on stdout, or in the file given by --out. A failure prints
  * one line to stderr and exits 1. The logic lives in scripts/review/.
  */

@@ -1,7 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
 import { DEFAULTS } from "../config.ts"
-import { formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
+import { fixerPlans, formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
 
 const SETTINGS = { fixMaxWorkers: 3 }
 
@@ -19,6 +19,19 @@ function planFor(files: string[]): string {
 
 function groupsOf(files: string[], settings = SETTINGS): string[][] {
   const items = parseFixItems(planFor(files), threadsFor(files.length))
+  return planFixSplit(items, settings).workers.map((worker) => worker.items)
+}
+
+function groupedPlan(rows: [file: string, group: string][]): string {
+  return [
+    "| id | bucket | where | change | group |",
+    "|---|---|---|---|---|",
+    ...rows.map(([file, group], i) => `| T${i + 1} | fix | ${file}:${i + 1} | change | ${group} |`),
+  ].join("\n")
+}
+
+function groupedWorkers(rows: [string, string][], settings = SETTINGS): string[][] {
+  const items = parseFixItems(groupedPlan(rows), threadsFor(rows.length))
   return planFixSplit(items, settings).workers.map((worker) => worker.items)
 }
 
@@ -135,7 +148,143 @@ describe("planFixSplit", () => {
   })
 })
 
+describe("planFixSplit with a group cell", () => {
+  test("rows of one group go to one fixer, whatever files they name", () => {
+    const rows = Array.from({ length: 8 }, (_, i): [string, string] => [
+      `src/f${i}.ts`,
+      i % 2 === 0 ? "catchup" : "other",
+    ])
+
+    expect(groupedWorkers(rows, { fixMaxWorkers: 2 })).toEqual([
+      ["T1", "T3", "T5", "T7"],
+      ["T2", "T4", "T6", "T8"],
+    ])
+  })
+
+  test("a group never splits, even above 5 rows", () => {
+    const rows = Array.from({ length: 7 }, (_, i): [string, string] => [`src/f${i}.ts`, "one"])
+
+    expect(groupedWorkers(rows)).toEqual([["T1", "T2", "T3", "T4", "T5", "T6", "T7"]])
+  })
+
+  test("the cap joins the smallest groups and keeps each group whole", () => {
+    const rows: [string, string][] = [
+      ["a.ts", "g1"], ["b.ts", "g1"], ["c.ts", "g1"],
+      ["d.ts", "g2"], ["e.ts", "g2"],
+      ["f.ts", "g3"], ["g.ts", "g3"],
+      ["h.ts", "g4"],
+    ]
+
+    expect(groupedWorkers(rows, { fixMaxWorkers: 2 })).toEqual([
+      ["T1", "T2", "T3", "T8"],
+      ["T4", "T5", "T6", "T7"],
+    ])
+  })
+
+  test("a row with no group follows the rows that name its file", () => {
+    const plan = [
+      "| T1 | fix | src/a.ts:1 | x | topic |",
+      "| T2 | fix | src/b.ts:2 | x |",
+      "| T3 | fix | src/c.ts:3 | x | topic |",
+      "| T4 | fix | src/b.ts:9 | x | - |",
+      "| T5 | fix | src/e.ts:3 | x | topic |",
+      "| T6 | fix | src/b.ts:4 | x |",
+    ].join("\n")
+    const split = planFixSplit(parseFixItems(plan, threadsFor(6)), { fixMaxWorkers: 2 })
+
+    expect(split.workers.map((worker) => worker.items)).toEqual([["T1", "T3", "T5"], ["T2", "T4", "T6"]])
+  })
+
+  test("a group name never joins a row that names a file of the same text", () => {
+    const plan = [
+      "| T1 | fix | src/x.ts:1 | x | src/a.ts |",
+      "| T2 | fix | src/a.ts:2 | x |",
+      ...[3, 4, 5, 6].map((n) => `| T${n} | fix | src/f${n}.ts:1 | x |`),
+    ].join("\n")
+    const workers = planFixSplit(parseFixItems(plan, threadsFor(6)), { fixMaxWorkers: 2 }).workers
+
+    expect(workers.map((worker) => worker.items.includes("T1") === worker.items.includes("T2"))).toEqual([false, false])
+  })
+})
+
+describe("fixerPlans", () => {
+  const plan = [
+    "Plan of PR 12",
+    "",
+    "Choices are final.",
+    "",
+    "| id | bucket | where | change | group |",
+    "|---|---|---|---|---|",
+    "| T1 | fix | src/a.ts:1 | first | one |",
+    "| T2 | decline | src/b.ts:2 | no | |",
+    "| T3 | fix | src/c.ts:3 | third | two |",
+    "| T4 | fix | src/d.ts:4 | fourth | one |",
+    "| T5 | fix | src/e.ts:5 | fifth | two |",
+    "| T6 | fix | src/f.ts:6 | sixth | one |",
+    "| T7 | fix | src/g.ts:7 | seventh | two |",
+  ].join("\n")
+
+  const plans = () => {
+    const split = planFixSplit(parseFixItems(plan, threadsFor(7)), { fixMaxWorkers: 2 })
+    return fixerPlans(plan, split)
+  }
+
+  test("writes one plan for each fixer, named plan-<id>.md", () => {
+    expect(plans().map((file) => file.name)).toEqual(["plan-1.md", "plan-2.md"])
+  })
+
+  test("holds the lines above the table, the table header and the rows of that fixer", () => {
+    expect(plans()[0].text).toBe(
+      [
+        "Plan of PR 12",
+        "",
+        "Choices are final.",
+        "",
+        "| id | bucket | where | change | group |",
+        "|---|---|---|---|---|",
+        "| T1 | fix | src/a.ts:1 | first | one |",
+        "| T4 | fix | src/d.ts:4 | fourth | one |",
+        "| T6 | fix | src/f.ts:6 | sixth | one |",
+        "",
+      ].join("\n"),
+    )
+  })
+
+  test("holds no row of another fixer and no decline row", () => {
+    const [first, second] = plans()
+
+    expect(second.text).toContain("| T3 |")
+    expect(second.text).not.toContain("| T1 |")
+    expect(first.text).not.toContain("| T3 |")
+    expect(first.text).not.toContain("| T2 |")
+    expect(second.text).not.toContain("| T2 |")
+  })
+
+  test("writes a plan with no table header when the plan has none", () => {
+    const bare = "| T1 | fix | src/a.ts:1 | x |"
+    const split = planFixSplit(parseFixItems(bare, threadsFor(1)), SETTINGS)
+
+    expect(fixerPlans(bare, split)[0].text).toBe("| T1 | fix | src/a.ts:1 | x |\n")
+  })
+})
+
 describe("parseFixItems", () => {
+  test("reads a group from the fifth cell and treats an empty cell or - as none", () => {
+    const plan = [
+      "| T1 | fix | a.ts:1 | x | topic |",
+      "| T2 | fix | b.ts:1 | x | - |",
+      "| T3 | fix | c.ts:1 | x |  |",
+      "| T4 | fix | d.ts:1 | x |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(4))).toEqual([
+      { id: "T1", file: "a.ts", group: "topic" },
+      { id: "T2", file: "b.ts" },
+      { id: "T3", file: "c.ts" },
+      { id: "T4", file: "d.ts" },
+    ])
+  })
+
   test("keeps only fix rows and strips the line number", () => {
     const plan = [
       "| T1 | fix | `src/a.ts:12` | x |",
