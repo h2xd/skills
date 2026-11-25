@@ -7,6 +7,8 @@ import {
   formatPage,
   markReviewed,
   parsePage,
+  readLastRun,
+  setLastRun,
   type SkillRow,
   syncRows,
 } from "./page.ts"
@@ -26,20 +28,19 @@ function repoLocalSkills(): string[] {
   return readdirSync(folder).filter((name) => existsSync(join(folder, name, "SKILL.md")))
 }
 
-type Synced = { rows: SkillRow[]; created: boolean }
+type Synced = { rows: SkillRow[]; created: boolean; lastRun: string | null }
 
 function pagePath(): string {
   return join(REPO_ROOT, config.skills.page)
 }
 
-function writePage(rows: SkillRow[], date: string, existing: string | null): void {
-  const text = formatPage(rows, date, existing)
+function writePage(text: string, existing: string | null): void {
   if (text === existing) return
   mkdirSync(dirname(pagePath()), { recursive: true })
   writeFileSync(pagePath(), text)
 }
 
-function syncPage(date: string): Synced {
+function syncPage(date: string, recordRun: boolean): Synced {
   const existing = existsSync(pagePath()) ? readFileSync(pagePath(), "utf8") : null
   const rows = syncRows(
     existing === null ? [] : parsePage(existing),
@@ -47,15 +48,17 @@ function syncPage(date: string): Synced {
     date,
     config.skills.reviewIntervalDays,
   )
-  writePage(rows, date, existing)
-  return { rows, created: existing === null }
+  const text = formatPage(rows, date, existing)
+  writePage(recordRun ? setLastRun(text, date) : text, existing)
+  return { rows, created: existing === null, lastRun: readLastRun(existing) }
 }
 
 export function dueCommand(argv: string[]): void {
   const { values } = parseArgs({ args: argv, options: { today: { type: "string" } } })
   const date = today(values.today)
-  const { rows, created } = syncPage(date)
+  const { rows, created, lastRun } = syncPage(date, true)
   if (created) console.log(`created ${config.skills.page} with ${rows.length} rows`)
+  console.log(`last run: ${lastRun ?? "none"}`)
   const due = dueSkills(rows, date)
   console.log([`${due.length} due`, ...due.map((row) => `${row.skill} ${row.due}`)].join("\n"))
 }
@@ -74,13 +77,14 @@ export function reviewedCommand(argv: string[]): void {
     throw new Error(`${skill} is not a repo-local skill`)
   }
   const date = today(values.today)
-  const { rows } = syncPage(date)
+  const { rows } = syncPage(date, false)
   const marked = markReviewed(
     rows,
     skill,
     date,
     config.skills.reviewIntervalDays,
   )
-  writePage(marked, date, readFileSync(pagePath(), "utf8"))
+  const existing = readFileSync(pagePath(), "utf8")
+  writePage(formatPage(marked, date, existing), existing)
   console.log(`reviewed ${skill}, next review ${marked.find((row) => row.skill === skill)?.due}`)
 }
