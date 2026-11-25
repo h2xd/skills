@@ -129,3 +129,19 @@ describe("the script usage headers", () => {
     }
   }
 })
+
+describe("the skill and agent counts", () => {
+  const skills = readdirSync(join(ROOT, "skills"), { withFileTypes: true }).filter((entry) =>
+    entry.isDirectory(),
+  ).length
+  const agents = readdirSync(join(ROOT, "agents")).filter((name) => name.endsWith(".md")).length
+  const inFolders = `${skills} skills and ${agents} agents`
+  for (const file of ["README.md", ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"]) {
+    test(`${file} says ${inFolders}, as skills/ and agents/ hold`, () => {
+      const text = readFileSync(join(ROOT, file), "utf8")
+      const written = [...text.matchAll(/\d+ skills and \d+ agents/g)].map((match) => match[0])
+      expect(written.length > 0).toBe(true)
+      for (const count of written) expect(count).toBe(inFolders)
+    })
+  }
+})
