@@ -1,7 +1,7 @@
 /** The findings file that each `review-pr` reviewer writes: its check, and the merge of all of them into one review. */
 
 import { createHash } from "node:crypto"
-import { expectedNote } from "./options.ts"
+import { expectedNote, localFolders, localPathFinder } from "./options.ts"
 import type { ReviewThread } from "./threads.ts"
 
 export type Severity = "red" | "yellow" | "green" | "white"
@@ -247,6 +247,33 @@ export function parseFindings(json: unknown): ParseResult {
     ok: true,
     file: { reviewer: json.reviewer, findings, ...(status ? { status } : {}) },
   }
+}
+
+function textFields(finding: Finding): [field: string, text: string][] {
+  return [
+    ["file", finding.file],
+    ["subject", finding.subject],
+    ["body", finding.body],
+    ["suggestion", finding.suggestion ?? ""],
+    ...(finding.options ?? []).map((fix, index): [string, string] => [`options[${index}]`, fix]),
+  ]
+}
+
+export function validateFindingsPaths(
+  file: FindingsFile,
+  folders: string[] = localFolders(),
+): string[] {
+  const find = localPathFinder(folders)
+  return [
+    ...file.findings.flatMap((finding) =>
+      textFields(finding).flatMap(([field, text]) =>
+        find(text).map((path) => `${finding.id}: ${field}: local absolute path ${path}`),
+      ),
+    ),
+    ...(file.status ?? []).flatMap((line, index) =>
+      find(line).map((path) => `${file.reviewer}: status[${index}]: local absolute path ${path}`),
+    ),
+  ]
 }
 
 type Range = [number, number]
