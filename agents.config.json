@@ -62,7 +62,7 @@
   "mutation": {
     "enabled": true,
     "runner": "sh",
-    "testCommand": "npm test",
+    "testCommand": "node --test \"templates/**/*.test.ts\" \"skills/**/*.test.ts\" scripts/lint-skills.test.ts",
     "checkCommand": "npm run typecheck",
     "setupCommand": "npm install",
     "nativeCommand": null,
