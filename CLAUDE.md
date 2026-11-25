@@ -60,6 +60,10 @@ the internal skills.
 - `prove-tests.sh` is POSIX `sh` so it runs in repos without node. It cannot
   import `config.ts`. The `prove-tests` skill reads the `mutation` settings and
   passes them as flags.
+- `mutation.testCommand` in this repo leaves out `scripts/repo.test.ts`, the
+  check of the copies. Plant a mutant in the template only. With the copy
+  check in the command, each such mutant dies on it, and the run proves
+  nothing.
 - Bump `version` in `.claude-plugin/plugin.json` and in `agents.config.json`
   for every release. Claude Code updates an installed plugin only when the
   version changes.
