@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process"
-import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, test } from "node:test"
@@ -60,5 +60,41 @@ describe("review.ts split", () => {
     const result = split(3, "--out", "split.md")
     expect(result.status).toBe(0)
     expect(readFileSync(join(root, "split.md"), "utf8")).toContain("- Fixer workers:")
+  })
+
+  test("--out also writes plan-<id>.md next to it for each fixer and names them", () => {
+    writeFileSync(
+      join(root, "plan.md"),
+      [
+        "Plan of PR 5",
+        "",
+        "| id | bucket | where | change | group |",
+        "|---|---|---|---|---|",
+        ...Array.from({ length: 8 }, (_, i) => `| T${i + 1} | fix | src/f${i}.ts:1 | x | ${i < 4 ? "left" : "right"} |`),
+      ].join("\n"),
+    )
+    mkdirSync(join(root, "out"))
+    const result = split(2, "--out", join(root, "out", "split.md"))
+
+    expect(result.status).toBe(0)
+    expect(result.out.trim()).toBe(
+      `2 fixer workers: wrote ${join(root, "out", "split.md")}, ${join(root, "out", "plan-1.md")}, ${join(root, "out", "plan-2.md")}`,
+    )
+    const first = readFileSync(join(root, "out", "plan-1.md"), "utf8")
+    const second = readFileSync(join(root, "out", "plan-2.md"), "utf8")
+    expect(first).toContain("Plan of PR 5")
+    expect(first).toContain("| id | bucket |")
+    expect(first.match(/^\| T\d/gm)).toHaveLength(4)
+    expect(first).toContain("| T1 |")
+    expect(first).not.toContain("| T5 |")
+    expect(second).toContain("| T5 |")
+    expect(second).not.toContain("| T1 |")
+  })
+
+  test("without --out it writes no plan file", () => {
+    const result = split(2)
+
+    expect(result.status).toBe(0)
+    expect(result.out).toContain("## Fixer worker 1")
   })
 })

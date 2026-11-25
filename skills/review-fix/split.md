@@ -6,15 +6,20 @@ Group the **fix** items, so several fixers work at the same time:
 node scripts/review.ts split $WORK/threads.md $WORK/plan.md --out $WORK/split.md
 ```
 
-A group holds at most 5 items, unless one file holds more or the
-`review.fixMaxWorkers` cap forces more. Items share a group only when their
-plan rows name the same file. The row of a mutation item names its code
-file, so the item stays with the fixes to that code. At most
-`review.fixMaxWorkers` groups come out.
+A group holds at most 5 items, unless one file or one plan group holds more,
+or the `review.fixMaxWorkers` cap forces more. Items share a group when their
+plan rows have the same fifth cell, the group, or when they have none and
+name the same file. The row of a mutation item names its code file, so the
+item stays with the fixes to that code. At most `review.fixMaxWorkers`
+groups come out.
+
+The command also writes `plan-<id>.md` next to `split.md` for each fixer. It
+holds the lines of `plan.md` above the table, the table header and the rows
+of that fixer.
 
 Start one subagent per group in one message, on a fast model, such as Sonnet,
 through the CLI's subagent tool, such as Agent. Give each the paths to
-`threads.md`, its rows of `plan.md`, [`fixer.md`](fixer.md),
+`threads.md`, its `$WORK/plan-<id>.md`, [`fixer.md`](fixer.md),
 `$WORK/fixer-tools.md`, its group id and its worktree, `<path>` in place of
 `$WORKTREE`. Tell it the patch command below.
 

@@ -1,7 +1,7 @@
 /** The subcommands of `node scripts/review.ts`. Each takes its argv tail and does the I/O. */
 
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
-import { resolve } from "node:path"
+import { dirname, join, resolve } from "node:path"
 import { parseArgs } from "node:util"
 import { config } from "../config.ts"
 import { createWorktree } from "../worktree/create.ts"
@@ -27,7 +27,7 @@ import {
   validateFindingsPaths,
 } from "./findings.ts"
 import { missingReviewFiles } from "./missing.ts"
-import { formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
+import { fixerPlans, formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
 import {
   type DraftComment,
   localFolders,
@@ -530,15 +530,23 @@ export function splitCommand(argv: string[]): void {
   const usage = "split <threads.md> <plan.md> [--out FILE]"
   const threadsFile = requireArgument(positionals[0], usage)
   const planFile = requireArgument(positionals[1], usage)
+  const plan = readFileSync(planFile, "utf8")
   const split = planFixSplit(
-    parseFixItems(readFileSync(planFile, "utf8"), readFileSync(threadsFile, "utf8")),
+    parseFixItems(plan, readFileSync(threadsFile, "utf8")),
     config.review,
   )
   const text = formatFixSplit(split)
-  if (values.out) {
-    writeFileSync(values.out, text)
-    console.log(`${split.workers.length} fixer workers: wrote ${values.out}`)
-  } else {
+  if (!values.out) {
     process.stdout.write(text)
+    return
   }
+  writeFileSync(values.out, text)
+  const planFiles = fixerPlans(plan, split).map((fixerPlan) => {
+    const path = join(dirname(values.out as string), fixerPlan.name)
+    writeFileSync(path, fixerPlan.text)
+    return path
+  })
+  console.log(
+    `${split.workers.length} fixer workers: wrote ${[values.out, ...planFiles].join(", ")}`,
+  )
 }
