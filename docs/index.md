@@ -27,3 +27,4 @@ in step with the files, and `node scripts/lint-docs.ts` fails when it drifts.
 
 * [Issue tracker](/agents/issue-tracker.md) - Issues for this repo live in GitHub Issues at h2xd/skills, managed with the gh CLI.
 * [Knowledge base](/agents/knowledge-base.md) - Where this repo's pages live, which type each directory holds, and which language each page is written in.
+* [Skills](/agents/skills.md) - The repo-local skills, the technology each one covers, and when its review is due.
