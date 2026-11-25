@@ -8,7 +8,11 @@ export type SkillRow = {
 const NO_TECHNOLOGY = "-"
 const TABLE_HEADER = "| Skill | Technology | Updated | Review due |"
 const TABLE_RULE = "|---|---|---|---|"
-const ROW = /^\| ([^|]+?) \| ([^|]+?) \| (\d{4}-\d{2}-\d{2}) \| (\d{4}-\d{2}-\d{2}) \|$/
+const HEADER_CELLS = /^\|\s*Skill\s*\|\s*Technology\s*\|\s*Updated\s*\|\s*Review due\s*\|\s*$/
+const DATE_CELL = "(\\d{4}-\\d{2}-\\d{2})"
+const ROW = new RegExp(
+  `^\\|\\s*([^|]+?)\\s*\\|\\s*([^|]+?)\\s*\\|\\s*${DATE_CELL}\\s*\\|\\s*${DATE_CELL}\\s*\\|\\s*$`,
+)
 
 export function addDays(date: string, days: number): string {
   const moved = new Date(`${date}T00:00:00Z`)
@@ -100,7 +104,7 @@ export function formatPage(
   existing: string | null,
 ): string {
   const lines = (existing ?? "").split("\n")
-  const start = lines.indexOf(TABLE_HEADER)
+  const start = lines.findIndex((line) => HEADER_CELLS.test(line))
   if (start === -1) {
     return `${[existing === null ? defaultPage(today).trimEnd() : existing.trimEnd(), "", ...tableLines(rows)].join("\n")}\n`
   }

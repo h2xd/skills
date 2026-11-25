@@ -108,6 +108,28 @@ function history(): Repo {
   return repo
 }
 
+function behindRemote(): Repo {
+  const repo = history()
+  repo.git("checkout", "main")
+  repo.commit("skills/c.md", "2026-11-19", "bob", "fix: repair c")
+  repo.commit("skills/d.md", "2026-11-19", "bob", "fix: repair d")
+  repo.git("update-ref", "refs/remotes/origin/main", "main")
+  repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+  repo.git("checkout", "-b", "feat/9-x")
+  repo.commit("src/own.ts", "2026-11-24", "ada", "feat: own")
+  repo.git("branch", "-f", "main", "main~2")
+  return repo
+}
+
+function changesAfterOwnCommit(count: number): Repo {
+  const repo = sandbox()
+  repo.commit("README.md", "2026-11-02", "ada", "feat: start")
+  for (let number = 1; number <= count; number++) {
+    repo.commit(`skills/s${number}.md`, "2026-11-10", "bob", `fix: change ${number}`)
+  }
+  return repo
+}
+
 function files(dir: string): string[] {
   return readdirSync(dir, { recursive: true }).map(String).filter((name) => !name.startsWith(".git")).sort()
 }
@@ -127,6 +149,39 @@ describe("catchup.ts facts, the work scope", () => {
     expect(lines).toContain("ticket: 12")
     expect(lines).toContain("ahead: 2")
     expect(lines).toContain("uncommitted: 1")
+  })
+
+  test("counts no uncommitted file on a clean branch", () => {
+    const result = history().catchup("facts")
+
+    expect(result.stdout.split("\n")).toContain("uncommitted: 0")
+  })
+
+  test("counts the branch against the remote default branch when the local one is behind", () => {
+    const repo = behindRemote()
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines).toContain("scope: work")
+    expect(lines).toContain("base: origin/main")
+    expect(lines).toContain("ahead: 1")
+  })
+
+  test("takes main as the base when both main and master exist and there is no remote", () => {
+    const repo = history()
+    repo.git("branch", "master")
+
+    expect(repo.catchup("facts").stdout.split("\n")).toContain("base: main")
+  })
+
+  test("works in a repo with no user.email", () => {
+    const repo = history()
+    repo.git("config", "--unset", "user.email")
+
+    const result = repo.catchup("facts", "--scope", "work")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain("scope: work")
   })
 
   test("lists the last three commits, newest first", () => {
@@ -229,6 +284,35 @@ describe("catchup.ts facts, the repo scope", () => {
     expect(lines).toContain("branch: main")
   })
 
+  test("counts the commits of the remote default branch when the local one is behind", () => {
+    const repo = behindRemote()
+    repo.git("checkout", "main")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines).toContain("scope: repo")
+    expect(lines).toContain("branch: main")
+    expect(lines).toContain("commits: 5")
+  })
+
+  test("lists 20 changes since the user's last commit and no line for more", () => {
+    const result = changesAfterOwnCommit(20).catchup("facts")
+
+    const lines = result.stdout.split("\n")
+    expect(lines).toContain("since your last commit: 20")
+    expect(lines.filter((line) => /^- [0-9a-f]+ /.test(line)).length).toBe(20)
+    expect(result.stdout).not.toContain(" more")
+  })
+
+  test("lists 20 of 21 changes and counts the rest", () => {
+    const result = changesAfterOwnCommit(21).catchup("facts")
+
+    const lines = result.stdout.split("\n")
+    expect(lines).toContain("since your last commit: 21")
+    expect(lines.filter((line) => /^- [0-9a-f]+ /.test(line)).length).toBe(20)
+    expect(lines).toContain("- and 1 more")
+  })
+
   test("refuses a scope it does not know", () => {
     const result = history().catchup("facts", "--scope", "galaxy")
 
@@ -249,6 +333,13 @@ describe("catchup.ts bar, timeline and handoff", () => {
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain("done must be")
+  })
+
+  test("refuses a bar whose count is not a number", () => {
+    const result = sandbox().catchup("bar", "x", "abc", "3")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("done must be an integer")
   })
 
   test("draws the timeline of a commit range, oldest first", () => {

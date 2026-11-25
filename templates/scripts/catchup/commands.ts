@@ -45,8 +45,12 @@ function defaultBranch(): string {
   return ["main", "master"].find(branchExists) ?? currentBranch()
 }
 
-function lines(heading: string, items: string[]): string[] {
-  return [heading, ...items]
+function remoteTrackingRef(branch: string): string {
+  const remote = `origin/${branch}`
+  const exists =
+    runAllowingFailure(["git", "show-ref", "--verify", "--quiet", `refs/remotes/${remote}`])
+      .exitCode === 0
+  return exists ? remote : branch
 }
 
 function weekSection(commits: Commit[]): string[] {
@@ -70,7 +74,8 @@ function workFacts(base: string): string[] {
     `ticket: ${branchTicket(branch) ?? "none"}`,
     `ahead: ${ahead.length}`,
     `uncommitted: ${uncommitted.length}`,
-    ...lines("last commits:", log("HEAD", `-${LAST_COMMITS}`).map((commit) => commitLine(commit, false))),
+    "last commits:",
+    ...log("HEAD", `-${LAST_COMMITS}`).map((commit) => commitLine(commit, false)),
     ...weekSection(ahead),
   ]
 }
@@ -109,13 +114,13 @@ function changesFacts(commits: Commit[], lastOwn: Commit): string[] {
   ]
 }
 
-function repoFacts(base: string, user: string): string[] {
+function repoFacts(branch: string, base: string, user: string): string[] {
   const commits = log(base)
   if (commits.length === 0) throw new Error(`${base} has no commit`)
   const own = commits.filter((commit) => commit.email === user)
   const header = [
     "scope: repo",
-    `branch: ${base}`,
+    `branch: ${branch}`,
     `commits: ${commits.length}`,
     `first commit: ${commits[commits.length - 1].date}`,
     `last commit: ${commits[0].date}`,
@@ -146,10 +151,15 @@ export function factsCommand(argv: string[]): void {
       user: { type: "string" },
     },
   })
-  const base = values.base ?? defaultBranch()
-  const scope = pickScope(values.scope, base)
-  const user = values.user ?? run(["git", "config", "user.email"])
-  console.log((scope === "work" ? workFacts(base) : repoFacts(base, user)).join("\n"))
+  const branch = values.base ?? defaultBranch()
+  const scope = pickScope(values.scope, branch)
+  const base = values.base ?? remoteTrackingRef(branch)
+  if (scope === "work") {
+    console.log(workFacts(base).join("\n"))
+    return
+  }
+  const user = values.user ?? runAllowingFailure(["git", "config", "user.email"]).stdout.trim()
+  console.log(repoFacts(branch, base, user).join("\n"))
 }
 
 export function barCommand(argv: string[]): void {

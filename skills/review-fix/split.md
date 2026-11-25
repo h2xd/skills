@@ -20,7 +20,8 @@ through the CLI's subagent tool, such as Agent. Give each the paths to
 
 - Many groups: create each fixer worktree with
   `node scripts/worktree.ts <path>`. It runs the `worktreeSetup` commands
-  and links the `worktreeLinks` files. The fixer leaves its
+  and links the `worktreeLinks` files. When `scripts/worktree.ts` is
+  missing, stop and tell the user to run `/h2xd:setup`. The fixer leaves its
   changes uncommitted and writes `changes-<id>.md`. It writes a patch that
   holds new files too: `git -C <path> add -A`, then
   `git -C <path> diff --cached --binary > $WORK/<id>.patch`.

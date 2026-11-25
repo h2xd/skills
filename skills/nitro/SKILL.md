@@ -68,18 +68,21 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 - Never run `h2xd:review-gate`, and never merge.
 
 After `h2xd:review-fix`, run `h2xd:review-pr` once. That pair is one round.
-Count the rounds in `$WORK/nitro.md`, a file in your scratchpad. After a
+Count the rounds from the PR: the reviews that your `gh` login posted,
+after the first. Read them with `gh pr view --json reviews`. After a
 `h2xd:review-pr`, go to step 4.
 
 Done when the skill finished and its report is read.
 
 ### 4. Check the goal
 
-The goal is a share of 🟢 review threads, with no 🔴 thread. ⚪ threads do
-not count. A review with no thread counts as 100%. With fewer than 10 threads,
-all must be 🟢. Run `node scripts/review.ts share <pr>`. It prints the counts,
-the share and `reached: yes` or `reached: no`. The share and the round limit
-are `nitro.goalShare` and `nitro.maxRounds` in `agents.config.json`.
+The goal is a share of 🟢 review threads, with no 🔴 thread. A resolved
+thread is 🟢. An open thread is 🔴 when its first comment says `(blocking)`,
+and 🟡 when not. An open ⚪ thread does not count. A review with no thread
+counts as 100%. With fewer than 10 threads, all must be 🟢. Run
+`node scripts/review.ts share <pr>`. It prints the counts, the share and
+`reached: yes` or `reached: no`. The share and the round limit are
+`nitro.goalShare` and `nitro.maxRounds` in `agents.config.json`.
 
 - `reached: yes`. Report and stop. The final approval and the merge stay with
   the user. Never run `h2xd:review-gate`.
@@ -95,8 +98,10 @@ Stop when any of these is true, and say which in one line:
 
 - **A one-way door.** A PR opened as a draft, or a skill asks before an act
   that is hard to undo.
-- **A failed check.** A lint, typecheck or test command fails, or a skill
-  reports 🔴.
+- **A failed check.** A lint, typecheck or test command fails, or the report
+  of `h2xd:code-implement`, `h2xd:git-commit`, `h2xd:git-pr-body` or
+  `h2xd:review-fix` shows 🔴. A 🔴 finding in the report of `h2xd:review-pr`
+  is no stop. Step 4 decides.
 - **A cost jump.** A skill asks before a step that costs far more than the
   steps before it, such as a large review.
 - **Input it cannot get alone.** A skill asks the user a question, such as

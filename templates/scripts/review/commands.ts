@@ -87,12 +87,6 @@ function createReviewWorktree(mainWorktree: string, branch: string): string {
   return path
 }
 
-export function setupCommand(argv: string[]): void {
-  const { positionals } = parseArgs({ args: argv, allowPositionals: true })
-  const path = resolve(requireArgument(positionals[0], "setup <path>"))
-  for (const command of config.worktreeSetup) run(command, path)
-}
-
 export function worktreeCommand(argv: string[]): void {
   const { positionals } = parseArgs({ args: argv, allowPositionals: true })
   const branch = requireArgument(positionals[0], "worktree <branch>")
@@ -241,10 +235,7 @@ export function shareCommand(argv: string[]): void {
   const pullRequest = viewPullRequest(positionals[0], worktree)
   const { owner, name } = repositoryName(worktree)
   const { threads } = fetchReviewData(owner, name, pullRequest.number, worktree)
-  const share = reviewShare(
-    threads.map((thread) => threadMarker(thread.comments.nodes.map((comment) => comment.body))),
-    config.nitro.goalShare,
-  )
+  const share = reviewShare(threads.map(threadMarker), config.nitro.goalShare)
   emit(formatShare(share, config.nitro.goalShare))
 }
 

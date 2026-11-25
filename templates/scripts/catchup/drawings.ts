@@ -25,6 +25,7 @@ export function weekGraph(weeks: WeekCount[]): string {
 
 export function timeline(commits: Pick<Commit, "hash" | "date" | "subject">[]): string {
   return commits
+    .toReversed()
     .toSorted((a, b) => a.date.localeCompare(b.date))
     .map((commit) => `o ${commit.date} ${commit.hash} ${commit.subject}`)
     .join("\n|\n")

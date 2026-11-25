@@ -22,6 +22,11 @@ describe("progressBar", () => {
     expect(() => progressBar("x", -1, 4)).toThrow("done")
   })
 
+  test("refuses a count that is not a number or not whole", () => {
+    expect(() => progressBar("x", Number.NaN, 3)).toThrow("done")
+    expect(() => progressBar("x", 1.5, 3)).toThrow("done")
+  })
+
   test("uses only ASCII characters", () => {
     expect(/^[\x20-\x7e]+$/.test(progressBar("Loop", 3, 7))).toBe(true)
   })
@@ -64,6 +69,20 @@ describe("timeline", () => {
         "o 2026-11-20 aaaaaaa feat: first",
         "|",
         "o 2026-11-22 bbbbbbb fix: second",
+      ].join("\n"),
+    )
+  })
+
+  test("keeps the commits of one day in the order they were made", () => {
+    const text = timeline([
+      { hash: "bbbbbbb", date: "2026-11-25", subject: "fix: newer" },
+      { hash: "aaaaaaa", date: "2026-11-25", subject: "feat: older" },
+    ])
+    expect(text).toBe(
+      [
+        "o 2026-11-25 aaaaaaa feat: older",
+        "|",
+        "o 2026-11-25 bbbbbbb fix: newer",
       ].join("\n"),
     )
   })

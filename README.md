@@ -1,6 +1,6 @@
 # h2xd skills
 
-57 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
+58 skills and 12 agents for Claude Code that keep what an agent learns in the repo.
 
 An agent forgets everything when a session ends. A repo does not have to.
 
@@ -357,7 +357,8 @@ Most names start with their group. Open a group to see its skills. The
 skills/           one folder per skill
 agents/           comment-reaper, skill-polisher, committee-*
 templates/        what setup copies into a repo
-  scripts/        docs lint, find and resolve, commit and PR lint, review and implement helpers, mutation runner
+  scripts/        docs lint, find and resolve, commit and PR lint, review and implement helpers, worktree.ts, skills.ts, catchup.ts, mutation runner
+  seeds/          skills that setup copies into a repo when its technology fits
   githooks/       pre-commit, commit-msg
   githooks-earlier/  the hooks that shipped up to 0.16, for hooks.ts
   hooks/          the agent hook git-guardrails installs

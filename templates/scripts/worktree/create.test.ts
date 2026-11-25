@@ -49,6 +49,7 @@ type Repo = {
   parent: string
   dir: string
   worktree(...args: string[]): Result
+  worktreeFrom(cwd: string, ...args: string[]): Result
   git(...args: string[]): string
   write(path: string, content: string): void
   path(name: string): string
@@ -87,6 +88,8 @@ function sandbox(config: object = {}): Repo {
     parent,
     dir,
     worktree: (...args) => exec(process.execPath, ["scripts/worktree.ts", ...args], dir),
+    worktreeFrom: (cwd, ...args) =>
+      exec(process.execPath, ["scripts/worktree.ts", ...args], cwd),
     git,
     write,
     path: (name) => join(parent, name),
@@ -132,6 +135,19 @@ describe("worktree.ts", () => {
 
     expect(repo.git("-C", path, "branch", "--show-current")).toBe("")
     expect(repo.branches()).toEqual(["main"])
+  })
+
+  test("starts a detached worktree at the base the caller names", () => {
+    const repo = sandbox()
+    const start = repo.git("rev-parse", "HEAD")
+    repo.write("a.txt", "later\n")
+    repo.git("commit", "-am", "later")
+    const path = repo.path("wt")
+
+    const result = repo.worktree(path, "--base", start)
+
+    expect(result.status).toBe(0)
+    expect(repo.git("-C", path, "rev-parse", "HEAD")).toBe(start)
   })
 
   test("checks out a branch that already exists", () => {
@@ -212,6 +228,37 @@ describe("worktree.ts", () => {
     expect(repo.worktrees()).toEqual([repo.dir, path])
   })
 
+  test("skips a listed file that the worktree already holds as a real file", () => {
+    const repo = sandbox({ worktreeLinks: ["local.cfg"] })
+    repo.write("local.cfg", "committed\n")
+    repo.git("add", "local.cfg")
+    repo.git("commit", "-m", "track local.cfg")
+    const path = repo.path("wt")
+
+    const result = repo.worktree(path)
+
+    expect(result.status).toBe(0)
+    expect(result.stderr).toContain("skipped local.cfg: the worktree already has it")
+    expect(repo.worktrees()).toEqual([repo.dir, path])
+    expect(lstatSync(join(path, "local.cfg")).isSymbolicLink()).toBe(false)
+    expect(readFileSync(join(path, "local.cfg"), "utf8")).toBe("committed\n")
+  })
+
+  test("refuses an absolute listed path and creates no worktree", () => {
+    const repo = sandbox()
+    const outside = repo.path("outside.cfg")
+    writeFileSync(outside, "outside\n")
+    repo.write("agents.config.json", `${JSON.stringify({ worktreeLinks: [outside] })}\n`)
+    const path = repo.path("wt")
+
+    const result = repo.worktree(path)
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain(`worktreeLinks entry ${outside} must stay inside the repo`)
+    expect(existsSync(path)).toBe(false)
+    expect(repo.worktrees()).toEqual([repo.dir])
+  })
+
   test("refuses a listed path that leaves the repo", () => {
     const repo = sandbox({ worktreeLinks: ["../outside"] })
     const path = repo.path("wt")
@@ -259,10 +306,81 @@ describe("worktree.ts", () => {
     expect(repo.branches()).toEqual(["feat/x", "main"])
   })
 
+  test("says when --base is ignored because the branch already exists", () => {
+    const repo = sandbox()
+    repo.git("branch", "old")
+    repo.write("a.txt", "later\n")
+    repo.git("commit", "-am", "later")
+    const path = repo.path("wt")
+
+    const result = repo.worktree(path, "--branch", "old", "--base", "main")
+
+    expect(result.status).toBe(0)
+    expect(result.stderr).toContain("worktree: old already exists, so --base main is ignored")
+    expect(repo.git("-C", path, "rev-parse", "HEAD")).toBe(repo.git("rev-parse", "old"))
+  })
+
+  test("stays silent about --base when the branch is new or --base is absent", () => {
+    const repo = sandbox()
+    repo.git("branch", "old")
+
+    const fresh = repo.worktree(repo.path("a"), "--branch", "new", "--base", "main")
+    const reused = repo.worktree(repo.path("b"), "--branch", "old")
+
+    expect(fresh.stderr).toBe("")
+    expect(reused.stderr).toBe("")
+  })
+
   test("prints usage when no path is given", () => {
     const result = sandbox().worktree()
 
     expect(result.status).toBe(1)
     expect(result.stderr).toContain("usage: node scripts/worktree.ts <path>")
+  })
+})
+
+describe("worktree.ts from a linked worktree", () => {
+  function linked(repo: Repo): string {
+    const caller = repo.path("caller")
+    repo.git("worktree", "add", "-b", "ticket", caller)
+    writeFileSync(join(caller, "ticket.txt"), "ticket\n")
+    repo.git("-C", caller, "add", "ticket.txt")
+    repo.git("-C", caller, "commit", "-m", "ticket work")
+    return caller
+  }
+
+  test("starts at the HEAD of the caller, not of the main checkout", () => {
+    const repo = sandbox()
+    const caller = linked(repo)
+    const path = repo.path("wt")
+
+    const result = repo.worktreeFrom(caller, path)
+
+    expect(result.status).toBe(0)
+    expect(repo.git("-C", path, "rev-parse", "HEAD")).toBe(repo.git("-C", caller, "rev-parse", "HEAD"))
+    expect(readFileSync(join(path, "ticket.txt"), "utf8")).toBe("ticket\n")
+  })
+
+  test("starts a new branch at the HEAD of the caller", () => {
+    const repo = sandbox()
+    const caller = linked(repo)
+    const path = repo.path("wt")
+
+    expect(repo.worktreeFrom(caller, path, "--branch", "worker").status).toBe(0)
+
+    expect(repo.git("rev-parse", "worker")).toBe(repo.git("-C", caller, "rev-parse", "HEAD"))
+  })
+
+  test("removes the worktree and the new branch when a setup command fails", () => {
+    const repo = sandbox({ worktreeSetup: [["false"]] })
+    const caller = linked(repo)
+    const path = repo.path("wt")
+
+    const result = repo.worktreeFrom(caller, path, "--branch", "worker")
+
+    expect(result.status).toBe(1)
+    expect(existsSync(path)).toBe(false)
+    expect(repo.worktrees()).toEqual([repo.dir, caller])
+    expect(repo.branches()).toEqual(["main", "ticket"])
   })
 })

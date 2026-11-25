@@ -14,8 +14,8 @@ Read the session. Then read each decision record that is newer than the last
 run. The last run is the newest Updated date on the Skills page. Read that
 date before you run `node scripts/skills.ts due`, because the script creates a
 missing page. Without a page, read every record. List the records with
-`node scripts/find-docs.ts --type Decision`, and keep those whose `date` is
-after the last run.
+`node scripts/find-docs.ts --type Decision`. It prints no date, so read the
+`date` of each record, and keep those after the last run.
 
 A technology with no rules an agent can get wrong gets no proposal. One small
 library with one obvious call is an example. Drop it as "no rules", with the
@@ -43,8 +43,9 @@ accepts, and the Skills page has its row with the technology.
 
 A record or the user can say that a technology goes. The skill of that
 technology then holds dead rules, and agents follow them. Find the skill by
-the Technology cell of its row on the Skills page. A plugin skill has no row.
-Never propose its removal.
+the Technology cell of its row on the Skills page. A skill folder linked into
+`.claude/skills` has a row too. A plugin skill that is not in
+`.claude/skills` has no row. Never propose its removal.
 
 After a yes:
 

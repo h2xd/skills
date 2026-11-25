@@ -4,7 +4,6 @@
  * command.
  *
  *   node scripts/review.ts worktree <branch>
- *   node scripts/review.ts setup <path>
  *   node scripts/review.ts context [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts threads [pr] [--worktree PATH] [--out FILE]
  *   node scripts/review.ts share [pr] [--worktree PATH]
@@ -31,7 +30,6 @@ import {
   optionsCommand,
   replyCommand,
   resolveCommand,
-  setupCommand,
   shareCommand,
   splitCommand,
   tallyCommand,
@@ -42,7 +40,6 @@ import { failStale, isUnknownOption, STALE_COPY } from "./stale.ts"
 
 const COMMANDS: Record<string, (argv: string[]) => void> = {
   worktree: worktreeCommand,
-  setup: setupCommand,
   context: contextCommand,
   threads: threadsCommand,
   share: shareCommand,

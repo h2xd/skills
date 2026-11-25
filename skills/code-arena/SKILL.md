@@ -41,6 +41,9 @@ Done when `task.md` and `rubric.md` exist and `N` is set.
 
 ### 2. Create the worktrees
 
+Run the drift check, per [`drift.md`](../plan-triage/drift.md). When
+`scripts/worktree.ts` is missing, stop and tell the user to run `/h2xd:setup`.
+
 For each candidate `n` from 1 to `N`, run:
 
 ```sh
@@ -50,7 +53,8 @@ node scripts/worktree.ts ../<repo>-arena-<slug>-<n> \
 
 It runs the `worktreeSetup` commands and links the `worktreeLinks` files.
 
-Done when `git worktree list` shows `N` arena worktrees at `$BASE`.
+Done when the drift check passed and `git worktree list` shows `N` arena
+worktrees at `$BASE`.
 
 ### 3. Fan out
 

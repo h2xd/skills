@@ -16,6 +16,7 @@ export type WorktreeRequest = {
 
 export type WorktreeResult = {
   skipped: string[]
+  branchExisted: boolean
 }
 
 function branchExists(mainWorktree: string, branch: string): boolean {
@@ -76,18 +77,13 @@ function isLink(path: string): boolean {
 export function createWorktree(request: WorktreeRequest): WorktreeResult {
   const { mainWorktree, path, checkout } = request
   const links = request.links.map(checkedLink)
-  const newBranch =
-    checkout.kind === "branch" && !branchExists(mainWorktree, checkout.name)
-      ? checkout.name
-      : null
-  run(
-    ["git", "worktree", "add", ...addArguments(path, checkout, newBranch !== null)],
-    mainWorktree,
-  )
+  const branchExisted = checkout.kind === "branch" && branchExists(mainWorktree, checkout.name)
+  const newBranch = checkout.kind === "branch" && !branchExisted ? checkout.name : null
+  run(["git", "worktree", "add", ...addArguments(path, checkout, newBranch !== null)])
   try {
     const skipped = linkFiles(mainWorktree, path, links)
     for (const command of request.setup) run(command, path)
-    return { skipped }
+    return { skipped, branchExisted }
   } catch (error) {
     run(["git", "worktree", "remove", "--force", path], mainWorktree)
     if (newBranch !== null) {

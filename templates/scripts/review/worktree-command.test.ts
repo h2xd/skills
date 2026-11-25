@@ -101,6 +101,16 @@ describe("review.ts worktree", () => {
     expect(readFileSync(join(result.stdout, ".env.local"), "utf8")).toBe("SECRET=1\n")
   })
 
+  test("says which file of worktreeLinks it skipped and still prints the path", () => {
+    const repo = sandbox({ worktreeSetup: [], worktreeLinks: ["missing.cfg"] })
+
+    const result = repo.review("worktree", BRANCH)
+
+    expect(result.status).toBe(0)
+    expect(readFileSync(join(result.stdout, "change.txt"), "utf8")).toBe("change\n")
+    expect(result.stderr).toContain("review: skipped missing.cfg: the main checkout has no such file")
+  })
+
   test("the review branch tracks its remote branch when git sets up no tracking by default", () => {
     const repo = sandbox({ worktreeSetup: [] })
     repo.git("config", "branch.autoSetupMerge", "false")

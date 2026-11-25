@@ -27,6 +27,8 @@ I follow `worker.md`, which the chair gives me with the task copy.
    ```
 
    It runs the `worktreeSetup` commands and links the `worktreeLinks` files.
+   When `scripts/worktree.ts` is missing, stop and tell the user to run
+   `/h2xd:setup`.
 3. When the task names uncommitted files, such as a variant page, copy them
    into the worktree first.
 4. Build only what the question needs. Run the typecheck and the tests that

@@ -108,6 +108,15 @@ describe("skills.ts due", () => {
     expect(repo.page()).toContain("| linked | - |")
   })
 
+  test("creates an empty page in a repo with no skill folder", () => {
+    const repo = sandbox()
+
+    const result = repo.skills("due")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toBe("created docs/agents/skills.md with 0 rows\n0 due")
+  })
+
   test("gives no row to a folder that holds no SKILL.md", () => {
     const repo = sandbox()
     repo.addSkill("release")
@@ -168,6 +177,31 @@ describe("skills.ts reviewed", () => {
     expect(repo.page()).toContain("| b | - | 2026-01-01 | 2026-11-02 |")
   })
 
+  test("sets the due date from the interval the repo sets", () => {
+    const repo = sandbox({ skills: { reviewIntervalDays: 3 } })
+    repo.addSkill("a")
+    repo.writePage([["a", "2026-11-01"]])
+
+    const result = repo.skills("reviewed", "a")
+
+    expect(result.stdout).toBe("reviewed a, next review 2026-11-28")
+    expect(repo.page()).toContain("| a | - | 2026-11-25 | 2026-11-28 |")
+  })
+
+  test("refuses a second skill name and leaves the page unchanged", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.addSkill("b")
+    repo.writePage([["a", "2026-11-01"], ["b", "2026-11-02"]])
+    const before = repo.page()
+
+    const result = repo.skills("reviewed", "a", "b")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("usage: node scripts/skills.ts reviewed <skill>")
+    expect(repo.page()).toBe(before)
+  })
+
   test("leaves every review date alone when only due runs", () => {
     const repo = sandbox()
     repo.addSkill("a")
@@ -210,6 +244,29 @@ describe("the review interval", () => {
     repo.skills("due")
 
     expect(repo.page()).toContain("| release | - | 2026-11-25 | 2026-12-05 |")
+  })
+
+  test("keeps a padded table the way a formatter writes it", () => {
+    const repo = sandbox()
+    repo.addSkill("nitro")
+    mkdirSync(join(repo.dir, "docs/agents"), { recursive: true })
+    writeFileSync(
+      join(repo.dir, "docs/agents/skills.md"),
+      [
+        "# Skills",
+        "",
+        "| Skill   | Technology | Updated    | Review due |",
+        "| ------- | ---------- | ---------- | ---------- |",
+        "| nitro   | Node       | 2026-10-01 | 2026-10-11 |",
+        "",
+      ].join("\n"),
+    )
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toBe("1 due\nnitro 2026-10-11")
+    expect((repo.page().match(/\| Skill /g) ?? []).length).toBe(1)
+    expect(repo.page()).toContain("| nitro | Node | 2026-10-01 | 2026-10-11 |")
   })
 
   test("follows the interval the repo sets", () => {

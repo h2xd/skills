@@ -67,7 +67,10 @@ Done when every item is either linked to a record or on this list.
 
 Fill [`template.md`](template.md). Save it to the OS temp directory. Use
 `$TMPDIR`, else `/tmp`, or `%TEMP%` on Windows. Name it
-`handoff-<repo>-<YYYYMMDD-HHMM>.md`.
+`handoff-<repo>-<YYYYMMDD-HHMM>.md`. `<repo>` is the folder name of the main
+checkout, also in a linked worktree. This prints it:
+`basename "$(git worktree list --porcelain | head -1 | cut -c10-)"`.
+`node scripts/catchup.ts handoff` looks for that name.
 
 - Each record gets one line: its path or URL and why the next agent reads it.
 - Each step in **Next steps** is an action the next agent can start without
@@ -77,8 +80,8 @@ Fill [`template.md`](template.md). Save it to the OS temp directory. Use
 - Write the state as facts you checked this session. Give each command with
   its result, passed or failed.
 
-Done when the file exists outside the repo and every section is filled or
-says "None".
+Done when the file exists outside the repo, its name holds the folder name of
+the main checkout, and every section is filled or says "None".
 
 ### 4. Redact
 

@@ -41,6 +41,32 @@ describe("the page text", () => {
   })
 })
 
+describe("a table a formatter padded", () => {
+  const padded = [
+    "# Skills",
+    "",
+    "| Skill   | Technology | Updated    | Review due |",
+    "| ------- | ---------- | ---------- | ---------- |",
+    "| nitro   | Node       | 2026-10-01 | 2026-10-11 |",
+    "",
+    "After the table.",
+  ].join("\n")
+
+  test("reads each cell without its padding", () => {
+    expect(parsePage(padded)).toEqual([
+      { skill: "nitro", technology: "Node", updated: "2026-10-01", due: "2026-10-11" },
+    ])
+  })
+
+  test("is rewritten in place, with one table and the text after it", () => {
+    const rows = syncRows(parsePage(padded), ["nitro"], TODAY, 10)
+    const again = formatPage(rows, TODAY, padded)
+    expect(again.split("\n").filter((line) => line.includes("Review due"))).toHaveLength(1)
+    expect(again).toContain("| nitro | Node | 2026-10-01 | 2026-10-11 |")
+    expect(again).toContain("After the table.")
+  })
+})
+
 describe("dueSkills", () => {
   const row = (skill: string, due: string) => ({
     skill,

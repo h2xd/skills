@@ -64,6 +64,11 @@ describe("branchTicket", () => {
     expect(branchTicket("main")).toBe(null)
     expect(branchTicket("feat/add-2fa")).toBe(null)
   })
+
+  test("needs the slash before the number", () => {
+    expect(branchTicket("hotfix-3-x")).toBe(null)
+    expect(branchTicket("v2-fix")).toBe(null)
+  })
 })
 
 describe("topLevelCounts", () => {
@@ -93,5 +98,14 @@ describe("newestHandoff", () => {
 
   test("does not take a repo whose name only starts the same", () => {
     expect(newestHandoff(["handoff-skills-extra-20261125-1000.md"], "skills")).toBe(null)
+  })
+
+  test("matches a repo name that holds regular expression characters literally", () => {
+    expect(newestHandoff(["handoff-a(b-20261120-0900.md"], "a(b")).toBe("handoff-a(b-20261120-0900.md")
+    expect(newestHandoff(["handoff-myXrepo-20261120-0900.md"], "my.repo")).toBe(null)
+  })
+
+  test("does not take a name that only holds the handoff name", () => {
+    expect(newestHandoff(["old-handoff-skills-20261120-0900.md"], "skills")).toBe(null)
   })
 })
