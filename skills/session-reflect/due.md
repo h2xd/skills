@@ -5,10 +5,11 @@ is due. Only this skill tells the user. No other skill nags about a date.
 
 ## Find them
 
-Run `node scripts/skills.ts due` once. The same run gives the last run that
-[`technology.md`](technology.md) reads. It creates the Skills page when it is
-missing. When it prints `created`, list the page in the index of the docs
-bundle, so `node scripts/lint-docs.ts` stays green. It then prints
+Run `node scripts/skills.ts due` once, at the start. The same run gives the
+last run that [`technology.md`](technology.md) reads. It writes no date. Step 5
+of the skill runs `due --record-run` at the end. `due` creates the Skills page
+when it is missing. When it prints `created`, list the page in the index of the
+docs bundle, so `node scripts/lint-docs.ts` stays green. It then prints
 `last run: <date>`, the count, and one skill per line with its due date,
 oldest first. Skip this file when the repo has no `scripts/skills.ts`.
 

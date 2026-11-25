@@ -2,14 +2,15 @@
 /**
  * Keeps the Skills page, one row per repo-local skill, for h2xd:session-reflect.
  *
- *   node scripts/skills.ts due [--today YYYY-MM-DD]
+ *   node scripts/skills.ts due [--record-run] [--today YYYY-MM-DD]
  *   node scripts/skills.ts reviewed <skill> [--today YYYY-MM-DD]
  *
  * `due` creates the page when it is missing, adds a row for each new
  * repo-local skill and lists the skills whose review is due, oldest first.
  * It prints `last run: <date>`, or `last run: none`, before the count. That is
- * the date of the last `due` run, kept as a `Last run:` line above the table.
- * `due` then writes today's date there.
+ * the date of the last `due --record-run`, kept as a `Last run:` line above
+ * the table. Plain `due` writes no date there. `due --record-run` writes
+ * today's date, prints `recorded last run: <date>` and lists no skill.
  * `reviewed` sets the review date of one skill to today and its due date one
  * interval later. Run it only after h2xd:review-skills ran on that skill. A
  * failure prints one line to stderr and exits 1. The logic lives in
