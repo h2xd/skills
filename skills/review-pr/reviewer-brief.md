@@ -73,8 +73,8 @@ node scripts/review.ts findings --validate <your file>
 ```
 
 It prints `ok` when the file is valid. Otherwise it names each bad finding and
-field. It rejects a path in the home folder or the system temp folder, so a
-finding uses repo-relative paths.
+field. It rejects a path in the home folder or in the folder of the findings
+file, so a finding uses repo-relative paths.
 Correct the file and run it again, until it prints `ok`. Use the
 `scripts/review.ts` of the worktree that `context.md` names.
 

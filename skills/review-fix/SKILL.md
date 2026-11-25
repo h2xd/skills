@@ -59,8 +59,9 @@ Done when `threads.md` lists every open item with an id. Threads are `T1`,
 Sort each item into fix, decline or ask, by the rules in
 [`triage.md`](triage.md).
 
-Write `$WORK/plan.md`: one row per item with id, bucket, `path:line`, and the
-change or the reason. Show it as a table. Take each **ask** item to the user
+Write `$WORK/plan.md`: one row per item with id, bucket, `path:line`, the
+change or the reason, and a `Group` when the triage rules ask for one. Show
+it as a table with a header row. Take each **ask** item to the user
 with clickable options, through the CLI's question tool, such as
 AskUserQuestion. Ask at most four per call, recommendation first.
 

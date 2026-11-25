@@ -82,12 +82,26 @@ describe("review.ts findings --validate", () => {
     expect(run.stderr).toContain(`B-1: options[0]: local absolute path ${home}/c.ts`)
   })
 
-  test("rejects a path under the system temp folder with no --local-path", () => {
-    const path = join(realpathSync(tmpdir()), "round", "a-work", "probe.json")
+  test("rejects a path below the folder of the findings file with no --local-path", () => {
+    const path = join(realpathSync(directory), "a-work", "probe.json")
     const run = validate([finding({ body: `Read ${path} first.` })])
 
     expect(run.status).toBe(1)
     expect(run.stderr).toContain(`B-1: body: local absolute path ${path}`)
+  })
+
+  test("rejects a path in the folder of the findings file", () => {
+    const path = join(realpathSync(directory), "review-b.json")
+    const run = validate([finding({ body: `Read ${path} first.` })])
+
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`B-1: body: local absolute path ${path}`)
+  })
+
+  test("passes a mention of /tmp/cache, which is no folder of the round", () => {
+    const run = validate([finding({ body: "The script writes `/tmp/cache` with mode 777." })])
+
+    expect(run.status).toBe(0)
   })
 
   test("checks each status line and names its index", () => {

@@ -63,8 +63,9 @@ the internal skills.
 - `mutation.testCommand` in this repo is `npm run test:mutants`. That
   `package.json` script leaves out `scripts/repo.test.ts`, the check of the
   copies, so plant a mutant in the template only. With the copy check in the
-  command, each such mutant dies on it, and the run proves nothing. A new test
-  folder goes into both `test` and `test:mutants`.
+  command, each such mutant dies on it, and the run proves nothing.
+  `scripts/repo.test.ts` fails when `test:mutants` differs from `test` by more
+  than that file.
 - Bump `version` in `.claude-plugin/plugin.json` and in `agents.config.json`
   for every release. Claude Code updates an installed plugin only when the
   version changes.

@@ -1,4 +1,3 @@
-import { realpathSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
@@ -259,11 +258,11 @@ describe("validateNoLocalPaths", () => {
 })
 
 describe("localFolders", () => {
-  test("holds the home folder and the system temp folder, in both spellings", () => {
+  test("holds the home folder alone, with no temp folder", () => {
     const paths = localFolders()
     expect(paths).toContain(homedir())
-    expect(paths).toContain(tmpdir())
-    expect(paths).toContain(realpathSync(tmpdir()))
+    expect(paths).not.toContain(tmpdir())
+    expect(paths).not.toContain("/tmp")
   })
 
   test("adds the extra folders and drops a bare root", () => {
