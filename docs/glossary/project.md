@@ -34,7 +34,7 @@ An entry looks like this:
 
 ### Status marker
 
-- **Meaning:** An emoji at the start of a line that rates a finding or an item: 🔴 blocks, 🟡 needs attention, 🟢 is fine, ⚪ is optional. A [work-state marker](#work-state-marker) is the other scale.
+- **Meaning:** An emoji at the start of a line that rates a finding or an item: 🔴 blocks, 🟡 needs attention, 🟤 is out of scope for the run, 🟢 is fine, ⚪ is optional. A [work-state marker](#work-state-marker) is the other scale.
 - **Avoid:** Severity icon, traffic light
 
 ### Work-state marker

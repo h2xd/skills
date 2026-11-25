@@ -93,7 +93,7 @@ no longer ships them.
 
 It ends with one status line per item. 🔴 means something blocks a skill, 🟡
 means a follow-up, 🟢 means written, and ⚪ means optional. The
-[Status markers](#status-markers) table lists all seven. Run it again to
+[Status markers](#status-markers) table lists all eight. Run it again to
 update the scripts or to change an answer.
 
 <br>
@@ -132,14 +132,15 @@ until the review reaches its goal, type `/h2xd:nitro`. It never merges.
 
 ## Status markers
 
-Every report that a skill writes starts each line with one of seven markers.
-Four rate a finding or an item. Three show where a work item stands, and they
+Every report that a skill writes starts each line with one of eight markers.
+Five rate a finding or an item. Three show where a work item stands, and they
 take the place of 🟢 in a list of tickets and tasks.
 
 | Marker | Scale | Means |
 |---|---|---|
 | 🔴 | Status | Blocks. Fix it before you go on |
-| 🟡 | Status | Needs attention, and does not block |
+| 🟡 | Status | Needs attention, and does not block. A skill fixes it in the same run when it can |
+| 🟤 | Status | Out of scope. Too big for the run, or outside the task, with the reason |
 | 🟢 | Status | Fine, or done |
 | ⚪ | Status | Optional. Leave it out when you like |
 | 🟪 | Work state | Blocked, by another item or by an answer |

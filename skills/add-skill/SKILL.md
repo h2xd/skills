@@ -75,12 +75,15 @@ A report lists one item per line, worst first:
 ```
 🔴 <item>: <what is broken or blocked, and the next action>
 🟡 <item>: <what is at risk or partial>
+🟤 <item>: <out of scope for this run, and why>
 🟢 <item>: <what is done or healthy>
 ⚪ <item>: <optional, no action needed>
 ```
 
 - 🔴 broken or blocked: something fails, or work cannot go on.
-- 🟡 at risk or partial: it works, but needs attention.
+- 🟡 at risk or partial: it works, but needs attention. The skill fixes it
+  in the same run when it can, and writes no follow-up line.
+- 🟤 out of scope: too big for the run, or outside the task. Say why.
 - 🟢 done or healthy.
 - ⚪ optional: the reader may skip it.
 
@@ -132,5 +135,5 @@ Done when every polisher report is read and its problems are fixed or listed.
 - Don't write "should" or "try to". Write the command.
 - Don't name one CLI's tool as the only way. Name the action, then the example.
 - Don't put an aside in parentheses. Give it its own sentence.
-- Don't use 🔴 🟡 🟢 ⚪ for anything but status in a report.
+- Don't use 🔴 🟡 🟤 🟢 ⚪ for anything but status in a report.
 - Don't add a step without a `Done when`. Merge it into the step it serves.

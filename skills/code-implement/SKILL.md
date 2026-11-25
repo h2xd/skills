@@ -146,13 +146,14 @@ stop before a PR ran **Unclaim**.
 
 - Build only what the acceptance criteria ask for.
 - Commit after each criterion, so the history shows the slices.
-- File what you find outside the ticket as a new issue, after a yes.
+- Fix a 🟡 that the ticket owns in this run. Write no follow-up line.
+- Mark what is outside the ticket, or too big for the run, 🟤 with the reason.
 - Stop when the ticket is unclear. A guess becomes a wrong PR.
 
 ## Don't
 
 - Don't start on a ticket with an open blocker. Name the blocker.
 - Don't change the acceptance criteria to fit the code. Ask the user.
-- Don't fold an unrelated fix into the branch. File it as its own ticket.
+- Don't fold an unrelated fix into the branch. Mark it 🟤 in the report.
 - Don't start a third review, or a fix round outside `h2xd:review-gate`.
 - Don't ask about a `split` verdict. Split, and name the workers in the report.
