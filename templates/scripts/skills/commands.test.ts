@@ -137,33 +137,67 @@ describe("skills.ts due", () => {
 })
 
 describe("skills.ts due, the last run", () => {
-  test("prints none and writes today on the first run", () => {
+  test("prints none and writes no date on a plain run", () => {
     const repo = sandbox()
     repo.addSkill("a")
 
     const result = repo.skills("due")
 
     expect(result.stdout).toContain("last run: none")
+    expect(repo.page()).not.toContain("Last run:")
+  })
+
+  test("prints the same last run on two plain runs on two days", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.skillsOn("2026-11-20", "due", "--record-run")
+
+    const first = repo.skillsOn("2026-11-25", "due")
+    const second = repo.skillsOn("2026-11-30", "due")
+
+    expect(first.stdout).toContain("last run: 2026-11-20")
+    expect(second.stdout).toContain("last run: 2026-11-20")
+    expect(repo.page()).toContain("Last run: 2026-11-20")
+  })
+
+  test("still creates the page and adds the rows on a plain run", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toContain("created docs/agents/skills.md with 1 rows")
+    expect(repo.page()).toContain("| a | - | 2026-11-25 | 2026-12-05 |")
+  })
+
+  test("--record-run writes today above the table and prints it", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+
+    const result = repo.skills("due", "--record-run")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toContain("recorded last run: 2026-11-25")
     expect(repo.page()).toContain("\nLast run: 2026-11-25\n")
     expect(repo.page().indexOf("Last run:")).toBeLessThan(repo.page().indexOf("| Skill |"))
   })
 
-  test("prints the date of the earlier run on a later day, then writes the later day", () => {
+  test("--record-run moves the date that a plain run printed", () => {
     const repo = sandbox()
     repo.addSkill("a")
-    repo.skillsOn("2026-11-20", "due")
+    repo.skillsOn("2026-11-20", "due", "--record-run")
+    expect(repo.skillsOn("2026-11-25", "due").stdout).toContain("last run: 2026-11-20")
 
-    const result = repo.skillsOn("2026-11-25", "due")
+    repo.skillsOn("2026-11-25", "due", "--record-run")
 
-    expect(result.stdout).toContain("last run: 2026-11-20")
-    expect(repo.page()).toContain("Last run: 2026-11-25")
+    expect(repo.skillsOn("2026-11-30", "due").stdout).toContain("last run: 2026-11-25")
     expect(repo.page()).not.toContain("Last run: 2026-11-20")
   })
 
   test("is not moved by reviewed", () => {
     const repo = sandbox()
     repo.addSkill("a")
-    repo.skillsOn("2026-11-20", "due")
+    repo.skillsOn("2026-11-20", "due", "--record-run")
 
     repo.skillsOn("2026-11-25", "reviewed", "a")
 
@@ -174,11 +208,11 @@ describe("skills.ts due, the last run", () => {
   test("keeps the text around the table and the rows", () => {
     const repo = sandbox()
     repo.addSkill("a")
-    repo.skillsOn("2026-11-20", "due")
+    repo.skillsOn("2026-11-20", "due", "--record-run")
     const edited = repo.page().replace("# Skills", "# Skills\n\nA note from a person.")
     writeFileSync(join(repo.dir, "docs/agents/skills.md"), `${edited}\nAfter the table.\n`)
 
-    repo.skillsOn("2026-11-25", "due")
+    repo.skillsOn("2026-11-25", "due", "--record-run")
 
     expect(repo.page()).toContain("A note from a person.")
     expect(repo.page()).toContain("After the table.")
@@ -193,7 +227,7 @@ describe("skills.ts due, the last run", () => {
     const result = repo.skills("due")
 
     expect(result.stdout).toBe("last run: none\n0 due")
-    expect(repo.page()).toContain("Last run: 2026-11-25")
+    expect(repo.page()).not.toContain("Last run:")
   })
 })
 

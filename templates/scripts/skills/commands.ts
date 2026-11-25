@@ -54,10 +54,18 @@ function syncPage(date: string, recordRun: boolean): Synced {
 }
 
 export function dueCommand(argv: string[]): void {
-  const { values } = parseArgs({ args: argv, options: { today: { type: "string" } } })
+  const { values } = parseArgs({
+    args: argv,
+    options: { today: { type: "string" }, "record-run": { type: "boolean" } },
+  })
   const date = today(values.today)
-  const { rows, created, lastRun } = syncPage(date, true)
+  const recordRun = values["record-run"] === true
+  const { rows, created, lastRun } = syncPage(date, recordRun)
   if (created) console.log(`created ${config.skills.page} with ${rows.length} rows`)
+  if (recordRun) {
+    console.log(`recorded last run: ${date}`)
+    return
+  }
   console.log(`last run: ${lastRun ?? "none"}`)
   const due = dueSkills(rows, date)
   console.log([`${due.length} due`, ...due.map((row) => `${row.skill} ${row.due}`)].join("\n"))

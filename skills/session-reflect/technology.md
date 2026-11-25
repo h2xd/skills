@@ -11,11 +11,13 @@ A technology counts when both are true:
 - It has rules an agent can get wrong.
 
 Read the session. Then read each decision record that is newer than the last
-run. Run `node scripts/skills.ts due` once, before you read a record, and
-take the last run from its `last run: <date>` line. The script then writes the
-date of today as the new last run, so a proposal you drop does not come back
-in the next session. Use the line of that first run, never of a later one.
-`last run: none`, or no script, means read every record. List the records with
+run. Run `node scripts/skills.ts due` once, at the start, before you read a
+record, and take the last run from its `last run: <date>` line. Plain `due`
+writes no date. The date moves only when step 5 runs
+`node scripts/skills.ts due --record-run`, so a session that stops before the
+approval reads the same records again. A proposal that the user dropped does
+not come back, because step 5 runs it also then. `last run: none`, or no
+script, means read every record. List the records with
 `node scripts/find-docs.ts --type Decision`. It prints no date, so read the
 `date` of each record, and keep those after the last run.
 
