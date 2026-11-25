@@ -467,6 +467,18 @@ describe("catchup.ts facts, the repo scope", () => {
     expect(lines.some((line) => line.startsWith("ahead of remote:"))).toBe(false)
   })
 
+  test("says one commit when the default branch is behind its remote by one", () => {
+    const repo = remoteDiffers()
+    repo.commit("skills/o1.md", "2026-11-04", "bob", "fix: other one")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("reset", "--hard", "--quiet", "main~1")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines[lines.indexOf("branch: main") + 1]).toBe("behind remote: 1")
+    expect(lines.some((line) => line.startsWith("ahead of remote:"))).toBe(false)
+  })
+
   test("says both counts when the default branch and its remote diverge", () => {
     const repo = remoteDiffers()
     repo.commit("skills/o1.md", "2026-11-04", "bob", "fix: other one")

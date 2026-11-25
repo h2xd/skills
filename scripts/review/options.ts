@@ -9,7 +9,7 @@
  */
 
 import { realpathSync } from "node:fs"
-import { homedir } from "node:os"
+import { homedir, tmpdir } from "node:os"
 
 export type Option = { letter: string; recommended: boolean; fix: string }
 
@@ -167,7 +167,8 @@ function aliasesOf(path: string): string[] {
 }
 
 export function localFolders(extra: string[] = []): string[] {
-  return [...new Set([homedir(), ...extra.flatMap(aliasesOf)])].filter(
+  const defaults = [homedir(), tmpdir()].flatMap(aliasesOf)
+  return [...new Set([...defaults, ...extra.flatMap(aliasesOf)])].filter(
     (path) => path.length > 1,
   )
 }

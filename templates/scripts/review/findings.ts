@@ -67,7 +67,9 @@ export type MergeStats = {
 
 const SEVERITIES: Severity[] = ["red", "yellow", "green", "white"]
 const RANK: Severity[] = ["red", "yellow", "white", "green"]
-const ICON: Record<Severity, string> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
+export type Marker = "🟢" | "🟡" | "🔴" | "⚪"
+
+export const ICON: Record<Severity, Marker> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
 const LABELS: Record<Severity, string[]> = {
   red: ["issue", "todo"],
   yellow: ["suggestion", "issue", "question"],

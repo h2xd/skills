@@ -50,7 +50,7 @@ as `../add-skill/SKILL.md`. When you cannot find them, say so and stop.
 - Open with one or two sentences a person remembers: a concrete picture, not
   an abstract claim.
 - A vivid example beats a general rule.
-- A light, confident voice. No slang, no emoji except 🔴 🟡 🟢 ⚪ for status.
+- A light, confident voice. No slang, no emoji except 🔴 🟡 🟤 🟢 ⚪ for status.
   Clean beats clever.
 - An agent may keep its persona. A skill speaks plainly.
 

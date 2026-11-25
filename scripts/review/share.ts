@@ -1,6 +1,6 @@
-import { commentSeverity, isReviewBody, type Severity } from "./findings.ts"
+import { commentSeverity, ICON, isReviewBody, type Marker } from "./findings.ts"
 
-export type Marker = "🟢" | "🟡" | "🔴" | "⚪"
+export type { Marker }
 
 export type Share = {
   green: number
@@ -14,14 +14,12 @@ export type Share = {
 
 const ALL_GREEN_BELOW_THREADS = 10
 
-const MARKER: Record<Severity, Marker> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
-
 type RatedThread = { isResolved: boolean; comments: { nodes: { body: string }[] } }
 
 export function threadMarker(thread: RatedThread): Marker {
   if (thread.isResolved) return "🟢"
   const severity = commentSeverity(thread.comments.nodes[0]?.body ?? "")
-  return severity === undefined ? "🟡" : MARKER[severity]
+  return severity === undefined ? "🟡" : ICON[severity]
 }
 
 export function reviewShare(markers: Marker[], goalShare: number): Share {

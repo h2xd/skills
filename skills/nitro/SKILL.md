@@ -82,7 +82,9 @@ and 🟢 when it starts with `praise:` or `note:`. Any other open thread is
 `node scripts/review.ts share <pr>`. It prints the counts, the share and
 `goal:`. It prints `rounds:` and `round limit:`, and last `reached: yes` or
 `reached: no`. The goal and the limit are `nitro.goalShare` and
-`nitro.maxRounds` in `agents.config.json`.
+`nitro.maxRounds` in `agents.config.json`. When it prints no `rounds:` line,
+stop and tell the user to run `/h2xd:setup`, as this copy is older than the
+skill.
 
 - `reached: yes`. Report and stop. The final approval and the merge stay with
   the user. Never run `h2xd:review-gate`.

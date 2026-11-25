@@ -536,17 +536,18 @@ export function splitCommand(argv: string[]): void {
     config.review,
   )
   const text = formatFixSplit(split)
-  if (!values.out) {
+  const out = values.out
+  if (!out) {
     process.stdout.write(text)
     return
   }
-  writeFileSync(values.out, text)
+  writeFileSync(out, text)
   const planFiles = fixerPlans(plan, split).map((fixerPlan) => {
-    const path = join(dirname(values.out as string), fixerPlan.name)
+    const path = join(dirname(out), fixerPlan.name)
     writeFileSync(path, fixerPlan.text)
     return path
   })
   console.log(
-    `${split.workers.length} fixer workers: wrote ${[values.out, ...planFiles].join(", ")}`,
+    `${split.workers.length} fixer workers: wrote ${[out, ...planFiles].join(", ")}`,
   )
 }
