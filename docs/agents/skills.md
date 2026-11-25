@@ -10,6 +10,8 @@ generated: { by: "scripts/skills.ts", at: "2026-11-25" }
 
 One row per repo-local skill. `node scripts/skills.ts` keeps the table.
 
+Last run: 2026-11-25
+
 | Skill | Technology | Updated | Review due |
 |---|---|---|---|
 | add-skill | - | 2026-11-25 | 2026-12-05 |
