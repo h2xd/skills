@@ -1,5 +1,3 @@
-/** ASCII drawings of `node scripts/catchup.ts`: a progress bar, a graph of commits per week, a timeline. */
-
 import type { Commit, WeekCount } from "./facts.ts"
 
 const BAR_WIDTH = 20
@@ -25,7 +23,6 @@ export function weekGraph(weeks: WeekCount[]): string {
     .join("\n")
 }
 
-/** The commits as a spine, oldest first. */
 export function timeline(commits: Pick<Commit, "hash" | "date" | "subject">[]): string {
   return commits
     .toSorted((a, b) => a.date.localeCompare(b.date))

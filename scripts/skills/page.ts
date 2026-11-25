@@ -1,12 +1,7 @@
-/** Pure helpers behind `node scripts/skills.ts`: the rows of the Skills page. */
-
 export type SkillRow = {
   skill: string
-  /** The technology a Technology skill covers, "-" for any other skill. */
   technology: string
-  /** The date of the last review, as YYYY-MM-DD. */
   updated: string
-  /** The date the next review is due, as YYYY-MM-DD. */
   due: string
 }
 
@@ -29,7 +24,6 @@ export function parsePage(text: string): SkillRow[] {
     .map(([, skill, technology, updated, due]) => ({ skill, technology, updated, due }))
 }
 
-/** Keeps the row of each known skill, adds a row for a new one and drops a row of a deleted one. */
 export function syncRows(
   rows: SkillRow[],
   skills: string[],
@@ -49,7 +43,6 @@ export function syncRows(
     )
 }
 
-/** Sets the review date to `today` and the due date one interval later. */
 export function markReviewed(
   rows: SkillRow[],
   skill: string,
@@ -69,7 +62,6 @@ export function markReviewed(
   )
 }
 
-/** The rows whose review is due on `today` or earlier, oldest due date first. */
 export function dueSkills(rows: SkillRow[], today: string): SkillRow[] {
   return rows
     .filter((row) => row.due <= today)
@@ -102,7 +94,6 @@ function tableLines(rows: SkillRow[]): string[] {
   ]
 }
 
-/** The page with `rows` as its table. The text around the table of `existing` stays. */
 export function formatPage(
   rows: SkillRow[],
   today: string,

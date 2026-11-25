@@ -1,5 +1,3 @@
-/** The subcommands of `node scripts/skills.ts`. Each takes its argv tail and does the I/O. */
-
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { parseArgs } from "node:util"
@@ -22,7 +20,6 @@ function today(argument: string | undefined): string {
   return argument
 }
 
-/** Linked skill folders count: a folder is a skill when it holds a SKILL.md. */
 function repoLocalSkills(): string[] {
   const folder = join(REPO_ROOT, SKILL_FOLDERS)
   if (!existsSync(folder)) return []
@@ -42,8 +39,7 @@ function writePage(rows: SkillRow[], date: string, existing: string | null): voi
   writeFileSync(pagePath(), text)
 }
 
-/** Writes the page when a row is missing or too many, and returns its rows. */
-function syncedPage(date: string): Synced {
+function syncPage(date: string): Synced {
   const existing = existsSync(pagePath()) ? readFileSync(pagePath(), "utf8") : null
   const rows = syncRows(
     existing === null ? [] : parsePage(existing),
@@ -58,7 +54,7 @@ function syncedPage(date: string): Synced {
 export function dueCommand(argv: string[]): void {
   const { values } = parseArgs({ args: argv, options: { today: { type: "string" } } })
   const date = today(values.today)
-  const { rows, created } = syncedPage(date)
+  const { rows, created } = syncPage(date)
   if (created) console.log(`created ${config.skills.page} with ${rows.length} rows`)
   const due = dueSkills(rows, date)
   console.log([`${due.length} due`, ...due.map((row) => `${row.skill} ${row.due}`)].join("\n"))
@@ -78,7 +74,7 @@ export function reviewedCommand(argv: string[]): void {
     throw new Error(`${skill} is not a repo-local skill`)
   }
   const date = today(values.today)
-  const { rows } = syncedPage(date)
+  const { rows } = syncPage(date)
   const marked = markReviewed(
     rows,
     skill,

@@ -119,7 +119,6 @@ export function lintSkill(folder: string, rawText: string): string[] {
   return problems
 }
 
-/** Every seed of Technology skills follows the rules of add-skill, as a shipped skill does. */
 export function lintSeeds(seedsRoot: string): string[] {
   if (!existsSync(seedsRoot)) return []
   return readdirSync(seedsRoot)

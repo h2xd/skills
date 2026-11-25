@@ -100,8 +100,7 @@ export function worktreeCommand(argv: string[]): void {
   const { skipped } = createWorktree({
     mainWorktree: worktrees[0].path,
     path,
-    branch: workerBranch,
-    base: "HEAD",
+    checkout: { kind: "branch", name: workerBranch, whenNew: { base: "HEAD", track: false } },
     setup: config.worktreeSetup,
     links: config.worktreeLinks,
   })

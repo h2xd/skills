@@ -36,8 +36,14 @@ try {
   const { skipped } = createWorktree({
     mainWorktree,
     path,
-    branch: values.branch,
-    base: values.base,
+    checkout:
+      values.branch === undefined
+        ? { kind: "detached", at: values.base ?? "HEAD" }
+        : {
+            kind: "branch",
+            name: values.branch,
+            whenNew: { base: values.base ?? "HEAD", track: false },
+          },
     setup: config.worktreeSetup,
     links: config.worktreeLinks,
   })
