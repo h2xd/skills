@@ -97,6 +97,9 @@ For the repo scope:
   a pointer to `/h2xd:teach`.
 - A user with commits gets what changed since their last commit, and the
   graph of commits per week.
+- When the facts hold `ahead of remote:` or `behind remote:`, the local
+  default branch and its remote differ. Report each such line as a 🟡 status
+  line.
 
 Done when the report holds the paragraph, each bar and the status lines, and
 names no next step.

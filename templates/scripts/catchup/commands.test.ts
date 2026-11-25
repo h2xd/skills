@@ -137,6 +137,14 @@ function behindRemote(): Repo {
   return repo
 }
 
+function remoteDiffers(): Repo {
+  const repo = history()
+  repo.git("checkout", "main")
+  repo.git("update-ref", "refs/remotes/origin/main", "main")
+  repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+  return repo
+}
+
 function changesAfterOwnCommit(count: number): Repo {
   const repo = sandbox()
   repo.commit("README.md", "2026-11-02", "ada", "feat: start")
@@ -421,6 +429,74 @@ describe("catchup.ts facts, the repo scope", () => {
     expect(lines).toContain("commits: 2")
     expect(lines).toContain("since your last commit: 0")
     expect(result.stdout).not.toContain("feat: x")
+  })
+
+  test("says how many commits the default branch is ahead of its remote", () => {
+    const repo = remoteDiffers()
+    repo.commit("skills/own1.md", "2026-11-04", "ada", "feat: own one")
+    repo.commit("skills/own2.md", "2026-11-05", "ada", "feat: own two")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines[lines.indexOf("branch: main") + 1]).toBe("ahead of remote: 2")
+    expect(lines.some((line) => line.startsWith("behind remote:"))).toBe(false)
+  })
+
+  test("says how many commits the default branch is behind its remote", () => {
+    const repo = remoteDiffers()
+    repo.commit("skills/o1.md", "2026-11-04", "bob", "fix: other one")
+    repo.commit("skills/o2.md", "2026-11-05", "bob", "fix: other two")
+    repo.commit("skills/o3.md", "2026-11-06", "bob", "fix: other three")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("reset", "--hard", "--quiet", "main~3")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines[lines.indexOf("branch: main") + 1]).toBe("behind remote: 3")
+    expect(lines.some((line) => line.startsWith("ahead of remote:"))).toBe(false)
+  })
+
+  test("says both counts when the default branch and its remote diverge", () => {
+    const repo = remoteDiffers()
+    repo.commit("skills/o1.md", "2026-11-04", "bob", "fix: other one")
+    repo.commit("skills/o2.md", "2026-11-05", "bob", "fix: other two")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("reset", "--hard", "--quiet", "main~2")
+    repo.commit("skills/own.md", "2026-11-06", "ada", "feat: own")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    const at = lines.indexOf("branch: main")
+    expect(lines[at + 1]).toBe("ahead of remote: 1")
+    expect(lines[at + 2]).toBe("behind remote: 2")
+  })
+
+  test("prints neither line when the default branch equals its remote", () => {
+    const result = remoteDiffers().catchup("facts")
+
+    expect(result.stdout).not.toContain("ahead of remote")
+    expect(result.stdout).not.toContain("behind remote")
+  })
+
+  test("prints neither line in a repo with no remote", () => {
+    const repo = history()
+    repo.git("checkout", "main")
+
+    const result = repo.catchup("facts")
+
+    expect(result.stdout).not.toContain("ahead of remote")
+    expect(result.stdout).not.toContain("behind remote")
+  })
+
+  test("prints neither line from a ticket branch", () => {
+    const repo = remoteDiffers()
+    repo.commit("skills/own.md", "2026-11-04", "ada", "feat: own")
+    repo.git("checkout", "-b", "feat/5-x")
+
+    const result = repo.catchup("facts", "--scope", "repo")
+
+    expect(result.stdout).not.toContain("ahead of remote")
+    expect(result.stdout).not.toContain("behind remote")
   })
 
   test("refuses a scope it does not know", () => {
