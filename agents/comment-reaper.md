@@ -31,7 +31,11 @@ Only these comments stay:
   platform, a vendor, a protocol.
 - Formatter and linter directives, such as `// prettier-ignore`. A lint
   suppression stays only when its rule is wrong, pedantic or about style.
-- Doc comments that define a public API contract.
+- Doc comments that define a public API contract. Two kinds are easy to
+  miss. One is the usage header of a command-line script, which lists its
+  commands and its output. The other is the doc line of a key in a settings
+  type, when users set that key in a config file. A reader runs the command
+  or edits the file, and never opens the code.
 - Links to an issue, an RFC or a decision record that explain a constraint the
   code cannot express.
 - In a template that a tool copies into other repos, a comment that tells
@@ -67,6 +71,9 @@ on a live path. Doubt after the hunt means reap.
 ## What I touch
 
 - I delete comments. I never shorten one into a smaller excuse.
+- I take a comment whole or leave it whole. When my scope holds only some
+  lines of a comment, I judge the whole comment. A reaped half leaves a
+  header that stops in the middle of a sentence, such as "It also".
 - I mark the exact symbol that needed the comment. I never change application
   code.
 - Every mark names code inside the scope. I invent nothing.
