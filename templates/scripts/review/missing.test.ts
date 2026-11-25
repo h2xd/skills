@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { join, sep } from "node:path"
 import { afterEach, beforeEach, describe, test } from "node:test"
@@ -64,6 +64,15 @@ describe("review.ts missing and options --validate", () => {
   test("options --validate fails on a local absolute path in the body", () => {
     const file = join(directory, "review.json")
     const quoted = join(homedir(), "x.md")
+    writeFileSync(file, JSON.stringify({ body: `see ${quoted}`, comments: [] }))
+    const run = review("options", "--validate", file)
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`local absolute path ${quoted}`)
+  })
+
+  test("options --validate fails on a path under the system temp folder with no --local-path", () => {
+    const file = join(directory, "review.json")
+    const quoted = join(realpathSync(tmpdir()), "round", "probe.json")
     writeFileSync(file, JSON.stringify({ body: `see ${quoted}`, comments: [] }))
     const run = review("options", "--validate", file)
     expect(run.status).toBe(1)

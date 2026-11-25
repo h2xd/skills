@@ -259,11 +259,11 @@ describe("validateNoLocalPaths", () => {
 })
 
 describe("localFolders", () => {
-  test("holds the home folder and no temp folder", () => {
+  test("holds the home folder and the system temp folder, in both spellings", () => {
     const paths = localFolders()
     expect(paths).toContain(homedir())
-    expect(paths).not.toContain(tmpdir())
-    expect(paths).not.toContain(realpathSync(tmpdir()))
+    expect(paths).toContain(tmpdir())
+    expect(paths).toContain(realpathSync(tmpdir()))
   })
 
   test("adds the extra folders and drops a bare root", () => {

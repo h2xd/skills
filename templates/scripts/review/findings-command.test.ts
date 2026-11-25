@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process"
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
+import { mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs"
 import { homedir, tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, test } from "node:test"
@@ -31,9 +31,9 @@ function finding(overrides: Record<string, unknown> = {}): Record<string, unknow
   }
 }
 
-function validate(findings: Record<string, unknown>[], ...extra: string[]) {
+function validate(findings: Record<string, unknown>[], extra: string[] = [], status: string[] = []) {
   const file = join(directory, "review-b.json")
-  writeFileSync(file, JSON.stringify({ reviewer: "B", findings, status: [] }))
+  writeFileSync(file, JSON.stringify({ reviewer: "B", findings, status }))
   return spawnSync(process.execPath, [SCRIPT, "findings", "--validate", file, ...extra], {
     cwd: directory,
     encoding: "utf8",
@@ -60,7 +60,7 @@ describe("review.ts findings --validate", () => {
   test("rejects a path under a folder that --local-path names, such as the repo root", () => {
     const root = join(directory, "repo")
     const path = join(root, "src", "a.ts")
-    const run = validate([finding({ file: path })], "--local-path", root)
+    const run = validate([finding({ file: path })], ["--local-path", root])
 
     expect(run.status).toBe(1)
     expect(run.stderr).toContain(`B-1: file: local absolute path ${path}`)
@@ -80,5 +80,22 @@ describe("review.ts findings --validate", () => {
     expect(run.stderr).toContain(`B-1: subject: local absolute path ${home}/a.ts`)
     expect(run.stderr).toContain(`B-1: suggestion: local absolute path ${home}/b.ts`)
     expect(run.stderr).toContain(`B-1: options[0]: local absolute path ${home}/c.ts`)
+  })
+
+  test("rejects a path under the system temp folder with no --local-path", () => {
+    const path = join(realpathSync(tmpdir()), "round", "a-work", "probe.json")
+    const run = validate([finding({ body: `Read ${path} first.` })])
+
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`B-1: body: local absolute path ${path}`)
+  })
+
+  test("checks each status line and names its index", () => {
+    const path = join(homedir(), "repo", "a.ts")
+    const run = validate([finding()], [], ["tests ran", `safety fact: read ${path} (level 3)`])
+
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`B: status[1]: local absolute path ${path}`)
+    expect(run.stderr).not.toContain("status[0]")
   })
 })

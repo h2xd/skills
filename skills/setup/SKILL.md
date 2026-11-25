@@ -135,7 +135,8 @@ One line per item, worst first:
 
 ```
 🔴 <item>: <a check that fails, or a choice that blocks a skill>
-🟡 <item>: <follow-up, such as lint errors on adopted pages, a bundle to migrate, or a tracker the review skills cannot drive>
+🟡 <item>: <only you can close it, such as lint errors on adopted pages, a bundle to migrate, or a tracker the review skills cannot drive>
+🟤 <item>: <out of scope for this run, and why>
 🟢 <item>: <what was written, and which skill reads it>
 ⚪ <item>: <an optional step that is left out>
 ```

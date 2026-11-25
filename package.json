@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test \"templates/**/*.test.ts\" \"scripts/**/*.test.ts\" \"skills/**/*.test.ts\"",
+    "test:mutants": "node --test \"templates/**/*.test.ts\" \"skills/**/*.test.ts\" scripts/lint-skills.test.ts",
     "typecheck": "tsc -p .",
     "skills:lint": "node scripts/lint-skills.ts",
     "docs:lint": "node scripts/lint-docs.ts",

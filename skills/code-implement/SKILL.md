@@ -87,11 +87,12 @@ Done when `git branch --show-current` prints the new branch.
 4. Start one scout and group the criteria, per
    [`planning.md`](planning.md). It ends with `$WORK/split.md`.
 5. For a spec, the verdict is often `single`, because its stories share a
-   settings file or a catalog. Say so in one line before step 4. Name
-   `/h2xd:to-tickets` as the way to more than one build worker. Do not stop.
+   settings file or a catalog. Say so in one line before you go to
+   [step 4](#4-build). Name `/h2xd:to-tickets` as the way to more than one
+   build worker. Do not stop.
 
-Done when every criterion belongs to exactly one build worker, or to step 5
-as a checks criterion.
+Done when every criterion belongs to exactly one build worker, or to
+[step 5](#5-check-the-whole-change) as a checks criterion.
 
 ### 4. Build
 

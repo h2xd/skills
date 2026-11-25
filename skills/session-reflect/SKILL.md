@@ -129,15 +129,15 @@ Done when the user chose an option for every lesson and every hit.
 - **Technology skills.** Add or remove each as
   [`technology.md`](technology.md) says.
 - **Due skills.** Act on the answer as [`due.md`](due.md) says.
-- **Last run.** Last of all, run `node scripts/skills.ts due --record-run`.
-  Run it also when the user dropped every proposal. Skip it without the
-  script.
 - **Issues.** File each with the Create operation in
   `docs/agents/issue-tracker.md`, in the shape of
   `../setup-tone/github-text.md`. The body holds the rule, the evidence and
   the proposed level. Outside the h2xd repo, a lesson about an h2xd skill is a
   plugin issue.
 - **Plugin issues.** Show a draft, per [`plugin-issue.md`](plugin-issue.md).
+- **Last run.** Last of all, run `node scripts/skills.ts due --record-run`.
+  Run it also when the user dropped every proposal. Skip it without the
+  script.
 
 Done when every approved check fails on the reintroduced mistake and passes on
 the fixed code, every commit passes its hooks, every filed issue has a URL,

@@ -9,14 +9,17 @@ export type FixSplit = { workers: FixerWorker[]; reasons: string[] }
 export const MAX_ITEMS = 5
 
 const ITEM_ID = /^(?:T|S)\d+$/
+const SEPARATOR_CELL = /^:?-+:?$/
 const LOCATION = /^(.+?)(?::\d+(?:-\d+)?)?$/
+
+const GROUP_HEADER = "group"
 
 function cells(row: string): string[] {
   return row
     .trim()
     .replace(/^\|/, "")
     .replace(/\|$/, "")
-    .split("|")
+    .split(/(?<!\\)\|/)
     .map((cell) => cell.trim())
 }
 
@@ -25,9 +28,15 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
     [...threads.matchAll(/^## ((?:T|S)\d+)\s*$/gm)].map((match) => match[1]),
   )
   const items: FixItem[] = []
+  let groupColumn = -1
   for (const line of plan.split("\n")) {
     if (!line.trim().startsWith("|")) continue
-    const [id, bucket, location, , group] = cells(line)
+    const row = cells(line)
+    const [id, bucket, location] = row
+    if (!ITEM_ID.test(id) && !row.every((cell) => SEPARATOR_CELL.test(cell))) {
+      groupColumn = row.findIndex((cell) => cell.toLowerCase() === GROUP_HEADER)
+    }
+    const group = groupColumn < 0 ? undefined : row[groupColumn]
     if (!ITEM_ID.test(id) || bucket.replaceAll("*", "").toLowerCase() !== "fix") {
       continue
     }
@@ -44,26 +53,29 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
   return items
 }
 
-function unitKey(item: FixItem): string | undefined {
-  if (item.group !== undefined) return `group:${item.group}`
-  return item.file === undefined ? undefined : `file:${item.file}`
-}
-
 function unitsOf(items: FixItem[]): FixItem[][] {
-  const units: FixItem[][] = []
-  const byKey = new Map<string, FixItem[]>()
-  for (const item of items) {
-    const key = unitKey(item)
-    const unit = key === undefined ? undefined : byKey.get(key)
-    if (unit) {
-      unit.push(item)
-      continue
+  const parent = items.map((_, index) => index)
+  const root = (index: number): number =>
+    parent[index] === index ? index : (parent[index] = root(parent[index]))
+  const first = new Map<string, number>()
+  items.forEach((item, index) => {
+    const keys = [
+      ...(item.group === undefined ? [] : [`group:${item.group}`]),
+      ...(item.file === undefined ? [] : [`file:${item.file}`]),
+    ]
+    for (const key of keys) {
+      const seen = first.get(key)
+      if (seen === undefined) first.set(key, index)
+      else parent[root(index)] = root(seen)
     }
-    const created = [item]
-    units.push(created)
-    if (key !== undefined) byKey.set(key, created)
-  }
-  return units
+  })
+  const units = new Map<number, FixItem[]>()
+  items.forEach((item, index) => {
+    const unit = units.get(root(index)) ?? []
+    unit.push(item)
+    units.set(root(index), unit)
+  })
+  return [...units.values()]
 }
 
 export function planFixSplit(items: FixItem[], settings: SplitSettings): FixSplit {

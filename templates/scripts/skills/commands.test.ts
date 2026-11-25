@@ -182,6 +182,16 @@ describe("skills.ts due, the last run", () => {
     expect(repo.page().indexOf("Last run:")).toBeLessThan(repo.page().indexOf("| Skill |"))
   })
 
+  test("--record-run prints only the recorded line when a skill is due", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.skillsOn("2026-11-25", "due")
+
+    const result = repo.skillsOn("2026-12-10", "due", "--record-run")
+
+    expect(result.stdout).toBe("recorded last run: 2026-12-10")
+  })
+
   test("--record-run moves the date that a plain run printed", () => {
     const repo = sandbox()
     repo.addSkill("a")

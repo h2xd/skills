@@ -37,8 +37,10 @@ Find the decision records for a file with
   the other fixes to that code.
 - A mutation item that comes back `not applied` is an **ask** item. Give the
   surviving mutant and the test the fixer wrote.
-- A plan row may end in a fifth cell, the group, such as
-  `| T4 | fix | src/a.ts:12 | the change | catchup |`. Set it when one topic
-  spans more than one file. Rows with the same group go to one fixer. Give
-  the group to every row that touches a file of the topic, so no other fixer
-  edits that file. A row with no group joins the rows that name its file.
+- The plan table has a `Group` column when groups are used, such as
+  `| T4 | fix | src/a.ts:12 | the change | catchup |`. Set a group when one
+  topic spans more than one file. Rows with the same group go to one fixer.
+  Give the group to every row that touches a file of the topic, so no other
+  fixer edits that file. A row with no group joins the rows that name its
+  file. A table with no `Group` header gives no group, whatever its cells.
+  Write a pipe inside a cell as `\|`.

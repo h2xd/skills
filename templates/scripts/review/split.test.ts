@@ -183,6 +183,8 @@ describe("planFixSplit with a group cell", () => {
 
   test("a row with no group follows the rows that name its file", () => {
     const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
       "| T1 | fix | src/a.ts:1 | x | topic |",
       "| T2 | fix | src/b.ts:2 | x |",
       "| T3 | fix | src/c.ts:3 | x | topic |",
@@ -197,6 +199,8 @@ describe("planFixSplit with a group cell", () => {
 
   test("a group name never joins a row that names a file of the same text", () => {
     const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
       "| T1 | fix | src/x.ts:1 | x | src/a.ts |",
       "| T2 | fix | src/a.ts:2 | x |",
       ...[3, 4, 5, 6].map((n) => `| T${n} | fix | src/f${n}.ts:1 | x |`),
@@ -204,6 +208,35 @@ describe("planFixSplit with a group cell", () => {
     const workers = planFixSplit(parseFixItems(plan, threadsFor(6)), { fixMaxWorkers: 2 }).workers
 
     expect(workers.map((worker) => worker.items.includes("T1") === worker.items.includes("T2"))).toEqual([false, false])
+  })
+})
+
+describe("planFixSplit with a group and a file in common", () => {
+  test("a row with a group and a row with none on one file go to one fixer", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | topic |",
+      "| T2 | fix | src/a.ts:2 | x |  |",
+      ...[3, 4, 5, 6, 7].map((n) => `| T${n} | fix | src/f${n}.ts:1 | x |  |`),
+    ].join("\n")
+    const split = planFixSplit(parseFixItems(plan, threadsFor(7)), { fixMaxWorkers: 4 })
+    const holders = split.workers.filter((worker) => worker.files.includes("src/a.ts"))
+
+    expect(holders.length).toBe(1)
+    expect(holders[0].items.includes("T1") && holders[0].items.includes("T2")).toBe(true)
+  })
+
+  test("two groups that share a file go to one fixer", () => {
+    const rows: [string, string][] = [
+      ["src/a.ts", "one"], ["src/b.ts", "one"], ["src/a.ts", "two"], ["src/c.ts", "two"],
+      ["src/d.ts", "three"], ["src/e.ts", "three"], ["src/f.ts", "four"], ["src/g.ts", "four"],
+    ]
+    const workers = groupedWorkers(rows, { fixMaxWorkers: 4 })
+
+    const holder = workers.filter((items) => items.includes("T1"))
+    expect(holder.length).toBe(1)
+    expect(["T1", "T2", "T3", "T4"].every((id) => holder[0].includes(id))).toBe(true)
   })
 })
 
@@ -268,9 +301,69 @@ describe("fixerPlans", () => {
   })
 })
 
+describe("parseFixItems with a table header", () => {
+  const header = ["| id | bucket | where | change |", "|---|---|---|---|"]
+
+  test("a change text with an escaped pipe gives no group", () => {
+    const plan = [
+      ...header.map((line) => line.replace(/\|$/, "| group |")),
+      "| T1 | fix | src/d.ts:1 | use `a \\| b` here |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([{ id: "T1", file: "src/d.ts" }])
+  })
+
+  test("a fifth column with another header gives no group", () => {
+    const plan = [
+      "| id | bucket | where | change | Choice |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | B |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([{ id: "T1", file: "src/a.ts" }])
+  })
+
+  test("rows with the same Choice letter on different files stay apart", () => {
+    const plan = [
+      "| id | bucket | where | change | Choice |",
+      "|---|---|---|---|---|",
+      ...Array.from({ length: 7 }, (_, i) => `| T${i + 1} | fix | src/f${i}.ts:1 | x | B |`),
+    ].join("\n")
+    const split = planFixSplit(parseFixItems(plan, threadsFor(7)), { fixMaxWorkers: 4 })
+
+    expect(split.workers.length).toBe(2)
+  })
+
+  test("reads the group from the column that the header names Group", () => {
+    const plan = [
+      "| Id | Bucket | Where | Group | Change |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | topic | x |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([
+      { id: "T1", file: "src/a.ts", group: "topic" },
+    ])
+  })
+
+  test("reads a pipe after a backslash inside a group column as part of the cell", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | a \\| b | topic |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([
+      { id: "T1", file: "src/a.ts", group: "topic" },
+    ])
+  })
+})
+
 describe("parseFixItems", () => {
   test("reads a group from the fifth cell and treats an empty cell or - as none", () => {
     const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
       "| T1 | fix | a.ts:1 | x | topic |",
       "| T2 | fix | b.ts:1 | x | - |",
       "| T3 | fix | c.ts:1 | x |  |",

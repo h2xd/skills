@@ -92,7 +92,8 @@ when none does. A re-run offers the TypeScript rules again, because the plugin
 no longer ships them.
 
 It ends with one status line per item. 🔴 means something blocks a skill, 🟡
-means a follow-up, 🟢 means written, and ⚪ means optional. The
+means an item that only you can close, 🟤 means out of scope for the run, 🟢
+means written, and ⚪ means optional. The
 [Status markers](#status-markers) table lists all eight. Run it again to
 update the scripts or to change an answer.
 

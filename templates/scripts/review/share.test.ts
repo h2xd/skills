@@ -139,7 +139,7 @@ describe("formatShare", () => {
 })
 
 describe("reviewRounds", () => {
-  const written = (reds: number, yellows: number): string =>
+  const written = (reds: number, yellows: number, greens = 0): string =>
     mergeFindings(
       [
         {
@@ -165,6 +165,16 @@ describe("reviewRounds", () => {
               body: "Rename.",
               "found-by": ["Claude"],
             })),
+            ...Array.from({ length: greens }, (_, index) => ({
+              id: `B-${reds + yellows + index + 1}`,
+              severity: "green" as const,
+              file: "src/a.ts",
+              lines: [reds + yellows + index + 1] as [number],
+              label: "praise",
+              subject: "clear name",
+              body: "Reads well.",
+              "found-by": ["Claude"],
+            })),
           ],
         },
       ],
@@ -186,6 +196,16 @@ describe("reviewRounds", () => {
 
   test("counts a review as the writer of review-pr formats it, with any counts", () => {
     expect(reviewRounds([written(0, 0), written(3, 0), written(0, 1)])).toBe(2)
+  })
+
+  test("counts a review with ten or more findings of one severity", () => {
+    expect(reviewRounds([written(10, 0), written(0, 0)])).toBe(1)
+    expect(reviewRounds([written(0, 10), written(0, 0)])).toBe(1)
+    expect(reviewRounds([written(0, 0, 10), written(0, 0)])).toBe(1)
+  })
+
+  test("does not count a body whose count line goes on after the counts", () => {
+    expect(reviewRounds([written(0, 0), "🔴 1 · 🟡 0 · 🟢 0 is what I saw"])).toBe(0)
   })
 
   test("does not count a reply with an empty body or a verdict of the gate", () => {
