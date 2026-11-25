@@ -240,6 +240,20 @@ describe("planFixSplit with a group and a file in common", () => {
   })
 })
 
+describe("planFixSplit with a row that bridges two units", () => {
+  test("a row that names the group of one unit and the file of another joins all three", () => {
+    const rows: [string, string][] = [
+      ["src/a.ts", "one"], ["src/b.ts", "two"], ["src/a.ts", "two"],
+      ["src/d.ts", "x4"], ["src/e.ts", "x5"], ["src/f.ts", "x6"], ["src/g.ts", "x7"], ["src/h.ts", "x8"],
+    ]
+    const workers = groupedWorkers(rows, { fixMaxWorkers: 4 })
+
+    const holders = workers.filter((items) => items.some((id) => ["T1", "T2", "T3"].includes(id)))
+    expect(holders.length).toBe(1)
+    expect(["T1", "T2", "T3"].every((id) => holders[0].includes(id))).toBe(true)
+  })
+})
+
 describe("fixerPlans", () => {
   const plan = [
     "Plan of PR 12",
@@ -412,6 +426,129 @@ describe("parseFixItems", () => {
 
   test("fails on a fix row that threads.md does not list", () => {
     expect(() => parseFixItems("| T9 | fix | a.ts:1 | x |", threadsFor(1))).toThrow("T9")
+  })
+
+  test("reads a group under a separator row with alignment colons", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|:---|:---:|---:|---|:---|",
+      "| T1 | fix | src/a.ts:1 | x | one |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(1))).toEqual([{ id: "T1", file: "src/a.ts", group: "one" }])
+  })
+
+  test("a stray row inside the table keeps the group column for the rows after it", () => {
+    const plan = [
+      "| ID | Bucket | Location | Change | Group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | a.ts:1 | x | cat |",
+      "| T2 | fix | b.ts:1 | y | |",
+      "|  |  |  | and also z | |",
+      "| **T9** | fix | d.ts:1 | note | |",
+      "| T3 | fix | c.ts:1 | z | cat |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(3))).toEqual([
+      { id: "T1", file: "a.ts", group: "cat" },
+      { id: "T2", file: "b.ts" },
+      { id: "T3", file: "c.ts", group: "cat" },
+    ])
+  })
+
+  test("a second table with its own header does not inherit the group column", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | one |",
+      "",
+      "| id | bucket | where | change | note |",
+      "|---|---|---|---|---|",
+      "| T2 | fix | src/b.ts:1 | x | one |",
+      "| T3 | fix | src/c.ts:1 | x | one |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(3))).toEqual([
+      { id: "T1", file: "src/a.ts", group: "one" },
+      { id: "T2", file: "src/b.ts" },
+      { id: "T3", file: "src/c.ts" },
+    ])
+  })
+
+  test("a header row right under a table replaces its group column", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | one |",
+      "| id | bucket | where | change | note |",
+      "|---|---|---|---|---|",
+      "| T2 | fix | src/b.ts:1 | x | one |",
+      "| T3 | fix | src/c.ts:1 | x | one |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(3)).map((item) => item.group)).toEqual(["one", undefined, undefined])
+  })
+
+  test("a second table with a Group header after a table without one reads its groups", () => {
+    const plan = [
+      "| id | bucket | where | change |",
+      "|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x |",
+      "",
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T2 | fix | src/b.ts:1 | x | one |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(2))).toEqual([
+      { id: "T1", file: "src/a.ts" },
+      { id: "T2", file: "src/b.ts", group: "one" },
+    ])
+  })
+
+  test("fails on a fix row with more cells than its header and names the row", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | topic |",
+      "| T2 | fix | src/b.ts:1 | a || b | topic |",
+    ].join("\n")
+
+    expect(() => parseFixItems(plan, threadsFor(2))).toThrow(
+      "T2 has 7 cells, the header has 5: write a pipe inside a cell as \\|",
+    )
+  })
+
+  test("fails on a fifth cell with text when the table has no header", () => {
+    const plan = "| T1 | fix | src/a.ts:1 | x | topic |"
+
+    expect(() => parseFixItems(plan, threadsFor(1))).toThrow(
+      "T1 has a fifth cell and the table has no header: add a header row with a Group column",
+    )
+  })
+
+  test("fails on a fifth cell in a table without a header after a table with one", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | topic |",
+      "",
+      "| T2 | fix | src/b.ts:1 | x | topic |",
+    ].join("\n")
+
+    expect(() => parseFixItems(plan, threadsFor(2))).toThrow("T2 has a fifth cell")
+  })
+
+  test("reads a group in backticks and the same group without them as one group", () => {
+    const plan = [
+      "| id | bucket | where | change | group |",
+      "|---|---|---|---|---|",
+      "| T1 | fix | src/a.ts:1 | x | `Cat` |",
+      "| T2 | fix | src/b.ts:1 | x | cat |",
+      "| T3 | fix | src/c.ts:1 | x | CAT |",
+    ].join("\n")
+
+    expect(parseFixItems(plan, threadsFor(3)).map((item) => item.group)).toEqual(["cat", "cat", "cat"])
   })
 })
 

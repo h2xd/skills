@@ -1,7 +1,5 @@
 import { commentSeverity, ICON, isReviewBody, type Marker } from "./findings.ts"
 
-export type { Marker }
-
 export type Share = {
   green: number
   yellow: number

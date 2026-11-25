@@ -70,13 +70,11 @@ describe("review.ts missing and options --validate", () => {
     expect(run.stderr).toContain(`local absolute path ${quoted}`)
   })
 
-  test("options --validate fails on a path under the system temp folder with no --local-path", () => {
+  test("options --validate passes a path in the system temp folder with no --local-path", () => {
     const file = join(directory, "review.json")
     const quoted = join(realpathSync(tmpdir()), "round", "probe.json")
     writeFileSync(file, JSON.stringify({ body: `see ${quoted}`, comments: [] }))
-    const run = review("options", "--validate", file)
-    expect(run.status).toBe(1)
-    expect(run.stderr).toContain(`local absolute path ${quoted}`)
+    expect(review("options", "--validate", file).status).toBe(0)
   })
 
   test("options --validate takes extra local folders with --local-path", () => {

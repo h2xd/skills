@@ -1,7 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { formatShare, type Marker, reviewRounds, reviewShare, threadMarker } from "./share.ts"
-import { mergeFindings } from "./findings.ts"
+import { formatShare, reviewRounds, reviewShare, threadMarker } from "./share.ts"
+import { mergeFindings, type Marker } from "./findings.ts"
 
 const many = (green: number, yellow = 0, red = 0, white = 0): Marker[] => [
   ...Array(green).fill("🟢"),

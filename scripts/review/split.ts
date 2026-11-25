@@ -13,6 +13,7 @@ const SEPARATOR_CELL = /^:?-+:?$/
 const LOCATION = /^(.+?)(?::\d+(?:-\d+)?)?$/
 
 const GROUP_HEADER = "group"
+const FIFTH_CELL = 4
 
 function cells(row: string): string[] {
   return row
@@ -28,20 +29,38 @@ export function parseFixItems(plan: string, threads: string): FixItem[] {
     [...threads.matchAll(/^## ((?:T|S)\d+)\s*$/gm)].map((match) => match[1]),
   )
   const items: FixItem[] = []
+  let header: string[] | undefined
   let groupColumn = -1
-  for (const line of plan.split("\n")) {
-    if (!line.trim().startsWith("|")) continue
+  const lines = plan.split("\n")
+  for (const [index, line] of lines.entries()) {
+    if (!line.trim().startsWith("|")) {
+      header = undefined
+      groupColumn = -1
+      continue
+    }
     const row = cells(line)
     const [id, bucket, location] = row
-    if (!ITEM_ID.test(id) && !row.every((cell) => SEPARATOR_CELL.test(cell))) {
+    const next = lines[index + 1]?.trim() ?? ""
+    if (next.startsWith("|") && cells(next).every((cell) => SEPARATOR_CELL.test(cell))) {
+      header = row
       groupColumn = row.findIndex((cell) => cell.toLowerCase() === GROUP_HEADER)
     }
-    const group = groupColumn < 0 ? undefined : row[groupColumn]
     if (!ITEM_ID.test(id) || bucket.replaceAll("*", "").toLowerCase() !== "fix") {
       continue
     }
     if (!known.has(id)) throw new Error(`${id} is in the plan, not in threads.md`)
     if (items.some((item) => item.id === id)) throw new Error(`${id} has two rows`)
+    if (header !== undefined && row.length > header.length) {
+      throw new Error(
+        `${id} has ${row.length} cells, the header has ${header.length}: write a pipe inside a cell as \\|`,
+      )
+    }
+    if (header === undefined && (row[FIFTH_CELL] ?? "") !== "") {
+      throw new Error(
+        `${id} has a fifth cell and the table has no header: add a header row with a Group column`,
+      )
+    }
+    const group = groupColumn < 0 ? undefined : row[groupColumn]?.replaceAll("`", "").toLowerCase()
     const path = (location ?? "").replaceAll("`", "")
     const file = path === "" || path === "-" ? undefined : LOCATION.exec(path)?.[1]
     items.push({

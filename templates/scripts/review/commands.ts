@@ -437,8 +437,9 @@ export function findingsCommand(argv: string[]): void {
     "findings --validate <file> [--local-path <dir>]...",
   )
   const parsed = parseFindings(readJson(file))
+  const roundFolder = dirname(resolve(file))
   const problems = parsed.ok
-    ? validateFindingsPaths(parsed.file, localFolders(values["local-path"]))
+    ? validateFindingsPaths(parsed.file, localFolders([...(values["local-path"] ?? []), roundFolder]))
     : parsed.problems
   if (!parsed.ok || problems.length > 0) {
     for (const problem of problems) console.error(problem)

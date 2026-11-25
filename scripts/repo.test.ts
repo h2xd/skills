@@ -79,6 +79,30 @@ describe("this repo's copies of the templates", () => {
   }
 })
 
+/** The test paths and globs that a `node --test` script runs. */
+function testPaths(script: string): string[] {
+  return script.replace(/^node --test /, "").match(/"[^"]+"|\S+/g)?.map((path) => path.replaceAll('"', "")) ?? []
+}
+
+describe("this repo's test scripts", () => {
+  const scripts = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8")).scripts
+  const all: string[] = testPaths(scripts.test)
+  const mutants: string[] = testPaths(scripts["test:mutants"])
+  const scriptTests = (path: string) => /^scripts\/[^/]+\.test\.ts$/.test(path)
+
+  test("test:mutants runs every test folder of test, except the one of scripts", () => {
+    const folders = all.filter((path) => path !== "scripts/**/*.test.ts")
+    expect(folders.length > 0).toBe(true)
+    for (const folder of folders) expect(mutants).toContain(folder)
+  })
+
+  test("test:mutants adds only single tests of scripts, and leaves out the copy check", () => {
+    const added = mutants.filter((path) => !all.includes(path))
+    expect(added.every(scriptTests)).toBe(true)
+    expect(mutants).not.toContain("scripts/repo.test.ts")
+  })
+})
+
 describe("this repo's agents.config.json", () => {
   test("holds the plugin version, so drift.ts finds no version gap", () => {
     const config = JSON.parse(readFileSync(join(ROOT, "agents.config.json"), "utf8"))
