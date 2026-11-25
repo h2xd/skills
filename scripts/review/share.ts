@@ -1,3 +1,5 @@
+import { commentSeverity, type Severity } from "./findings.ts"
+
 export type Marker = "🟢" | "🟡" | "🔴" | "⚪"
 
 export type Share = {
@@ -12,16 +14,14 @@ export type Share = {
 
 const ALL_GREEN_BELOW_THREADS = 10
 
-const BLOCKING_LABEL = /^[^\n(]*\(blocking\):/
+const MARKER: Record<Severity, Marker> = { red: "🔴", yellow: "🟡", green: "🟢", white: "⚪" }
 
 type RatedThread = { isResolved: boolean; comments: { nodes: { body: string }[] } }
 
 export function threadMarker(thread: RatedThread): Marker {
   if (thread.isResolved) return "🟢"
-  const opening = (thread.comments.nodes[0]?.body ?? "").trimStart()
-  if (opening.startsWith("⚪")) return "⚪"
-  if (/^(praise|note):/.test(opening)) return "🟢"
-  return BLOCKING_LABEL.test(opening) ? "🔴" : "🟡"
+  const severity = commentSeverity(thread.comments.nodes[0]?.body ?? "")
+  return severity === undefined ? "🟡" : MARKER[severity]
 }
 
 export function reviewShare(markers: Marker[], goalShare: number): Share {

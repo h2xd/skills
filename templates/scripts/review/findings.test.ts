@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { type Finding, type FindingsFile, existingThreads, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
+import { type Finding, type FindingsFile, type Severity, commentSeverity, existingThreads, formatPreview, mergeFindings, parseFindings } from "./findings.ts"
 import { type ReviewThread, unrepliedSummaryItems } from "./threads.ts"
 import { validateDraftComments } from "./options.ts"
 import { outsideDiffItems } from "./threads.ts"
@@ -1082,5 +1082,38 @@ describe("mergeFindings", () => {
     expect(formatPreview(review, dropped)).toContain(
       "## Dropped\n\n- C-1: Kept threads are lost",
     )
+  })
+})
+
+describe("commentSeverity", () => {
+  const LABELS: [Severity, string[]][] = [
+    ["red", ["issue", "todo"]],
+    ["yellow", ["suggestion", "issue", "question"]],
+    ["green", ["note", "praise"]],
+    ["white", ["nitpick", "thought", "suggestion"]],
+  ]
+
+  for (const [severity, labels] of LABELS) {
+    for (const label of labels) {
+      test(`reads back ${severity} from a ${label} comment that mergeFindings wrote`, () => {
+        const { review } = mergeFindings(
+          [file("B", [finding({ severity, label, subject: "a (blocking): mention" })])],
+          DIFF,
+          CONTEXT,
+        )
+        expect(review.comments).toHaveLength(1)
+        expect(commentSeverity(review.comments[0].body)).toBe(severity)
+      })
+    }
+  }
+
+  test("returns undefined for a comment that is not from review-pr", () => {
+    expect(commentSeverity("Looks good to me")).toBe(undefined)
+    expect(commentSeverity("")).toBe(undefined)
+    expect(commentSeverity("see\nissue (blocking): later line")).toBe(undefined)
+  })
+
+  test("skips white space before the label", () => {
+    expect(commentSeverity("\n  issue (blocking): y")).toBe("red")
   })
 })

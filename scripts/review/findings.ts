@@ -75,6 +75,10 @@ const LABELS: Record<Severity, string[]> = {
   white: ["nitpick", "thought", "suggestion"],
 }
 const UNDECORATED = ["thought", "note", "praise"]
+const BLOCKING = "blocking"
+const NON_BLOCKING = "non-blocking"
+const GREEN_LABEL = new RegExp(`^(?:${LABELS.green.join("|")}):`)
+const DECORATED_LABEL = new RegExp(`^[^\\n(]*\\((${NON_BLOCKING}|${BLOCKING})\\):`)
 const REQUIRED_FIELDS = [
   "id",
   "severity",
@@ -453,7 +457,7 @@ function suggestionBlock(code: string): string {
 function commentBody(joined: Joined): string {
   const decoration = UNDECORATED.includes(joined.label)
     ? ""
-    : ` (${joined.severity === "red" ? "blocking" : "non-blocking"})`
+    : ` (${joined.severity === "red" ? BLOCKING : NON_BLOCKING})`
   const marker = joined.severity === "white" ? `${ICON.white} ` : ""
   return [
     `${marker}${joined.label}${decoration}: ${joined.subject}`,
@@ -467,6 +471,15 @@ function commentBody(joined: Joined): string {
   ]
     .filter((part) => part !== undefined)
     .join("\n\n")
+}
+
+export function commentSeverity(body: string): Severity | undefined {
+  const opening = body.trimStart()
+  if (opening.startsWith(ICON.white)) return "white"
+  if (GREEN_LABEL.test(opening)) return "green"
+  const decoration = DECORATED_LABEL.exec(opening)?.[1]
+  if (decoration === undefined) return undefined
+  return decoration === BLOCKING ? "red" : "yellow"
 }
 
 function threadLink(url: string): string {
