@@ -4,6 +4,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -154,6 +155,19 @@ describe("the git sandbox", () => {
 })
 
 describe("implement.ts worktree and cleanup", () => {
+  test("the worktree of a build worker links the files of worktreeLinks", () => {
+    const repo = sandbox()
+    repo.write(
+      "agents.config.json",
+      `${JSON.stringify({ worktreeSetup: [], worktreeLinks: [".env.local"] })}\n`,
+    )
+    repo.write(".env.local", "SECRET=1\n")
+
+    const path = repo.mustImplement("worktree", "1")
+
+    expect(readFileSync(join(path, ".env.local"), "utf8")).toBe("SECRET=1\n")
+  })
+
   test("two build workers land by cherry-pick -x, and cleanup removes both", () => {
     const repo = sandbox()
     const paths = ["1", "2"].map((id) => repo.mustImplement("worktree", id))

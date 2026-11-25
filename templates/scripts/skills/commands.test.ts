@@ -107,6 +107,18 @@ describe("skills.ts due", () => {
 
     expect(repo.page()).toContain("| linked | - |")
   })
+
+  test("gives no row to a folder that holds no SKILL.md", () => {
+    const repo = sandbox()
+    repo.addSkill("release")
+    mkdirSync(join(repo.dir, ".claude/skills/notes"), { recursive: true })
+    writeFileSync(join(repo.dir, ".claude/skills/notes/draft.md"), "notes\n")
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toContain("created docs/agents/skills.md with 1 rows")
+    expect(repo.page()).not.toContain("| notes |")
+  })
 })
 
 describe("skills.ts due, the list", () => {

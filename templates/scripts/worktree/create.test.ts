@@ -8,6 +8,7 @@ import {
   readFileSync,
   realpathSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs"
 import { tmpdir } from "node:os"
@@ -193,6 +194,22 @@ describe("worktree.ts", () => {
     expect(result.stderr).toContain("skipped")
     expect(existsSync(join(path, ".env.local"))).toBe(false)
     expect(readFileSync(join(path, "present.txt"), "utf8")).toBe("here\n")
+  })
+
+  test("skips a listed file when the worktree already has a link at that path", () => {
+    const repo = sandbox({ worktreeLinks: ["local.cfg"] })
+    symlinkSync("nowhere", join(repo.dir, "local.cfg"))
+    repo.git("add", "local.cfg")
+    repo.git("commit", "-m", "track a link that points nowhere")
+    rmSync(join(repo.dir, "local.cfg"))
+    repo.write("local.cfg", "real\n")
+    const path = repo.path("wt")
+
+    const result = repo.worktree(path)
+
+    expect(result.status).toBe(0)
+    expect(result.stderr).toContain("skipped local.cfg: the worktree already has it")
+    expect(repo.worktrees()).toEqual([repo.dir, path])
   })
 
   test("refuses a listed path that leaves the repo", () => {
