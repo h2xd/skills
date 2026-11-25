@@ -27,6 +27,7 @@ type Repo = {
   dir: string
   parent: string
   git(...args: string[]): string
+  fastImport(stream: string): void
   commit(file: string, date: string, who: "ada" | "bob", message: string): void
   catchup(...args: string[]): Result
 }
@@ -48,8 +49,18 @@ function sandbox(): Repo {
     GIT_CONFIG_NOSYSTEM: "1",
     ...extra,
   })
-  const run = (file: string, args: string[], extra: Record<string, string> = {}): Result => {
-    const result = spawnSync(file, args, { cwd: dir, encoding: "utf8", env: environment(extra) })
+  const run = (
+    file: string,
+    args: string[],
+    extra: Record<string, string> = {},
+    input?: string,
+  ): Result => {
+    const result = spawnSync(file, args, {
+      cwd: dir,
+      encoding: "utf8",
+      env: environment(extra),
+      input,
+    })
     if (result.error) throw result.error
     return {
       status: result.status ?? 128,
@@ -77,6 +88,11 @@ function sandbox(): Repo {
     dir,
     parent,
     git,
+    fastImport(stream) {
+      const result = run("git", ["fast-import", "--quiet"], {}, stream)
+      if (result.status !== 0) throw new Error(result.stderr)
+      git("reset", "--quiet")
+    },
     commit(file, date, who, message) {
       mkdirSync(join(dir, file, ".."), { recursive: true })
       writeFileSync(join(dir, file), `${message}\n`)
@@ -128,6 +144,31 @@ function changesAfterOwnCommit(count: number): Repo {
     repo.commit(`skills/s${number}.md`, "2026-11-10", "bob", `fix: change ${number}`)
   }
   return repo
+}
+
+const BULK_SUBJECT = `feat: ${"a subject as long as the ones in a repo that has lived for years ".repeat(3)}`
+const BULK_DIRECTORY = "a-directory-with-a-long-name-".repeat(4)
+
+function bulkHistory(commits: number, trackedFiles: number): string {
+  const person = `ada <${PEOPLE.ada.email}>`
+  const stream: string[] = []
+  for (let number = 1; number <= commits; number++) {
+    const message = `${BULK_SUBJECT} ${number}`
+    stream.push(
+      "commit refs/heads/main",
+      `committer ${person} ${1_760_000_000 + number} +0000`,
+      `data ${message.length}`,
+      message,
+    )
+    if (number === 1) {
+      for (let file = 1; file <= trackedFiles; file++) {
+        const content = `file ${file}`
+        stream.push(`M 100644 inline ${BULK_DIRECTORY}/file-${file}.txt`, `data ${content.length}`, content)
+      }
+    }
+    stream.push("")
+  }
+  return `${stream.join("\n")}\n`
 }
 
 function files(dir: string): string[] {
@@ -311,6 +352,75 @@ describe("catchup.ts facts, the repo scope", () => {
     expect(lines).toContain("since your last commit: 21")
     expect(lines.filter((line) => /^- [0-9a-f]+ /.test(line)).length).toBe(20)
     expect(lines).toContain("- and 1 more")
+  })
+
+  test("reads a history whose log is larger than one mebibyte", () => {
+    const repo = sandbox()
+    repo.fastImport(bulkHistory(8_000, 1))
+
+    const result = repo.catchup("facts", "--scope", "repo")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout.split("\n")).toContain("commits: 8000")
+  })
+
+  test("reads a repo whose list of tracked files is larger than one mebibyte", () => {
+    const repo = sandbox()
+    repo.fastImport(bulkHistory(1, 12_000))
+
+    const result = repo.catchup("facts", "--scope", "repo", "--user", "nobody@example.com")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout.split("\n")).toContain(`- ${BULK_DIRECTORY}/ 12000 files`)
+  })
+
+  test("counts the changes after the user's last commit up to the remote default branch", () => {
+    const repo = sandbox()
+    repo.commit("README.md", "2026-11-02", "bob", "feat: start")
+    repo.commit("skills/own.md", "2026-11-03", "ada", "feat: own")
+    repo.commit("skills/o1.md", "2026-11-04", "bob", "fix: other one")
+    repo.commit("skills/o2.md", "2026-11-05", "bob", "fix: other two")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+    repo.git("reset", "--hard", "--quiet", "main~3")
+
+    const lines = repo.catchup("facts").stdout.split("\n")
+
+    expect(lines).toContain("commits: 4")
+    expect(lines).toContain("your commits: 1")
+    expect(lines).toContain("since your last commit: 2")
+    expect(lines.some((line) => line.endsWith("fix: other two (Bob)"))).toBe(true)
+  })
+
+  test("counts the unpushed commits of the default branch and lists none of them as changes", () => {
+    const repo = sandbox()
+    repo.commit("README.md", "2026-11-02", "bob", "feat: start")
+    repo.commit("skills/a.md", "2026-11-03", "bob", "fix: a")
+    repo.git("update-ref", "refs/remotes/origin/main", "main")
+    repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+    repo.commit("skills/own1.md", "2026-11-04", "ada", "feat: own one")
+    repo.commit("skills/own2.md", "2026-11-05", "ada", "feat: own two")
+
+    const result = repo.catchup("facts")
+
+    const lines = result.stdout.split("\n")
+    expect(lines).toContain("commits: 4")
+    expect(lines).toContain("your commits: 2")
+    expect(lines).toContain("since your last commit: 0")
+    expect(result.stdout).not.toContain("feat: own")
+  })
+
+  test("counts the remote default branch from a ticket branch, whatever the local one holds", () => {
+    const repo = history()
+    repo.git("update-ref", "refs/remotes/origin/main", "main~1")
+    repo.git("symbolic-ref", "refs/remotes/origin/HEAD", "refs/remotes/origin/main")
+
+    const result = repo.catchup("facts", "--scope", "repo")
+
+    const lines = result.stdout.split("\n")
+    expect(lines).toContain("commits: 2")
+    expect(lines).toContain("since your last commit: 0")
+    expect(result.stdout).not.toContain("feat: x")
   })
 
   test("refuses a scope it does not know", () => {

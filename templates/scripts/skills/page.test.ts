@@ -1,6 +1,14 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { dueSkills, formatPage, markReviewed, parsePage, syncRows } from "./page.ts"
+import {
+  dueSkills,
+  formatPage,
+  markReviewed,
+  parsePage,
+  readLastRun,
+  setLastRun,
+  syncRows,
+} from "./page.ts"
 
 const TODAY = "2026-11-25"
 
@@ -64,6 +72,88 @@ describe("a table a formatter padded", () => {
     expect(again.split("\n").filter((line) => line.includes("Review due"))).toHaveLength(1)
     expect(again).toContain("| nitro | Node | 2026-10-01 | 2026-10-11 |")
     expect(again).toContain("After the table.")
+  })
+})
+
+describe("a blank after the last pipe", () => {
+  const TABLE = ["| Skill | Technology | Updated | Review due |", "|---|---|---|---|"]
+
+  test("a row keeps parsing", () => {
+    const text = [...TABLE, "| a | - | 2026-01-01 | 2026-01-11 | "].join("\n")
+    expect(parsePage(text)).toEqual([
+      { skill: "a", technology: "-", updated: "2026-01-01", due: "2026-01-11" },
+    ])
+  })
+
+  test("a header is still the table, so formatPage writes one table", () => {
+    const text = ["# Skills", "", "| Skill | Technology | Updated | Review due | ", "|---|---|---|---|", ""].join("\n")
+    const again = formatPage(syncRows([], ["a"], TODAY, 10), TODAY, text)
+    expect(again.split("\n").filter((line) => line.includes("Review due"))).toHaveLength(1)
+    expect(again).toContain("| a | - | 2026-11-25 | 2026-12-05 |")
+  })
+})
+
+describe("the header cells in a line of prose", () => {
+  test("formatPage leaves the prose line and rewrites only the real table", () => {
+    const prose = "see | Skill | Technology | Updated | Review due |"
+    const text = [
+      "# Skills",
+      "",
+      prose,
+      "",
+      "| Skill | Technology | Updated | Review due |",
+      "|---|---|---|---|",
+      "| a | - | 2026-01-01 | 2026-01-11 |",
+      "",
+    ].join("\n")
+    const again = formatPage(syncRows(parsePage(text), ["a"], TODAY, 10), TODAY, text)
+    const lines = again.split("\n")
+    expect(lines.filter((line) => line === prose)).toHaveLength(1)
+    expect(lines.filter((line) => line.startsWith("| Skill |"))).toHaveLength(1)
+    expect(again).toContain("| a | - | 2026-01-01 | 2026-01-11 |")
+  })
+})
+
+describe("a row that does not match", () => {
+  test("parsePage names the line of a date written 2026-12-1", () => {
+    const text = [
+      "# Skills",
+      "",
+      "| Skill | Technology | Updated | Review due |",
+      "|---|---|---|---|",
+      "| tech-zod | zod | 2026-10-01 | 2026-12-1 |",
+    ].join("\n")
+    expect(() => parsePage(text)).toThrow("line 5")
+  })
+
+  test("parsePage ignores a row-shaped line outside the table", () => {
+    const text = [
+      "| Skill | Technology | Updated | Review due |",
+      "|---|---|---|---|",
+      "| a | - | 2026-01-01 | 2026-01-11 |",
+      "",
+      "| b | - | 2026-01-01 | 2026-01-11 |",
+    ].join("\n")
+    expect(parsePage(text).map((row) => row.skill)).toEqual(["a"])
+  })
+})
+
+describe("the last run line", () => {
+  const table = "| Skill | Technology | Updated | Review due |\n|---|---|---|---|\n"
+
+  test("is read from the page, and is none without the line", () => {
+    expect(readLastRun(`# Skills\n\nLast run: 2026-11-20\n\n${table}`)).toBe("2026-11-20")
+    expect(readLastRun(`# Skills\n\n${table}`)).toBe(null)
+    expect(readLastRun(null)).toBe(null)
+  })
+
+  test("is added above the table when missing", () => {
+    expect(setLastRun(`# Skills\n\n${table}`, TODAY)).toBe(`# Skills\n\nLast run: ${TODAY}\n\n${table}`)
+  })
+
+  test("is replaced in place without eating the blank line after it", () => {
+    const text = `# Skills\n\nLast run: 2026-11-20\n\n${table}`
+    expect(setLastRun(text, TODAY)).toBe(`# Skills\n\nLast run: ${TODAY}\n\n${table}`)
   })
 })
 

@@ -23,9 +23,12 @@ afterEach(() => {
   for (const dir of sandboxes.splice(0)) rmSync(dir, { recursive: true, force: true })
 })
 
+type Result = { status: number; stdout: string; stderr: string }
+
 type Repo = {
   dir: string
-  skills(...args: string[]): { status: number; stdout: string; stderr: string }
+  skills(...args: string[]): Result
+  skillsOn(date: string, ...args: string[]): Result
   page(): string
   addSkill(name: string): void
   writePage(rows: [string, string][]): void
@@ -43,9 +46,12 @@ function sandbox(config: object = {}): Repo {
   const repo: Repo = {
     dir,
     skills(...args) {
+      return repo.skillsOn(TODAY, ...args)
+    },
+    skillsOn(date, ...args) {
       const result = spawnSync(
         process.execPath,
-        ["scripts/skills.ts", ...args, "--today", TODAY],
+        ["scripts/skills.ts", ...args, "--today", date],
         { cwd: dir, encoding: "utf8", env: envWithoutGit() },
       )
       return {
@@ -114,7 +120,7 @@ describe("skills.ts due", () => {
     const result = repo.skills("due")
 
     expect(result.status).toBe(0)
-    expect(result.stdout).toBe("created docs/agents/skills.md with 0 rows\n0 due")
+    expect(result.stdout).toBe("created docs/agents/skills.md with 0 rows\nlast run: none\n0 due")
   })
 
   test("gives no row to a folder that holds no SKILL.md", () => {
@@ -130,6 +136,105 @@ describe("skills.ts due", () => {
   })
 })
 
+describe("skills.ts due, the last run", () => {
+  test("prints none and writes today on the first run", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toContain("last run: none")
+    expect(repo.page()).toContain("\nLast run: 2026-11-25\n")
+    expect(repo.page().indexOf("Last run:")).toBeLessThan(repo.page().indexOf("| Skill |"))
+  })
+
+  test("prints the date of the earlier run on a later day, then writes the later day", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.skillsOn("2026-11-20", "due")
+
+    const result = repo.skillsOn("2026-11-25", "due")
+
+    expect(result.stdout).toContain("last run: 2026-11-20")
+    expect(repo.page()).toContain("Last run: 2026-11-25")
+    expect(repo.page()).not.toContain("Last run: 2026-11-20")
+  })
+
+  test("is not moved by reviewed", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.skillsOn("2026-11-20", "due")
+
+    repo.skillsOn("2026-11-25", "reviewed", "a")
+
+    expect(repo.page()).toContain("Last run: 2026-11-20")
+    expect(repo.page()).toContain("| a | - | 2026-11-25 | 2026-12-05 |")
+  })
+
+  test("keeps the text around the table and the rows", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.skillsOn("2026-11-20", "due")
+    const edited = repo.page().replace("# Skills", "# Skills\n\nA note from a person.")
+    writeFileSync(join(repo.dir, "docs/agents/skills.md"), `${edited}\nAfter the table.\n`)
+
+    repo.skillsOn("2026-11-25", "due")
+
+    expect(repo.page()).toContain("A note from a person.")
+    expect(repo.page()).toContain("After the table.")
+    expect(repo.page()).toContain("| a | - | 2026-11-20 | 2026-11-30 |")
+  })
+
+  test("prints none for an existing page that has no Last run line", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    repo.writePage([["a", "2026-12-30"]])
+
+    const result = repo.skills("due")
+
+    expect(result.stdout).toBe("last run: none\n0 due")
+    expect(repo.page()).toContain("Last run: 2026-11-25")
+  })
+})
+
+describe("skills.ts due, a row that does not parse", () => {
+  test("fails with the line number and leaves the page unchanged", () => {
+    const repo = sandbox()
+    repo.addSkill("tech-zod")
+    mkdirSync(join(repo.dir, "docs/agents"), { recursive: true })
+    const page = [
+      "# Skills",
+      "",
+      "| Skill | Technology | Updated | Review due |",
+      "|---|---|---|---|",
+      "| tech-zod | zod | 2026-10-01 | 2026-12-1 |",
+      "",
+    ].join("\n")
+    writeFileSync(join(repo.dir, "docs/agents/skills.md"), page)
+
+    const result = repo.skills("due")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("line 5")
+    expect(result.stderr).toContain("2026-12-1")
+    expect(repo.page()).toBe(page)
+  })
+
+  test("fails on an empty Technology cell, for reviewed too", () => {
+    const repo = sandbox()
+    repo.addSkill("a")
+    mkdirSync(join(repo.dir, "docs/agents"), { recursive: true })
+    const page = "| Skill | Technology | Updated | Review due |\n|---|---|---|---|\n| a || 2026-10-01 | 2026-10-11 |\n"
+    writeFileSync(join(repo.dir, "docs/agents/skills.md"), page)
+
+    const result = repo.skills("reviewed", "a")
+
+    expect(result.status).toBe(1)
+    expect(result.stderr).toContain("line 3")
+    expect(repo.page()).toBe(page)
+  })
+})
+
 describe("skills.ts due, the list", () => {
   test("prints all due skills, oldest first, in one list", () => {
     const repo = sandbox()
@@ -138,7 +243,7 @@ describe("skills.ts due, the list", () => {
 
     const result = repo.skills("due")
 
-    expect(result.stdout).toBe("3 due\nb 2026-10-01\na 2026-11-20\nd 2026-11-25")
+    expect(result.stdout).toBe("last run: none\n3 due\nb 2026-10-01\na 2026-11-20\nd 2026-11-25")
   })
 
   test("prints none when no review is due", () => {
@@ -146,7 +251,7 @@ describe("skills.ts due, the list", () => {
     repo.addSkill("a")
     repo.writePage([["a", "2026-12-30"]])
 
-    expect(repo.skills("due").stdout).toBe("0 due")
+    expect(repo.skills("due").stdout).toBe("last run: none\n0 due")
   })
 
   test("adds a row for a skill that is new and counts it as not due", () => {
@@ -157,7 +262,7 @@ describe("skills.ts due, the list", () => {
 
     const result = repo.skills("due")
 
-    expect(result.stdout).toBe("1 due\na 2026-11-01")
+    expect(result.stdout).toBe("last run: none\n1 due\na 2026-11-01")
     expect(repo.page()).toContain("| fresh | - | 2026-11-25 | 2026-12-05 |")
   })
 })
@@ -264,7 +369,7 @@ describe("the review interval", () => {
 
     const result = repo.skills("due")
 
-    expect(result.stdout).toBe("1 due\nnitro 2026-10-11")
+    expect(result.stdout).toBe("last run: none\n1 due\nnitro 2026-10-11")
     expect((repo.page().match(/\| Skill /g) ?? []).length).toBe(1)
     expect(repo.page()).toContain("| nitro | Node | 2026-10-01 | 2026-10-11 |")
   })

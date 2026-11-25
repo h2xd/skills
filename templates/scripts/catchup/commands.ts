@@ -19,12 +19,17 @@ const LAST_COMMITS = 3
 const LISTED_CHANGES = 20
 const GRAPH_WEEKS = 26
 const LISTED_TAGS = 10
+const LARGE_OUTPUT = 256 * 1024 * 1024
 
 type Scope = "work" | "repo"
 
 function log(range: string, ...options: string[]): Commit[] {
   return parseLog(
-    run(["git", "log", "--date=short", `--format=${LOG_FORMAT}`, ...options, range]),
+    run(
+      ["git", "log", "--date=short", `--format=${LOG_FORMAT}`, ...options, range],
+      undefined,
+      LARGE_OUTPUT,
+    ),
   )
 }
 
@@ -87,7 +92,7 @@ function documentaryFacts(commits: Commit[]): string[] {
     .split("\n")
     .filter((line) => line !== "")
     .slice(0, LISTED_TAGS)
-  const tracked = run(["git", "ls-files"]).split("\n").filter((line) => line !== "")
+  const tracked = run(["git", "ls-files"], undefined, LARGE_OUTPUT).split("\n").filter((line) => line !== "")
   return [
     "mode: documentary",
     "story:",
@@ -102,8 +107,8 @@ function documentaryFacts(commits: Commit[]): string[] {
   ]
 }
 
-function changesFacts(commits: Commit[], lastOwn: Commit): string[] {
-  const changes = log(`${lastOwn.hash}..HEAD`)
+function changesFacts(commits: Commit[], lastOwn: Commit, base: string): string[] {
+  const changes = log(`${lastOwn.hash}..${base}`)
   return [
     "mode: changes",
     `your last commit: ${lastOwn.date}`,
@@ -130,8 +135,14 @@ function repoFacts(branch: string, base: string, user: string): string[] {
   ]
   return [
     ...header,
-    ...(own.length === 0 ? documentaryFacts(commits) : changesFacts(commits, own[0])),
+    ...(own.length === 0 ? documentaryFacts(commits) : changesFacts(commits, own[0], base)),
   ]
+}
+
+function repoBase(branch: string, baseRef: string): string {
+  if (currentBranch() !== branch) return baseRef
+  const remoteIsAncestor = runAllowingFailure(["git", "merge-base", "--is-ancestor", baseRef, "HEAD"])
+  return remoteIsAncestor.exitCode === 0 ? branch : baseRef
 }
 
 function pickScope(value: string | undefined, base: string): Scope {
@@ -153,11 +164,12 @@ export function factsCommand(argv: string[]): void {
   })
   const branch = values.base ?? defaultBranch()
   const scope = pickScope(values.scope, branch)
-  const base = values.base ?? remoteTrackingRef(branch)
+  const baseRef = values.base ?? remoteTrackingRef(branch)
   if (scope === "work") {
-    console.log(workFacts(base).join("\n"))
+    console.log(workFacts(baseRef).join("\n"))
     return
   }
+  const base = values.base ?? repoBase(branch, baseRef)
   const user = values.user ?? runAllowingFailure(["git", "config", "user.email"]).stdout.trim()
   console.log(repoFacts(branch, base, user).join("\n"))
 }

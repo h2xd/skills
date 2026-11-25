@@ -20,6 +20,7 @@ export function threadMarker(thread: RatedThread): Marker {
   if (thread.isResolved) return "🟢"
   const opening = (thread.comments.nodes[0]?.body ?? "").trimStart()
   if (opening.startsWith("⚪")) return "⚪"
+  if (/^(praise|note):/.test(opening)) return "🟢"
   return BLOCKING_LABEL.test(opening) ? "🔴" : "🟡"
 }
 

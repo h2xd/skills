@@ -7,6 +7,9 @@
  *
  * `due` creates the page when it is missing, adds a row for each new
  * repo-local skill and lists the skills whose review is due, oldest first.
+ * It prints `last run: <date>`, or `last run: none`, before the count. That is
+ * the date of the last `due` run, kept as a `Last run:` line above the table.
+ * `due` then writes today's date there.
  * `reviewed` sets the review date of one skill to today and its due date one
  * interval later. Run it only after h2xd:review-skills ran on that skill. A
  * failure prints one line to stderr and exits 1. The logic lives in

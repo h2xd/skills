@@ -27,7 +27,24 @@ describe("threadMarker", () => {
 
   test("an open thread whose first comment is non-blocking is 🟡", () => {
     expect(threadMarker(thread(false, "suggestion (non-blocking): rename"))).toBe("🟡")
-    expect(threadMarker(thread(false, "praise: nice"))).toBe("🟡")
+  })
+
+  test("an open thread whose first comment is praise or a note is 🟢", () => {
+    expect(threadMarker(thread(false, "praise: nice"))).toBe("🟢")
+    expect(threadMarker(thread(false, "note: for the record"))).toBe("🟢")
+  })
+
+  test("praise later in the first comment does not make it 🟢", () => {
+    expect(threadMarker(thread(false, "suggestion (non-blocking): x\n\npraise: y"))).toBe("🟡")
+  })
+
+  test("a (blocking) label on a later line of the first comment is not blocking", () => {
+    expect(threadMarker(thread(false, "suggestion: x\n\nsee issue (blocking): y"))).toBe("🟡")
+  })
+
+  test("white space before the first comment does not hide its label", () => {
+    expect(threadMarker(thread(false, "\nissue (blocking): y"))).toBe("🔴")
+    expect(threadMarker(thread(false, " ⚪ nit"))).toBe("⚪")
   })
 
   test("an open thread whose first comment starts with ⚪ is not counted", () => {

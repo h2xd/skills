@@ -7,6 +7,7 @@ belong in the page and the commit. `node scripts/lint-docs.ts` notes a longer en
 ## 2026-11-25
 
 * **Update**: Add Technology skill, Skills page and Documentary to the [project glossary](/glossary/project.md), for the technology skills, the review table and the newcomer report.
+* **Update**: Add Seed to the [technical glossary](/glossary/technical.md), and say that the drift check ignores a copied seed.
 
 ## 2026-11-24
 

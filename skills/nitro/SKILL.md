@@ -68,8 +68,9 @@ Run the skill of the row, and only that skill. Then go back to step 2.
 - Never run `h2xd:review-gate`, and never merge.
 
 After `h2xd:review-fix`, run `h2xd:review-pr` once. That pair is one round.
-Count the rounds from the PR: the reviews that your `gh` login posted,
-after the first. Read them with `gh pr view --json reviews`. After a
+Count the rounds from the PR: the reviews with a body that your `gh` login
+posted, after the first. A reply to a thread is a review with an empty body,
+so it does not count. Read them with `gh pr view --json reviews`. After a
 `h2xd:review-pr`, go to step 4.
 
 Done when the skill finished and its report is read.
@@ -78,8 +79,9 @@ Done when the skill finished and its report is read.
 
 The goal is a share of 🟢 review threads, with no 🔴 thread. A resolved
 thread is 🟢. An open thread is 🔴 when its first comment says `(blocking)`,
-and 🟡 when not. An open ⚪ thread does not count. A review with no thread
-counts as 100%. With fewer than 10 threads, all must be 🟢. Run
+and 🟢 when it starts with `praise:` or `note:`. Any other open thread is
+🟡. An open ⚪ thread does not count. A review with no thread counts as
+100%. With fewer than 10 threads, all must be 🟢. Run
 `node scripts/review.ts share <pr>`. It prints the counts, the share and
 `reached: yes` or `reached: no`. The share and the round limit are
 `nitro.goalShare` and `nitro.maxRounds` in `agents.config.json`.
