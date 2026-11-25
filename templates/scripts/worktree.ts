@@ -6,8 +6,9 @@
  *   node scripts/worktree.ts <path> [--branch NAME] [--base REF]
  *
  * Without --branch the worktree is detached at the base. With --branch, an
- * existing branch is checked out, and a new one starts at the base, HEAD when
- * --base is absent. Prints the path on stdout. A listed file that the main
+ * existing branch is checked out and --base is ignored, with a note on stderr.
+ * A new branch starts at the base, HEAD of the caller's directory when --base
+ * is absent. Prints the path on stdout. A listed file that the main
  * checkout lacks is skipped, with a note on stderr. A failed setup command
  * removes the worktree. A failure prints one line to stderr and exits 1.
  * The logic lives in scripts/worktree/.
@@ -33,7 +34,7 @@ try {
   const [{ path: mainWorktree }] = parseWorktreeList(
     run(["git", "worktree", "list", "--porcelain"]),
   )
-  const { skipped } = createWorktree({
+  const { skipped, branchExisted } = createWorktree({
     mainWorktree,
     path,
     checkout:
@@ -48,6 +49,9 @@ try {
     links: config.worktreeLinks,
   })
   for (const note of skipped) console.error(`worktree: ${note}`)
+  if (branchExisted && values.base !== undefined) {
+    console.error(`worktree: ${values.branch} already exists, so --base ${values.base} is ignored`)
+  }
   console.log(path)
 } catch (error) {
   if (isUnknownOption(error)) failStale("worktree")

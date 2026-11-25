@@ -1,6 +1,6 @@
 import { describe, test } from "node:test"
 import { expect } from "../../../scripts/expect.ts"
-import { commentMarker, formatShare, type Marker, reviewShare, threadMarker } from "./share.ts"
+import { formatShare, type Marker, reviewShare, threadMarker } from "./share.ts"
 
 const many = (green: number, yellow = 0, red = 0, white = 0): Marker[] => [
   ...Array(green).fill("🟢"),
@@ -9,31 +9,41 @@ const many = (green: number, yellow = 0, red = 0, white = 0): Marker[] => [
   ...Array(white).fill("⚪"),
 ]
 
-describe("commentMarker", () => {
-  test("reads the status marker that opens a comment", () => {
-    expect(commentMarker("🟢 Fixed in abc1234")).toBe("🟢")
-    expect(commentMarker("  🔴 **issue**: wrong")).toBe("🔴")
-    expect(commentMarker("⚪ nit")).toBe("⚪")
-  })
-
-  test("is null for a comment with no marker, or one that is not at the start", () => {
-    expect(commentMarker("plain words")).toBe(null)
-    expect(commentMarker("see 🟢 later")).toBe(null)
-  })
+const thread = (isResolved: boolean, ...bodies: string[]) => ({
+  isResolved,
+  comments: { nodes: bodies.map((body) => ({ body })) },
 })
 
 describe("threadMarker", () => {
-  test("takes the marker of the last comment that has one", () => {
-    expect(threadMarker(["🔴 bug", "🟢 Fixed in abc"])).toBe("🟢")
-    expect(threadMarker(["🟡 hmm", "thanks", "🔴 still broken"])).toBe("🔴")
+  test("a resolved thread is 🟢, whatever its comments say", () => {
+    expect(threadMarker(thread(true, "issue (blocking): bug", "Fixed in abc1234: guard added."))).toBe("🟢")
+    expect(threadMarker(thread(true, "suggestion (non-blocking): rename"))).toBe("🟢")
   })
 
-  test("skips a last comment with no marker", () => {
-    expect(threadMarker(["🟢 done", "thanks"])).toBe("🟢")
+  test("an open thread whose first comment is blocking is 🔴", () => {
+    expect(threadMarker(thread(false, "issue (blocking): bug in x", "Not changed: by design."))).toBe("🔴")
+    expect(threadMarker(thread(false, "  question (blocking): why?"))).toBe("🔴")
   })
 
-  test("counts a thread with no marker as 🟡", () => {
-    expect(threadMarker(["plain", "plain"])).toBe("🟡")
+  test("an open thread whose first comment is non-blocking is 🟡", () => {
+    expect(threadMarker(thread(false, "suggestion (non-blocking): rename"))).toBe("🟡")
+    expect(threadMarker(thread(false, "praise: nice"))).toBe("🟡")
+  })
+
+  test("an open thread whose first comment starts with ⚪ is not counted", () => {
+    expect(threadMarker(thread(false, "⚪ nitpick (non-blocking): spacing"))).toBe("⚪")
+  })
+
+  test("reads the label of the first comment, not a later reply", () => {
+    expect(threadMarker(thread(false, "suggestion (non-blocking): rename", "issue (blocking): worse"))).toBe("🟡")
+  })
+
+  test("a (blocking) later in the first comment does not make it blocking", () => {
+    expect(threadMarker(thread(false, "suggestion (non-blocking): a (blocking): mention"))).toBe("🟡")
+  })
+
+  test("a thread with no comment is 🟡", () => {
+    expect(threadMarker(thread(false))).toBe("🟡")
   })
 })
 
@@ -73,6 +83,11 @@ describe("reviewShare", () => {
   test("follows the goal that the caller passes", () => {
     expect(reviewShare(many(5, 5), 0.5).reached).toBe(true)
     expect(reviewShare(many(5, 5), 0.6).reached).toBe(false)
+  })
+
+  test("rounds the goal to the nearest percent, so 0.57 is 57%", () => {
+    expect(reviewShare(many(56, 44), 0.57).reached).toBe(false)
+    expect(reviewShare(many(57, 43), 0.57).reached).toBe(true)
   })
 
   test("rounds the percent down", () => {

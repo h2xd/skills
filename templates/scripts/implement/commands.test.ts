@@ -168,6 +168,20 @@ describe("implement.ts worktree and cleanup", () => {
     expect(readFileSync(join(path, ".env.local"), "utf8")).toBe("SECRET=1\n")
   })
 
+  test("the worktree of a build worker says which listed file it skipped", () => {
+    const repo = sandbox()
+    repo.write(
+      "agents.config.json",
+      `${JSON.stringify({ worktreeSetup: [], worktreeLinks: ["missing.cfg"] })}\n`,
+    )
+
+    const result = repo.implement("worktree", "1")
+
+    expect(result.status).toBe(0)
+    expect(result.stdout).toBe(repo.worktreePath("1"))
+    expect(result.stderr).toContain("implement: skipped missing.cfg: the main checkout has no such file")
+  })
+
   test("two build workers land by cherry-pick -x, and cleanup removes both", () => {
     const repo = sandbox()
     const paths = ["1", "2"].map((id) => repo.mustImplement("worktree", id))

@@ -1,6 +1,7 @@
 import { describe, test } from "node:test"
 import { expect } from "./expect.ts"
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { copyFileSync, mkdirSync, symlinkSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { spawnSync } from "node:child_process"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import {
@@ -265,6 +266,46 @@ describe("lintSeeds", () => {
 
   test("treats a missing seeds folder as no seeds", () => {
     expect(lintSeeds(join(tmpdir(), "no-such-seeds-folder"))).toEqual([])
+  })
+})
+
+describe("the lint command on a repo with one seed", () => {
+  function lintRepoWithSeed(seed: string): { status: number | null; stderr: string } {
+    const root = mkdtempSync(join(tmpdir(), "lint-cli-"))
+    const source = join(import.meta.dirname, "..")
+    try {
+      const folders = ["scripts", "templates/hooks", "templates/scripts", "skills/next", "agents", ".claude/skills", `${SEEDS_PATH}/demo`]
+      for (const dir of folders) mkdirSync(join(root, dir), { recursive: true })
+      for (const file of ["scripts/lint-skills.ts", GUARD_HOOK_PATH, "templates/scripts/yaml.ts"]) {
+        copyFileSync(join(source, file), join(root, file))
+      }
+      writeFileSync(join(root, BASELINE_PATH), "{}")
+      writeFileSync(join(root, GUARD_EXCEPTIONS_PATH), "[]")
+      writeFileSync(join(root, "skills/next/SKILL.md"), GOOD.replace("name: demo", "name: next"))
+      writeFileSync(join(root, "skills/next/catalog.md"), "| Skill | `h2xd:next` |\n")
+      symlinkSync("../../skills/next", join(root, ".claude/skills/next"))
+      writeFileSync(join(root, SEEDS_PATH, "demo", "SKILL.md"), seed)
+      const run = spawnSync("node", ["scripts/lint-skills.ts"], { cwd: root, encoding: "utf8" })
+      return { status: run.status, stderr: run.stderr }
+    } finally {
+      rmSync(root, { recursive: true })
+    }
+  }
+
+  test("passes a seed that follows the rules", () => {
+    expect(lintRepoWithSeed(GOOD).status).toBe(0)
+  })
+
+  test("fails with the path of a seed that breaks a rule", () => {
+    const run = lintRepoWithSeed(GOOD.replace("## Do\n", "## Done\n"))
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`${SEEDS_PATH}/demo/SKILL.md: no "## Do" section`)
+  })
+
+  test("fails a seed that names a blocked git command", () => {
+    const run = lintRepoWithSeed(GOOD.replace("Run `demo`.", "Run `git reset --hard`."))
+    expect(run.status).toBe(1)
+    expect(run.stderr).toContain(`${SEEDS_PATH}/demo/SKILL.md: line 10: names a blocked command: git reset --hard`)
   })
 })
 

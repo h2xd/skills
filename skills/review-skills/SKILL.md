@@ -89,8 +89,9 @@ Skip this step when the repo has no `scripts/skills.ts`. Only this step moves
 a review date on the Skills page, so the page shows real reviews.
 
 For each skill of step 1 that has a row on the Skills page, run
-`node scripts/skills.ts reviewed <skill>`. A plugin skill has no row, and the
-script refuses it. Leave it out.
+`node scripts/skills.ts reviewed <skill>`. A skill folder linked into
+`.claude/skills` has a row too. A plugin skill that is not in
+`.claude/skills` has no row, and the script refuses it. Leave it out.
 
 Done when each repo-local skill of step 1 printed `reviewed <skill>, next
 review <date>`.

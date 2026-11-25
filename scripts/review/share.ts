@@ -10,23 +10,17 @@ export type Share = {
   reached: boolean
 }
 
-const MARKERS: Marker[] = ["🟢", "🟡", "🔴", "⚪"]
-
-const UNRATED_THREAD: Marker = "🟡"
-
 const ALL_GREEN_BELOW_THREADS = 10
 
-export function commentMarker(body: string): Marker | null {
-  const start = body.trimStart()
-  return MARKERS.find((marker) => start.startsWith(marker)) ?? null
-}
+const BLOCKING_LABEL = /^[^\n(]*\(blocking\):/
 
-export function threadMarker(bodies: string[]): Marker {
-  for (const body of bodies.toReversed()) {
-    const marker = commentMarker(body)
-    if (marker !== null) return marker
-  }
-  return UNRATED_THREAD
+type RatedThread = { isResolved: boolean; comments: { nodes: { body: string }[] } }
+
+export function threadMarker(thread: RatedThread): Marker {
+  if (thread.isResolved) return "🟢"
+  const opening = (thread.comments.nodes[0]?.body ?? "").trimStart()
+  if (opening.startsWith("⚪")) return "⚪"
+  return BLOCKING_LABEL.test(opening) ? "🔴" : "🟡"
 }
 
 export function reviewShare(markers: Marker[], goalShare: number): Share {

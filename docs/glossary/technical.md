@@ -84,7 +84,7 @@ An entry looks like this:
 
 ### Drift check
 
-- **Meaning:** The comparison of a repo's vendored copies against the plugin's `templates/`. It reports a version gap, changed copies and missing scripts, and exits 1 only for a missing script. It runs in step 1 of `h2xd:plan-triage` and in the preflight of `h2xd:code-implement`.
+- **Meaning:** The comparison of a repo's vendored copies against the plugin's `templates/`. It reports a version gap, changed copies and missing scripts, and exits 1 only for a missing script. It runs in step 1 of `h2xd:plan-triage` and in the preflight of `h2xd:code-implement`. A copied [seed](#seed) is out of its scope, because the repo adapts it.
 - **Code:** [`templates/scripts/drift.ts`](../../templates/scripts/drift.ts)
 - **Avoid:** Staleness check, version check
 
@@ -111,6 +111,12 @@ An entry looks like this:
 - **Meaning:** The prose lines over 80 characters that already existed when the line limit began. `lint-skills` allows each one, once per copy, and fails any other. `--write-baseline` only drops lines that are gone or short.
 - **Code:** [`scripts/lint-skills.baseline.json`](../../scripts/lint-skills.baseline.json), read by [`scripts/lint-skills.ts`](../../scripts/lint-skills.ts)
 - **Avoid:** Baseline alone, allowlist
+
+### Seed
+
+- **Meaning:** A skill the plugin keeps in `templates/seeds/`, not in `skills/`, so it does not ship to every user. `h2xd:setup` copies a seed to `.claude/skills/<name>/` of a repo that uses its technology, and the repo adapts the copy. `scripts/lint-skills.ts` checks each seed like a skill.
+- **Code:** [`templates/seeds`](../../templates/seeds)
+- **Avoid:** Template skill, starter skill
 
 ### Role page
 

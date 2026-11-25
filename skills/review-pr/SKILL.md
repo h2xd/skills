@@ -21,8 +21,8 @@ attention, 🟢 is fine as is, ⚪ is optional.
 ## Before step 1
 
 Run `node scripts/review.ts` with no arguments. Its `usage:` line must list
-`worktree`, `context`, `fleet`, `merge`, `options`, `missing`, `setup` and
-`findings`. When one is missing, stop with one line: "run /h2xd:setup". Then
+`worktree`, `context`, `fleet`, `merge`, `options`, `missing` and `findings`.
+When one is missing, stop with one line: "run /h2xd:setup". Then
 run the drift check, per [`drift.md`](../plan-triage/drift.md). When it lists
 a `changed:` file under `scripts/review/`, keep it as a 🟡 line. Then write a
 one-finding file with severity `white` and run
