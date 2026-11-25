@@ -79,7 +79,6 @@ describe("this repo's copies of the templates", () => {
   }
 })
 
-/** The test paths and globs that a `node --test` script runs. */
 function testPaths(script: string): string[] {
   return script.replace(/^node --test /, "").match(/"[^"]+"|\S+/g)?.map((path) => path.replaceAll('"', "")) ?? []
 }
@@ -100,6 +99,13 @@ describe("this repo's test scripts", () => {
     const added = mutants.filter((path) => !all.includes(path))
     expect(added.every(scriptTests)).toBe(true)
     expect(mutants).not.toContain("scripts/repo.test.ts")
+  })
+
+  test("test:mutants runs every test file of scripts, except the copy check", () => {
+    const files = readdirSync(join(ROOT, "scripts"))
+      .filter((name) => name.endsWith(".test.ts") && name !== "repo.test.ts")
+      .map((name) => `scripts/${name}`)
+    for (const file of files) expect(mutants).toContain(file)
   })
 })
 

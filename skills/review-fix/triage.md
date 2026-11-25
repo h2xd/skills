@@ -31,7 +31,8 @@ Find the decision records for a file with
   when the mutant is equivalent, and say why no input makes the two versions
   differ.
 - A thread that asks for a test of a named behavior is a **mutation item**
-  too. Its plan row names the mutant, such as the line to remove.
+  too. Its plan row names the mutant, such as the line to remove. Write
+  the mutant in backticks, or put a backslash before each pipe in it.
 - The plan row of a mutation item names the code file, not the test file. A
   split review groups items by that file, so one fixer holds the item and
   the other fixes to that code.
@@ -49,5 +50,5 @@ Find the decision records for a file with
   group go to one fixer. Give the group to every row that touches a file of
   the topic, so no other fixer edits that file. A row with no group joins the
   rows that name its file. The split fails on a row with a fifth cell and no
-  header, and on a row with more cells than its header. Write a pipe inside a
-  cell as `\|`.
+  header, and on a row with more cells than its header. A pipe between two
+  backticks of one cell is text. Write any other pipe as `\|`.
