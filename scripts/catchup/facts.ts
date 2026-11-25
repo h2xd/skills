@@ -1,8 +1,5 @@
-/** Pure helpers behind `node scripts/catchup.ts`: the facts that git output holds. */
-
 export type Commit = {
   hash: string
-  /** YYYY-MM-DD. */
   date: string
   author: string
   email: string
@@ -10,7 +7,6 @@ export type Commit = {
 }
 
 export type WeekCount = {
-  /** The Monday of the week, as YYYY-MM-DD. */
   week: string
   count: number
 }
@@ -19,7 +15,6 @@ export const LOG_FORMAT = "%h%x09%ad%x09%an%x09%ae%x09%s"
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
-/** Reads `git log --date=short --format=LOG_FORMAT`. */
 export function parseLog(text: string): Commit[] {
   return text
     .split("\n")
@@ -36,7 +31,6 @@ export function weekStart(date: string): string {
   return new Date(day.getTime() - sinceMonday * DAY_MS).toISOString().slice(0, 10)
 }
 
-/** One entry for each week from the first commit to the last, so a quiet week shows as 0. */
 export function commitsPerWeek(dates: string[]): WeekCount[] {
   if (dates.length === 0) return []
   const counts = new Map<string, number>()
@@ -53,12 +47,10 @@ export function commitsPerWeek(dates: string[]): WeekCount[] {
   return result
 }
 
-/** The ticket number of a branch such as `feat/116-name`, or null. */
 export function branchTicket(branch: string): string | null {
   return branch.match(/\/(\d+)-/)?.[1] ?? null
 }
 
-/** Tracked files per top-level folder, folders by name and the root files last. */
 export function topLevelCounts(files: string[]): { name: string; files: number }[] {
   const counts = new Map<string, number>()
   for (const file of files) {
@@ -70,7 +62,6 @@ export function topLevelCounts(files: string[]): { name: string; files: number }
     .sort((a, b) => (a.name === "(root)" ? 1 : b.name === "(root)" ? -1 : a.name.localeCompare(b.name)))
 }
 
-/** The file name with the newest stamp among `handoff-<repo>-<YYYYMMDD-HHMM>.md`, or null. */
 export function newestHandoff(names: string[], repo: string): string | null {
   const escaped = repo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   const pattern = new RegExp(`^handoff-${escaped}-(\\d{8}-\\d{4})\\.md$`)

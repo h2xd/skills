@@ -1,5 +1,3 @@
-/** The share of review threads that are 🟢, behind `node scripts/review.ts share`. */
-
 export type Marker = "🟢" | "🟡" | "🔴" | "⚪"
 
 export type Share = {
@@ -7,33 +5,30 @@ export type Share = {
   yellow: number
   red: number
   white: number
-  /** The threads that count: every thread but the ⚪ ones. */
   counted: number
-  /** The share of counted threads that are 🟢, rounded down. 100 when none count. */
   percent: number
   reached: boolean
 }
 
 const MARKERS: Marker[] = ["🟢", "🟡", "🔴", "⚪"]
 
-/** With fewer counted threads than this, every one must be 🟢. */
-const SHARE_FROM_THREADS = 10
+const UNRATED_THREAD: Marker = "🟡"
+
+const ALL_GREEN_BELOW_THREADS = 10
 
 export function commentMarker(body: string): Marker | null {
   const start = body.trimStart()
   return MARKERS.find((marker) => start.startsWith(marker)) ?? null
 }
 
-/** The marker of the last comment that has one. A thread with no marker needs attention: 🟡. */
 export function threadMarker(bodies: string[]): Marker {
   for (const body of bodies.toReversed()) {
     const marker = commentMarker(body)
     if (marker !== null) return marker
   }
-  return "🟡"
+  return UNRATED_THREAD
 }
 
-/** `goalShare` is a fraction, such as 0.9 for 90%. */
 export function reviewShare(markers: Marker[], goalShare: number): Share {
   const count = (marker: Marker) => markers.filter((found) => found === marker).length
   const green = count("🟢")
@@ -43,7 +38,7 @@ export function reviewShare(markers: Marker[], goalShare: number): Share {
   const percent = counted === 0 ? 100 : Math.floor((green * 100) / counted)
   const goalPercent = Math.round(goalShare * 100)
   const enough =
-    counted < SHARE_FROM_THREADS ? green === counted : green * 100 >= goalPercent * counted
+    counted < ALL_GREEN_BELOW_THREADS ? green === counted : green * 100 >= goalPercent * counted
   return { green, yellow, red, white: count("⚪"), counted, percent, reached: red === 0 && enough }
 }
 

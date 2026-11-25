@@ -79,9 +79,7 @@ function createReviewWorktree(mainWorktree: string, branch: string): string {
   const { skipped } = createWorktree({
     mainWorktree,
     path,
-    branch,
-    base: `origin/${branch}`,
-    track: true,
+    checkout: { kind: "branch", name: branch, whenNew: { base: `origin/${branch}`, track: true } },
     setup: config.worktreeSetup,
     links: config.worktreeLinks,
   })

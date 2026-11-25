@@ -1,5 +1,3 @@
-/** The subcommands of `node scripts/catchup.ts`. Each takes its argv tail and prints what it reads. */
-
 import { readdirSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { basename, join } from "node:path"
