@@ -185,22 +185,23 @@ function localPathPattern(paths: string[]): RegExp | null {
   return new RegExp(`(?<![\\w:/.-])(?:${prefixes.join("|")})(?![\\w-])${tail}`, "g")
 }
 
-function localPaths(text: string, pattern: RegExp | null): string[] {
-  if (pattern === null) return []
-  return [...text.matchAll(pattern)].map((match) => match[0].replace(/[.,;:!?]+$/, ""))
+export function localPathFinder(folders: string[] = localFolders()): (text: string) => string[] {
+  const pattern = localPathPattern(folders)
+  return (text) =>
+    pattern === null
+      ? []
+      : [...text.matchAll(pattern)].map((match) => match[0].replace(/[.,;:!?]+$/, ""))
 }
 
 export function validateNoLocalPaths(
   review: { body?: string; comments?: DraftComment[] },
   paths: string[] = localFolders(),
 ): string[] {
-  const pattern = localPathPattern(paths)
+  const find = localPathFinder(paths)
   return [
-    ...localPaths(review.body ?? "", pattern).map(
-      (path) => `review body: local absolute path ${path}`,
-    ),
+    ...find(review.body ?? "").map((path) => `review body: local absolute path ${path}`),
     ...(review.comments ?? []).flatMap((comment) =>
-      localPaths(comment.body, pattern).map(
+      find(comment.body).map(
         (path) => `${comment.path}:${comment.line}: local absolute path ${path}`,
       ),
     ),

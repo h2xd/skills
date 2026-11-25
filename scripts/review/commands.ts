@@ -24,6 +24,7 @@ import {
   formatPreview,
   mergeFindings,
   parseFindings,
+  validateFindingsPaths,
 } from "./findings.ts"
 import { missingReviewFiles } from "./missing.ts"
 import { formatFixSplit, parseFixItems, planFixSplit } from "./split.ts"
@@ -416,13 +417,22 @@ function readJson(file: string): unknown {
 export function findingsCommand(argv: string[]): void {
   const { values } = parseArgs({
     args: argv,
-    options: { validate: { type: "string" } },
+    options: {
+      validate: { type: "string" },
+      "local-path": { type: "string", multiple: true },
+    },
   })
-  const file = requireArgument(values.validate, "findings --validate <file>")
+  const file = requireArgument(
+    values.validate,
+    "findings --validate <file> [--local-path <dir>]...",
+  )
   const parsed = parseFindings(readJson(file))
-  if (!parsed.ok) {
-    for (const problem of parsed.problems) console.error(problem)
-    throw new Error(`${parsed.problems.length} problem(s) in ${file}`)
+  const problems = parsed.ok
+    ? validateFindingsPaths(parsed.file, localFolders(values["local-path"]))
+    : parsed.problems
+  if (!parsed.ok || problems.length > 0) {
+    for (const problem of problems) console.error(problem)
+    throw new Error(`${problems.length} problem(s) in ${file}`)
   }
   console.log(`ok: ${parsed.file.findings.length} findings checked`)
 }
