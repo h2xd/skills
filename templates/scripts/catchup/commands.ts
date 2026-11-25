@@ -50,12 +50,23 @@ function defaultBranch(): string {
   return ["main", "master"].find(branchExists) ?? currentBranch()
 }
 
-function remoteTrackingRef(branch: string): string {
+function remoteTrackingRef(branch: string): string | null {
   const remote = `origin/${branch}`
   const exists =
     runAllowingFailure(["git", "show-ref", "--verify", "--quiet", `refs/remotes/${remote}`])
       .exitCode === 0
-  return exists ? remote : branch
+  return exists ? remote : null
+}
+
+function remoteDifference(branch: string): string[] {
+  const remote = remoteTrackingRef(branch)
+  if (remote === null || currentBranch() !== branch) return []
+  const ahead = log(`${remote}..${branch}`).length
+  const behind = log(`${branch}..${remote}`).length
+  return [
+    ...(ahead > 0 ? [`ahead of remote: ${ahead}`] : []),
+    ...(behind > 0 ? [`behind remote: ${behind}`] : []),
+  ]
 }
 
 function weekSection(commits: Commit[]): string[] {
@@ -126,6 +137,7 @@ function repoFacts(branch: string, base: string, user: string): string[] {
   const header = [
     "scope: repo",
     `branch: ${branch}`,
+    ...remoteDifference(branch),
     `commits: ${commits.length}`,
     `first commit: ${commits[commits.length - 1].date}`,
     `last commit: ${commits[0].date}`,
@@ -164,7 +176,7 @@ export function factsCommand(argv: string[]): void {
   })
   const branch = values.base ?? defaultBranch()
   const scope = pickScope(values.scope, branch)
-  const baseRef = values.base ?? remoteTrackingRef(branch)
+  const baseRef = values.base ?? remoteTrackingRef(branch) ?? branch
   if (scope === "work") {
     console.log(workFacts(baseRef).join("\n"))
     return
